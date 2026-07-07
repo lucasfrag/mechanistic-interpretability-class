@@ -1,0 +1,693 @@
+/* ============================================================
+   viz.js — visualizações SVG para os slides matemáticos.
+   Cada função devolve markup SVG; a revelação incremental é
+   controlada por data-fragment-index nos grupos, sincronizada
+   com os fragmentos do reveal.js.
+   ============================================================ */
+
+const NS = "http://www.w3.org/2000/svg";
+
+/* ---------- util ---------- */
+function el(tag, attrs = {}, children = "") {
+  const a = Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(" ");
+  return `<${tag} ${a}>${children}</${tag}>`;
+}
+
+/* ============================================================
+   1) PLANO 2D com vetores — usado em: feature=direção (7),
+      quase-ortogonalidade (14), interferência (15).
+      Origem no canto inferior-esquerdo. Coordenadas matemáticas
+      convertidas para tela.
+   ============================================================ */
+function plane2D(opts) {
+  const { w = 440, h = 380, pad = 46, id = "pl", vectors = [], showAngle = null,
+          axisLabels = ["neurônio 1", "neurônio 2"], gridStep = 0 } = opts;
+  const ox = pad, oy = h - pad;                 // origem em tela
+  const spanX = w - pad * 1.4, spanY = h - pad * 1.7;
+  const X = (x) => ox + x * spanX;               // x∈[0,1]
+  const Y = (y) => oy - y * spanY;               // y∈[0,1]
+
+  let g = "";
+  // grid opcional
+  if (gridStep > 0) {
+    for (let t = gridStep; t < 1; t += gridStep) {
+      g += el("line", { class: "gridln", x1: X(t), y1: Y(0), x2: X(t), y2: Y(1) });
+      g += el("line", { class: "gridln", x1: X(0), y1: Y(t), x2: X(1), y2: Y(t) });
+    }
+  }
+  // eixos
+  g += el("line", { class: "axis", x1: ox, y1: oy, x2: X(1.02), y2: oy, "marker-end": `url(#ah-${id})` });
+  g += el("line", { class: "axis", x1: ox, y1: oy, x2: ox, y2: Y(1.02), "marker-end": `url(#ah-${id})` });
+  g += el("text", { x: X(1.0), y: oy + 26, "text-anchor": "end", fill: "#71717A", "font-size": 15 }, axisLabels[0]);
+  g += el("text", { x: ox - 6, y: Y(1.0) - 8, "text-anchor": "start", fill: "#71717A", "font-size": 15 }, axisLabels[1]);
+
+  // ângulo (arco entre dois vetores) — opcional
+  if (showAngle && vectors.length >= 2) {
+    const a1 = Math.atan2(-(vectors[0].y), vectors[0].x);
+    const a2 = Math.atan2(-(vectors[1].y), vectors[1].x);
+    const r = 54;
+    const x1 = ox + r * Math.cos(a1), y1 = oy + r * Math.sin(a1);
+    const x2 = ox + r * Math.cos(a2), y2 = oy + r * Math.sin(a2);
+    const large = Math.abs(a2 - a1) > Math.PI ? 1 : 0;
+    const sweep = a2 < a1 ? 1 : 0;
+    g += el("path", { d: `M ${x1} ${y1} A ${r} ${r} 0 ${large} ${sweep} ${x2} ${y2}`,
+      fill: "none", stroke: "#B45309", "stroke-width": 2.5,
+      "data-frag": showAngle.frag ?? "" , "data-term": showAngle.term ?? "",
+      class: `vterm ${showAngle.frag != null ? "vfrag" : ""}` });
+    const am = (a1 + a2) / 2;
+    g += el("text", { x: ox + (r + 20) * Math.cos(am), y: oy + (r + 20) * Math.sin(am) + 5,
+      "text-anchor": "middle", fill: "#B45309", "font-size": 20, "font-style": "italic",
+      "data-frag": showAngle.frag ?? "", "data-term": showAngle.term ?? "",
+      class: `vterm ${showAngle.frag != null ? "vfrag" : ""}` }, "θ");
+  }
+
+  // vetores
+  vectors.forEach((v, i) => {
+    const cls = `vterm ${v.frag != null ? "vfrag" : ""}`;
+    const col = v.color || "#6B21A8";
+    g += el("g", { "data-frag": v.frag ?? "", "data-term": v.term ?? "", class: cls },
+      el("line", { x1: ox, y1: oy, x2: X(v.x), y2: Y(v.y), stroke: col, "stroke-width": v.width || 4,
+        "marker-end": `url(#vh-${id}-${i})` }) +
+      (v.label ? el("text", { x: X(v.x) + (v.lx || 8), y: Y(v.y) + (v.ly || -6),
+        fill: col, "font-size": 18, "font-weight": 700 }, v.label) : "")
+    );
+  });
+
+  // defs de marcadores (setas)
+  let defs = el("marker", { id: `ah-${id}`, markerWidth: 10, markerHeight: 10, refX: 8, refY: 3,
+    orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L8,3 L0,6 Z", fill: "#B8B8C0" }));
+  vectors.forEach((v, i) => {
+    defs += el("marker", { id: `vh-${id}-${i}`, markerWidth: 9, markerHeight: 9, refX: 6.5, refY: 3,
+      orient: "auto", markerUnits: "strokeWidth" },
+      el("path", { d: "M0,0 L7,3 L0,6 Z", fill: v.color || "#6B21A8" }));
+  });
+
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id },
+    el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   2) MUITOS vetores quase-ortogonais (14) — mostra que em alta
+      dimensão cabem muitas direções quase perpendiculares.
+   ============================================================ */
+function fanVectors(opts) {
+  const { w = 300, h = 300, id = "fan", n = 8, frag = null,
+          colorA = "#6B21A8", colorB = "#9333EA" } = opts;
+  const cx = w * 0.16, cy = h * 0.84, r = Math.min(w, h) * 0.72;
+  let g = el("line", { class: "axis", x1: cx, y1: cy, x2: cx + r * 0.05, y2: cy }); // ref
+  for (let k = 0; k < n; k++) {
+    const ang = -(Math.PI / 2) * (k / (n - 1));   // de 0 a -90°
+    const x = cx + r * Math.cos(ang), y = cy + r * Math.sin(ang);
+    g += el("line", { x1: cx, y1: cy, x2: x, y2: y, stroke: k % 2 ? colorB : colorA,
+      "stroke-width": 3, opacity: 0.9 });
+  }
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: `viz ${frag != null ? "vfrag" : ""}`,
+    "data-frag": frag ?? "", id }, g);
+}
+
+/* ============================================================
+   3) REDE NEURAL simples com neurônio polissemântico destacável
+      — usado em: polissemanticidade (11), feature=combinação (7).
+   ============================================================ */
+function miniNet(opts) {
+  const { w = 380, h = 320, id = "net", highlight = [], litColor = "#6B21A8" } = opts;
+  const layers = opts.layers || [3, 4, 2];
+  const colX = layers.map((_, i) => 60 + i * ((w - 120) / (layers.length - 1)));
+  const pos = [];
+  layers.forEach((n, li) => {
+    const gap = (h - 80) / (n + 1);
+    pos[li] = [];
+    for (let k = 0; k < n; k++) pos[li][k] = { x: colX[li], y: 40 + gap * (k + 1) };
+  });
+  let edges = "", nodes = "";
+  for (let li = 0; li < layers.length - 1; li++) {
+    pos[li].forEach((a) => pos[li + 1].forEach((b) => {
+      edges += el("line", { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: "#E0E0E6", "stroke-width": 1 });
+    }));
+  }
+  pos.forEach((col, li) => col.forEach((p, k) => {
+    const key = `${li}-${k}`;
+    const lit = highlight.includes(key);
+    nodes += el("circle", { cx: p.x, cy: p.y, r: 13,
+      fill: lit ? litColor : "#F0EAF7", stroke: lit ? litColor : "#C9B8DD", "stroke-width": 2 });
+  }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, edges + nodes);
+}
+
+/* ============================================================
+   4) SAE diagram — ativação (poucos neurônios) → expande em
+      muitas features esparsas (poucas acesas) → reconstrói.
+      Usado em: expandir não comprimir (20), fórmula SAE (21).
+   ============================================================ */
+function saeDiagram(opts) {
+  const { w = 460, h = 300, id = "sae", litSet = [1, 4, 7], nFeat = 10,
+          showRecon = true, stage = 2 } = opts;
+  // stage: 0 = só entrada; 1 = entrada+encoder+features; 2 = +decoder+saída
+  const xIn = 60, xFeat = w / 2, xOut = w - 60;
+  const inN = 4, gapIn = (h - 60) / (inN + 1);
+  let g = "";
+  const inPos = [];
+  for (let k = 0; k < inN; k++) { const y = 30 + gapIn * (k + 1); inPos.push({ x: xIn, y }); }
+  const gapF = (h - 30) / (nFeat + 1);
+  const fPos = [];
+  for (let k = 0; k < nFeat; k++) { const y = 15 + gapF * (k + 1); fPos.push({ x: xFeat, y }); }
+
+  // grupo ENCODER (entrada→features): arestas + nós de feature
+  let enc = "";
+  inPos.forEach((a) => fPos.forEach((b) =>
+    enc += el("line", { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: "#EDE7F3", "stroke-width": 0.7 })));
+  fPos.forEach((p, k) => {
+    const lit = litSet.includes(k);
+    enc += el("circle", { cx: p.x, cy: p.y, r: 8,
+      fill: lit ? "#6B21A8" : "#EDEDF0", stroke: lit ? "#6B21A8" : "#D8D8DE", "stroke-width": 1.5 });
+  });
+  // grupo DECODER (features→saída)
+  let dec = "";
+  if (showRecon) {
+    const oPos = [];
+    for (let k = 0; k < inN; k++) { const y = 30 + gapIn * (k + 1); oPos.push({ x: xOut, y }); }
+    fPos.filter((_, k) => litSet.includes(k)).forEach((a) => oPos.forEach((b) =>
+      dec += el("line", { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: "#CDE9F0", "stroke-width": 1 })));
+    oPos.forEach((p) => dec += el("circle", { cx: p.x, cy: p.y, r: 11,
+      fill: "#F0F9FB", stroke: "#0891B2", "stroke-width": 2 }));
+    dec += el("text", { x: xOut, y: h - 4, "text-anchor": "middle", fill: "#71717A", "font-size": 13 }, "x̂");
+  }
+
+  // desenha por estágio, marcando termos para realce
+  // entrada (sempre visível a partir do stage 0)
+  let inp = "";
+  inPos.forEach((p) => inp += el("circle", { cx: p.x, cy: p.y, r: 11,
+    fill: "#E9DEF5", stroke: "#9333EA", "stroke-width": 2 }));
+  g += el("g", { class: "vterm", "data-term": "x" }, inp);
+  if (stage >= 1) g += el("g", { class: "vterm", "data-term": "enc" }, enc);
+  if (stage >= 2 && showRecon) g += el("g", { class: "vterm", "data-term": "dec" }, dec);
+
+  // labels
+  g += el("text", { x: xIn, y: h - 4, "text-anchor": "middle", fill: "#71717A", "font-size": 13 }, "x");
+  if (stage >= 1)
+    g += el("text", { x: xFeat, y: h - 4, "text-anchor": "middle", fill: "#6B21A8", "font-size": 13, "font-weight": 700 }, "f(x)");
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   5) TRANSFORMER stack + residual stream — usado em (9), (27).
+   ============================================================ */
+function transformerStack(opts) {
+  const { w = 400, h = 360, id = "tr", nBlocks = 3, crossLayer = false } = opts;
+  const topPad = 28, botPad = 46;                 // espaço p/ seta e legenda
+  const streamX = w * 0.26;
+  const gutter = 34;                              // vão entre stream e 1ª caixa
+  const boxGap = 16;                              // vão entre Atenção e MLP
+  const boxW = (w - (streamX + gutter) - boxGap - 14) / 2;
+  const bh = (h - topPad - botPad) / nBlocks;     // altura de cada faixa
+  const boxH = bh - 22;                           // caixa com respiro vertical
+  let g = "";
+
+  // conexões bloco<->stream primeiro (ficam ATRÁS de tudo), curtas e sutis
+  for (let i = 0; i < nBlocks; i++) {
+    const cy = topPad + i * bh + bh / 2;
+    g += el("line", { x1: streamX, y1: cy, x2: streamX + gutter, y2: cy,
+      stroke: "#D9C7EC", "stroke-width": 1.5 });
+  }
+  // residual stream (linha vertical grossa) — por cima das conexões
+  g += el("line", { x1: streamX, y1: topPad - 6, x2: streamX, y2: h - botPad + 10,
+    stroke: "#6B21A8", "stroke-width": 4, "marker-end": `url(#trah-${id})` });
+  g += el("text", { x: streamX, y: h - botPad + 32, "text-anchor": "middle", fill: "#6B21A8",
+    "font-size": 14, "font-style": "italic" }, "residual stream");
+
+  // blocos (por cima do stream, então as pontas das conexões ficam escondidas sob a caixa)
+  for (let i = 0; i < nBlocks; i++) {
+    const y = topPad + i * bh + (bh - boxH) / 2;
+    ["Atenção", "MLP"].forEach((lbl, j) => {
+      const bx = streamX + gutter + j * (boxW + boxGap);
+      g += el("rect", { x: bx, y, width: boxW, height: boxH, rx: 9,
+        fill: "#fff", stroke: "#9333EA", "stroke-width": 1.5 });
+      g += el("text", { x: bx + boxW / 2, y: y + boxH / 2 + 5, "text-anchor": "middle",
+        fill: "#3F3F46", "font-size": 15 }, lbl);
+    });
+  }
+
+  // cross-layer feature (atravessa várias camadas) — trilho rosa colado ao stream
+  if (crossLayer) {
+    const cx = streamX + 15;
+    g += el("line", { x1: cx, y1: topPad + 4, x2: cx, y2: h - botPad - 4,
+      stroke: "#DB2777", "stroke-width": 3 });
+    for (let i = 0; i < nBlocks; i++) {
+      const cy = topPad + i * bh + bh / 2;
+      g += el("circle", { cx, cy, r: 5.5, fill: "#DB2777" });
+    }
+  }
+  const defs = el("marker", { id: `trah-${id}`, markerWidth: 9, markerHeight: 9, refX: 4, refY: 3,
+    orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#6B21A8" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   6) ATTRIBUTION GRAPH — nós conceituais com setas causais.
+      Usado em: Dallas→Texas→Austin (29), intervenção (31).
+   ============================================================ */
+function attribGraph(opts) {
+  const { w = 300, h = 380, id = "ag", nodes = [], swap = null } = opts;
+  // nodes: [{label, y(0..1), out?}]
+  let g = "";
+  const X = w / 2;
+  const ny = (t) => 40 + t * (h - 90);
+  for (let i = 0; i < nodes.length - 1; i++)
+    g += el("line", { x1: X, y1: ny(nodes[i].y) + 26, x2: X, y2: ny(nodes[i + 1].y) - 4,
+      stroke: "#B8B8C0", "stroke-width": 2.5, "marker-end": `url(#agah-${id})` });
+  nodes.forEach((nd) => {
+    const out = nd.out;
+    const y = ny(nd.y);
+    g += el("rect", { x: X - 78, y: y - 4, width: 156, height: 46, rx: 12,
+      fill: out ? "#6B21A8" : "#F3E8FC", stroke: out ? "#6B21A8" : "none", "stroke-width": 1 });
+    g += el("text", { x: X, y: y + 24, "text-anchor": "middle",
+      fill: out ? "#fff" : "#6B21A8", "font-size": 18, "font-weight": 700 }, nd.label);
+  });
+  const defs = el("marker", { id: `agah-${id}`, markerWidth: 9, markerHeight: 9, refX: 6, refY: 3,
+    orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#B8B8C0" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   7) SUPERPOSIÇÃO INTERATIVA — o círculo de features.
+      A esparsidade (0..1) controla quantas features a rede
+      "liga" e como elas se arranjam no plano 2D:
+      - esparsidade baixa: só cabem 2 features ortogonais (90°)
+      - esparsidade alta: várias features se distribuem em
+        polígono regular, quase-ortogonais, aceitando interferência.
+      Retorna SVG. Chamada a cada input do slider.
+   ============================================================ */
+function superposition(opts) {
+  const { w = 360, h = 360, id = "sp", sparsity = 0.5 } = opts;
+  const ox = w * 0.16, oy = h * 0.84, R = Math.min(w, h) * 0.66;
+  // nº de features cabíveis cresce com a esparsidade: 2 → 9
+  const n = Math.round(2 + sparsity * 7);          // 2..9
+  // As features permanecem QUASE perpendiculares: preenchem uma faixa
+  // estreita perto de 90°. Quanto mais features, mais apertadas — mas nunca
+  // colapsam, porque em alta dimensão há espaço para muitas quase-ortogonais.
+  // Faixa angular total ocupada cresce devagar (de ~0 até ~55°).
+  const spanDeg = 8 + sparsity * 48;               // leque de 8°..56°
+  const span = spanDeg * Math.PI / 180;
+  const start = Math.PI / 2 - span / 2;            // centrado em 90° (eixo y = ideal)
+  const step = n > 1 ? span / (n - 1) : 0;
+  const stepDeg = Math.round(step * 180 / Math.PI);
+  // ângulo médio ao vizinho mais próximo do "ideal 90°": quanto o leque desvia.
+  // interferência ~ sen(desvio do centro) média — cresce suave de 0.
+  const interfVal = Math.min(0.95, 0.5 * (1 - Math.cos(span / 2)) + (n - 2) * 0.03);
+  const interf = interfVal.toFixed(2);
+  let g = "";
+  // quarto de círculo-guia
+  g += el("path", { d: `M ${ox + R} ${oy} A ${R} ${R} 0 0 0 ${ox} ${oy - R}`,
+    fill: "none", stroke: "#ECECF0", "stroke-width": 1.5 });
+  g += el("line", { x1: ox, y1: oy, x2: ox + R + 16, y2: oy, stroke: "#DEDEE4", "stroke-width": 1.5 });
+  g += el("line", { x1: ox, y1: oy, x2: ox, y2: oy - R - 16, stroke: "#DEDEE4", "stroke-width": 1.5 });
+  // linha tracejada no 90° ideal (referência)
+  g += el("line", { x1: ox, y1: oy, x2: ox + R * Math.cos(Math.PI/2), y2: oy - R * Math.sin(Math.PI/2),
+    stroke: "#D1FAE5", "stroke-width": 2, "stroke-dasharray": "4 4" });
+  // setas de feature dentro do leque quase-ortogonal
+  for (let k = 0; k < n; k++) {
+    const a = start + k * step;
+    const x = ox + R * Math.cos(a), y = oy - R * Math.sin(a);
+    const col = k % 2 ? "#9333EA" : "#6B21A8";
+    g += el("line", { x1: ox, y1: oy, x2: x, y2: y, stroke: col, "stroke-width": 3.5,
+      "marker-end": `url(#sph-${id})`, opacity: 0.92 });
+  }
+  g += el("circle", { cx: ox, cy: oy, r: 4, fill: "#1A1A1A" });
+  const defs = el("marker", { id: `sph-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3,
+    orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#6B21A8" }));
+  return { svg: el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g),
+           n, minAngleDeg: stepDeg, interf };
+}
+
+/* ============================================================
+   8) GRAFO DE INTERVENÇÃO CAUSAL (Dallas→Texas→Austin).
+      Estado "normal" vs "intervencionado" (Texas→Califórnia).
+      O nó do meio é clicável: trocar o conceito propaga a
+      mudança para a saída — materializa a intervenção causal.
+   ============================================================ */
+function causalChain(opts) {
+  const { w = 340, h = 380, id = "cc", swapped = false } = opts;
+  const X = w / 2;
+  const mid = swapped
+    ? { label: "Califórnia", color: "#1D4ED8", bg: "#DBEAFE" }
+    : { label: "Texas", color: "#6B21A8", bg: "#F3E8FC" };
+  const out = swapped ? "Sacramento" : "Austin";
+  const nodes = [
+    { label: "Dallas", y: 0, bg: "#F3E8FC", fg: "#6B21A8" },
+    { label: mid.label, y: 0.34, bg: mid.bg, fg: mid.color, clickable: true },
+    { label: "+ capital", y: 0.66, bg: "#F3E8FC", fg: "#6B21A8" },
+    { label: out, y: 1, out: true }
+  ];
+  const ny = (t) => 42 + t * (h - 120);
+  let g = "";
+  // arestas
+  for (let i = 0; i < nodes.length - 1; i++) {
+    const y1 = ny(nodes[i].y) + 26, y2 = ny(nodes[i + 1].y) - 6;
+    g += el("line", { x1: X, y1, x2: X, y2, stroke: "#B8B8C0", "stroke-width": 2.5,
+      "marker-end": `url(#cch-${id})` });
+  }
+  // nós
+  nodes.forEach((nd) => {
+    const y = ny(nd.y);
+    const out = nd.out;
+    const fill = out ? "#6B21A8" : nd.bg;
+    const fg = out ? "#fff" : nd.fg;
+    const cls = nd.clickable ? ` class="cc-click" data-cc="${id}" style="cursor:pointer"` : "";
+    // grupo clicável (o handler fica no HTML)
+    g += `<g${cls}>`;
+    g += el("rect", { x: X - 82, y: y - 4, width: 164, height: 46, rx: 12,
+      fill, stroke: out ? "#6B21A8" : (nd.clickable ? nd.fg : "none"),
+      "stroke-width": nd.clickable ? 2 : 1 });
+    g += el("text", { x: X, y: y + 24, "text-anchor": "middle", fill: fg,
+      "font-size": 19, "font-weight": 700 }, nd.label);
+    if (nd.clickable)
+      g += el("text", { x: X, y: y + 62, "text-anchor": "middle", fill: "#71717A",
+        "font-size": 13, "font-style": "italic" }, swapped ? "◑ clique para reverter" : "◑ clique para intervir");
+    g += `</g>`;
+  });
+  const defs = el("marker", { id: `cch-${id}`, markerWidth: 9, markerHeight: 9, refX: 6, refY: 3,
+    orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#B8B8C0" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   9) TRADE-OFF da perda do SAE — uma gangorra entre os dois
+      termos. tilt ∈ [-1,1]: -1 pende p/ reconstrução (fiel, denso),
+      +1 pende p/ esparsidade (poucas features, perde detalhe).
+      Marca cada lado com data-term para o realce sincronizado.
+   ============================================================ */
+function lossBalance(opts) {
+  const { w = 380, h = 300, id = "lb", tilt = 0, highlight = null } = opts;
+  const cx = w / 2, pivotY = h * 0.62, armLen = w * 0.34, armAng = tilt * 0.32; // rad
+  const dx = armLen * Math.cos(armAng), dy = armLen * Math.sin(armAng);
+  const lx = cx - dx, ly = pivotY + dy;   // ponta esquerda (reconstrução)
+  const rx = cx + dx, ry = pivotY - dy;   // ponta direita (esparsidade)
+  let g = "";
+  // base/pivô
+  g += el("path", { d: `M ${cx - 26} ${h - 24} L ${cx + 26} ${h - 24} L ${cx} ${pivotY + 6} Z`,
+    fill: "#E5E1EA" });
+  // braço
+  g += el("line", { x1: lx, y1: ly, x2: rx, y2: ry, stroke: "#3F3F46", "stroke-width": 5,
+    "stroke-linecap": "round" });
+  g += el("circle", { cx, cy: pivotY, r: 6, fill: "#3F3F46" });
+  // prato esquerdo — RECONSTRUÇÃO (azul)
+  const encL = (lit) => `filter:${lit ? "drop-shadow(0 0 7px #1D4ED8)" : "none"}`;
+  g += el("g", { class: "vterm", "data-term": "recon", style: encL(highlight === "recon") },
+    el("line", { x1: lx, y1: ly, x2: lx, y2: ly + 26, stroke: "#94A3B8", "stroke-width": 1.5 }) +
+    el("circle", { cx: lx, cy: ly + 40, r: 26, fill: "#DBEAFE", stroke: "#1D4ED8", "stroke-width": 2 }) +
+    el("text", { x: lx, y: ly + 45, "text-anchor": "middle", fill: "#1D4ED8", "font-size": 13, "font-weight": 700 }, "recon.") +
+    el("text", { x: lx, y: ly + 82, "text-anchor": "middle", fill: "#1D4ED8", "font-size": 12 }, "ser fiel"));
+  // prato direito — ESPARSIDADE (roxo)
+  g += el("g", { class: "vterm", "data-term": "sparse", style: `filter:${highlight === "sparse" ? "drop-shadow(0 0 7px #6B21A8)" : "none"}` },
+    el("line", { x1: rx, y1: ry, x2: rx, y2: ry + 26, stroke: "#94A3B8", "stroke-width": 1.5 }) +
+    el("circle", { cx: rx, cy: ry + 40, r: 26, fill: "#F3E8FC", stroke: "#6B21A8", "stroke-width": 2 }) +
+    el("text", { x: rx, y: ry + 45, "text-anchor": "middle", fill: "#6B21A8", "font-size": 13, "font-weight": 700 }, "esparso") +
+    el("text", { x: rx, y: ry + 82, "text-anchor": "middle", fill: "#6B21A8", "font-size": 12 }, "poucas feat."));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   10) ACTIVATION PATCHING — três colunas de camadas empilhadas
+       (clean, corrupted, patched). Um nó destacado mostra a
+       ativação transplantada da clean para a corrupted.
+       state: "clean" | "corrupted" | "patched"
+   ============================================================ */
+function patchingDiagram(opts) {
+  const { w = 150, h = 240, id = "pt", state = "clean", nLayers = 4,
+          patchLayer = 2, label = "", output = "" } = opts;
+  const cx = w / 2, top = 34, botLabel = h - 10;
+  const gap = (botLabel - top - 20) / (nLayers - 1);
+  let g = "";
+  // fluxo vertical (residual)
+  g += el("line", { x1: cx, y1: top, x2: cx, y2: top + gap * (nLayers - 1),
+    stroke: "#D8D8DE", "stroke-width": 2 });
+  // camadas
+  for (let k = 0; k < nLayers; k++) {
+    const y = top + gap * k;
+    let fill = "#E9DEF5", stroke = "#9333EA";
+    if (state === "corrupted") { fill = "#FDE2E2"; stroke = "#DC2626"; }
+    if (state === "patched") {
+      if (k >= patchLayer) { fill = "#E9DEF5"; stroke = "#9333EA"; }  // curado a partir do patch
+      else { fill = "#FDE2E2"; stroke = "#DC2626"; }
+      if (k === patchLayer) { fill = "#D1FAE5"; stroke = "#059669"; } // nó transplantado
+    }
+    g += el("circle", { cx, cy: y, r: 13, fill, stroke, "stroke-width": 2.2 });
+    // seta de transplante no nó patch
+    if (state === "patched" && k === patchLayer) {
+      g += el("text", { x: cx + 20, y: y + 4, fill: "#059669", "font-size": 15, "font-weight": 700 }, "◀");
+    }
+  }
+  // rótulo topo (input) e base (output)
+  g += el("text", { x: cx, y: 18, "text-anchor": "middle", fill: "#3F3F46",
+    "font-size": 13, "font-weight": 700 }, label);
+  if (output) g += el("text", { x: cx, y: botLabel + 4, "text-anchor": "middle",
+    fill: state === "corrupted" ? "#DC2626" : (state === "patched" ? "#059669" : "#6B21A8"),
+    "font-size": 15, "font-weight": 700 }, output);
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id, style: "max-width:170px" }, g);
+}
+
+/* ============================================================
+   11) LOGIT LENS — residual stream vertical; numa camada ℓ a
+       ativação x_ℓ é "espiada": passa por LN e é projetada por W_U
+       na distribuição de vocabulário. Termos: xL, LN, WU.
+   ============================================================ */
+function logitLens(opts) {
+  const { w = 300, h = 300, id = "ll", peekLayer = 2, nLayers = 5 } = opts;
+  const streamX = 70, top = 30, bot = h - 30;
+  const gap = (bot - top) / (nLayers - 1);
+  let g = "";
+  // residual stream
+  g += el("line", { x1: streamX, y1: top, x2: streamX, y2: bot, stroke: "#D8D8DE", "stroke-width": 3 });
+  // camadas (nós), a espiada destacada como xL
+  for (let k = 0; k < nLayers; k++) {
+    const y = bot - k * gap;
+    const isPeek = k === peekLayer;
+    if (isPeek) {
+      g += el("g", { class: "vterm", "data-term": "xL" },
+        el("circle", { cx: streamX, cy: y, r: 13, fill: "#E9DEF5", stroke: "#6B21A8", "stroke-width": 3 }) +
+        el("text", { x: streamX - 22, y: y + 5, "text-anchor": "end", fill: "#6B21A8", "font-size": 15, "font-weight": 700 }, "xₗ"));
+    } else {
+      g += el("circle", { cx: streamX, cy: y, r: 10, fill: "#EDEDF0", stroke: "#C9B8DD", "stroke-width": 1.5 });
+    }
+  }
+  g += el("text", { x: streamX, y: bot + 18, "text-anchor": "middle", fill: "#71717A", "font-size": 12 }, "camadas");
+  // seta de projeção lateral a partir da camada espiada
+  const py = bot - peekLayer * gap;
+  // caixa LN
+  const lnX = streamX + 60;
+  g += el("g", { class: "vterm", "data-term": "LN" },
+    el("line", { x1: streamX + 13, y1: py, x2: lnX - 22, y2: py, stroke: "#0891B2", "stroke-width": 2.5, "marker-end": `url(#llh-${id})` }) +
+    el("rect", { x: lnX - 22, y: py - 16, width: 44, height: 32, rx: 7, fill: "#E0F2FE", stroke: "#0891B2", "stroke-width": 2 }) +
+    el("text", { x: lnX, y: py + 5, "text-anchor": "middle", fill: "#0891B2", "font-size": 13, "font-weight": 700 }, "LN"));
+  // caixa W_U (unembedding)
+  const wuX = lnX + 66;
+  g += el("g", { class: "vterm", "data-term": "WU" },
+    el("line", { x1: lnX + 22, y1: py, x2: wuX - 22, y2: py, stroke: "#DB2777", "stroke-width": 2.5, "marker-end": `url(#llh2-${id})` }) +
+    el("rect", { x: wuX - 22, y: py - 16, width: 44, height: 32, rx: 7, fill: "#FCE7F3", stroke: "#DB2777", "stroke-width": 2 }) +
+    el("text", { x: wuX, y: py + 5, "text-anchor": "middle", fill: "#DB2777", "font-size": 13, "font-weight": 700 }, "Wᵤ"));
+  // distribuição de saída (barras)
+  const dbX = wuX + 30;
+  const bars = [0.5, 0.8, 0.35, 0.62];
+  bars.forEach((b, i) => g += el("rect", { x: dbX, y: py - 24 + i * 13, width: 40 * b, height: 9, rx: 2,
+    fill: i === 1 ? "#6B21A8" : "#D8D8DE" }));
+  g += el("text", { x: dbX + 20, y: py + 40, "text-anchor": "middle", fill: "#71717A", "font-size": 11, "font-style": "italic" }, "previsão");
+  const defs =
+    el("marker", { id: `llh-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#0891B2" })) +
+    el("marker", { id: `llh2-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#DB2777" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   12) INDIRECT EFFECT — régua de 0 a 1. Marca LD_corr (0),
+       LD_clean (1) e a posição do LD_patched. Termos:
+       corr, clean, patched.
+   ============================================================ */
+function indirectEffect(opts) {
+  const { w = 340, h = 200, id = "ie", ie = 0.7 } = opts;
+  const x0 = 50, x1 = w - 50, y = h / 2;
+  let g = "";
+  // trilho
+  g += el("line", { x1: x0, y1: y, x2: x1, y2: y, stroke: "#D8D8DE", "stroke-width": 4, "stroke-linecap": "round" });
+  // extremidade 0 = corrompido
+  g += el("g", { class: "vterm", "data-term": "corr" },
+    el("circle", { cx: x0, cy: y, r: 9, fill: "#DC2626" }) +
+    el("text", { x: x0, y: y - 20, "text-anchor": "middle", fill: "#DC2626", "font-size": 13, "font-weight": 700 }, "corrompido") +
+    el("text", { x: x0, y: y + 30, "text-anchor": "middle", fill: "#DC2626", "font-size": 15, "font-weight": 700 }, "IE=0"));
+  // extremidade 1 = limpo
+  g += el("g", { class: "vterm", "data-term": "clean" },
+    el("circle", { cx: x1, cy: y, r: 9, fill: "#6B21A8" }) +
+    el("text", { x: x1, y: y - 20, "text-anchor": "middle", fill: "#6B21A8", "font-size": 13, "font-weight": 700 }, "limpo") +
+    el("text", { x: x1, y: y + 30, "text-anchor": "middle", fill: "#6B21A8", "font-size": 15, "font-weight": 700 }, "IE=1"));
+  // marcador do patched
+  const px = x0 + (x1 - x0) * ie;
+  g += el("g", { class: "vterm", "data-term": "patched" },
+    el("line", { x1: px, y1: y - 26, x2: px, y2: y + 12, stroke: "#059669", "stroke-width": 3 }) +
+    el("polygon", { points: `${px - 7},${y - 26} ${px + 7},${y - 26} ${px},${y - 16}`, fill: "#059669" }) +
+    el("text", { x: px, y: y - 32, "text-anchor": "middle", fill: "#059669", "font-size": 13, "font-weight": 700 }, "patched"));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   13) EAP / gradiente — curva da perda L vs ativação de um elo.
+       Mostra o ponto "clean", a diferença (corr-clean) no eixo,
+       e a reta tangente (gradiente) cuja inclinação × Δ estima o
+       efeito. Termos: delta (Δz), grad (∇L).
+   ============================================================ */
+function eapViz(opts) {
+  const { w = 320, h = 260, id = "eap" } = opts;
+  const ox = 46, oy = h - 40, pw = w - 80, ph = h - 80;
+  let g = "";
+  // eixos
+  g += el("line", { x1: ox, y1: oy, x2: ox + pw, y2: oy, stroke: "#B8B8C0", "stroke-width": 1.5 });
+  g += el("line", { x1: ox, y1: oy, x2: ox, y2: oy - ph, stroke: "#B8B8C0", "stroke-width": 1.5 });
+  g += el("text", { x: ox + pw / 2, y: oy + 26, "text-anchor": "middle", fill: "#71717A", "font-size": 12 }, "ativação do elo  z");
+  g += el("text", { x: ox - 30, y: oy - ph / 2, "text-anchor": "middle", fill: "#71717A", "font-size": 12, transform: `rotate(-90 ${ox - 30} ${oy - ph / 2})` }, "perda  L");
+  // curva da perda (parábola suave)
+  const f = (t) => 0.9 - 1.6 * t + 1.1 * t * t;   // t em [0,1]
+  let path = "";
+  for (let i = 0; i <= 40; i++) { const t = i / 40; const x = ox + t * pw; const yv = oy - (f(t) * 0.6 + 0.1) * ph;
+    path += (i === 0 ? "M" : "L") + x.toFixed(1) + " " + yv.toFixed(1) + " "; }
+  g += el("path", { d: path, fill: "none", stroke: "#C9B8DD", "stroke-width": 2.5 });
+  // ponto clean (t=0.32) e corr (t=0.72)
+  const tc = 0.32, tk = 0.72;
+  const cleanX = ox + tc * pw, cleanY = oy - (f(tc) * 0.6 + 0.1) * ph;
+  const corrX = ox + tk * pw, corrY = oy - (f(tk) * 0.6 + 0.1) * ph;
+  // Δz no eixo x (termo delta)
+  g += el("g", { class: "vterm", "data-term": "delta" },
+    el("line", { x1: cleanX, y1: oy + 6, x2: corrX, y2: oy + 6, stroke: "#DC2626", "stroke-width": 2.5, "marker-end": `url(#eaph-${id})` }) +
+    el("text", { x: (cleanX + corrX) / 2, y: oy + 20, "text-anchor": "middle", fill: "#DC2626", "font-size": 13, "font-weight": 700 }, "Δz"));
+  // reta tangente no clean (termo grad)
+  const slope = (-1.6 + 2.2 * tc) * 0.6 * ph / pw;   // derivada de f escalada
+  const tanLen = 78;
+  const dx = tanLen, dy = slope * tanLen;
+  g += el("g", { class: "vterm", "data-term": "grad" },
+    el("line", { x1: cleanX - dx * 0.5, y1: cleanY + dy * 0.5, x2: cleanX + dx, y2: cleanY - dy, stroke: "#059669", "stroke-width": 2.5 }) +
+    el("text", { x: cleanX + dx + 4, y: cleanY - dy, fill: "#059669", "font-size": 13, "font-weight": 700 }, "∇L"));
+  // pontos
+  g += el("circle", { cx: cleanX, cy: cleanY, r: 6, fill: "#6B21A8" });
+  g += el("text", { x: cleanX - 6, y: cleanY - 10, "text-anchor": "end", fill: "#6B21A8", "font-size": 12, "font-weight": 700 }, "limpo");
+  g += el("circle", { cx: corrX, cy: corrY, r: 6, fill: "#DC2626" });
+  g += el("text", { x: corrX + 8, y: corrY - 6, fill: "#DC2626", "font-size": 12, "font-weight": 700 }, "corr.");
+  const defs = el("marker", { id: `eaph-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#DC2626" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   14) FEATURE CLOUD — nuvem de pontos coloridos por "conceito".
+       state "tangled": pontos misturados, sem separação (superposição).
+       state "clean": mesmos pontos agrupados em clusters nítidos (pós-SAE).
+       A mesma semente de pontos, dois arranjos — a ponte visual.
+   ============================================================ */
+function featureCloud(opts) {
+  const { w = 320, h = 300, id = "fc", state = "tangled", nPer = 7 } = opts;
+  const cols = ["#6B21A8", "#0891B2", "#DB2777"];      // 3 "conceitos"
+  const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.36;
+  // gerador pseudo-aleatório determinístico (mesma semente sempre)
+  let s = 42; const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+  let g = "";
+  const pts = [];
+  cols.forEach((col, ci) => {
+    for (let k = 0; k < nPer; k++) {
+      if (state === "tangled") {
+        // misturados: posição aleatória em todo o círculo
+        const a = rnd() * Math.PI * 2, r = Math.sqrt(rnd()) * R;
+        pts.push({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), col });
+      } else {
+        // agrupados: cada conceito num setor, cluster apertado
+        const base = (ci / cols.length) * Math.PI * 2 - Math.PI / 2;
+        const ca = base, cR = R * 0.62;
+        const clusterX = cx + cR * Math.cos(ca), clusterY = cy + cR * Math.sin(ca);
+        const a = rnd() * Math.PI * 2, r = Math.sqrt(rnd()) * R * 0.22;
+        pts.push({ x: clusterX + r * Math.cos(a), y: clusterY + r * Math.sin(a), col });
+      }
+    }
+  });
+  // círculo-guia
+  g += el("circle", { cx, cy, r: R + 12, fill: "none", stroke: "#F0F0F4", "stroke-width": 1.5 });
+  // no estado clean, halos suaves atrás de cada cluster
+  if (state === "clean") {
+    cols.forEach((col, ci) => {
+      const base = (ci / cols.length) * Math.PI * 2 - Math.PI / 2;
+      const clusterX = cx + R * 0.62 * Math.cos(base), clusterY = cy + R * 0.62 * Math.sin(base);
+      g += el("circle", { cx: clusterX, cy: clusterY, r: R * 0.3, fill: col, opacity: 0.08 });
+    });
+  }
+  pts.forEach((p) => g += el("circle", { cx: p.x.toFixed(1), cy: p.y.toFixed(1), r: 5.5,
+    fill: p.col, opacity: 0.9 }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   15) MAP vs TERRITORY — um "território" orgânico e um "mapa"
+       reticulado sobreposto que só captura parte dele. Metáfora
+       da fidelidade: a explicação (mapa) nunca é o modelo (terr.).
+   ============================================================ */
+function mapTerritory(opts) {
+  const { w = 340, h = 260, id = "mt" } = opts;
+  let g = "";
+  // território: mancha orgânica (o modelo real, complexo)
+  g += el("path", { d: "M60,110 C50,70 100,45 140,55 C180,40 230,55 250,95 C285,110 285,165 250,185 C230,220 175,220 145,200 C100,215 55,190 60,150 Z",
+    fill: "#EDE7F3", stroke: "#9333EA", "stroke-width": 2 });
+  g += el("text", { x: 155, y: 240, "text-anchor": "middle", fill: "#6B21A8", "font-size": 14, "font-style": "italic", "font-weight": 700 }, "o modelo (território)");
+  // mapa: grade regular que cobre só parte, desalinhada da mancha
+  const gx = 95, gy = 70, cell = 26, nx = 5, ny = 4;
+  for (let i = 0; i <= nx; i++)
+    g += el("line", { x1: gx + i * cell, y1: gy, x2: gx + i * cell, y2: gy + ny * cell, stroke: "#DB2777", "stroke-width": 1.3, opacity: 0.75 });
+  for (let j = 0; j <= ny; j++)
+    g += el("line", { x1: gx, y1: gy + j * cell, x2: gx + nx * cell, y2: gy + j * cell, stroke: "#DB2777", "stroke-width": 1.3, opacity: 0.75 });
+  g += el("text", { x: gx + (nx * cell) / 2, y: gy - 8, "text-anchor": "middle", fill: "#DB2777", "font-size": 13, "font-weight": 700 }, "nossa explicação (mapa)");
+  // regiões do território FORA do mapa (o que escapa) — marcadas
+  g += el("text", { x: 250, y: 130, fill: "#6B21A8", "font-size": 22 }, "?");
+  g += el("text", { x: 72, y: 175, fill: "#6B21A8", "font-size": 22 }, "?");
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+if (typeof window !== "undefined") {
+  window.VIZ = { plane2D, fanVectors, miniNet, saeDiagram, transformerStack, attribGraph, superposition, causalChain, lossBalance, patchingDiagram, logitLens, indirectEffect, eapViz, featureCloud, mapTerritory, patchingLive };
+}
+
+/* ============================================================
+   10b) ACTIVATION PATCHING INTERATIVO — dois fluxos lado a lado.
+   ============================================================ */
+function patchingLive(opts) {
+  const { w = 340, h = 300, id = "ptl", patched = false, nLayers = 4, patchLayer = 2 } = opts;
+  const top = 44, botLabel = h - 34;
+  const gap = (botLabel - top - 20) / (nLayers - 1);
+  const lx = w * 0.28, rx = w * 0.72;
+  let g = "";
+  g += el("text", { x: lx, y: 20, "text-anchor": "middle", fill: "#6B21A8", "font-size": 13, "font-weight": 700 }, "limpo (doador)");
+  g += el("text", { x: lx, y: 36, "text-anchor": "middle", fill: "#71717A", "font-size": 12 }, "“…Paris”");
+  g += el("text", { x: rx, y: 20, "text-anchor": "middle", fill: patched ? "#059669" : "#DC2626", "font-size": 13, "font-weight": 700 }, "corrompido");
+  g += el("text", { x: rx, y: 36, "text-anchor": "middle", fill: "#71717A", "font-size": 12 }, "“…Roma”");
+  [lx, rx].forEach((x) => g += el("line", { x1: x, y1: top, x2: x, y2: top + gap * (nLayers - 1), stroke: "#D8D8DE", "stroke-width": 2 }));
+  for (let k = 0; k < nLayers; k++) {
+    const y = top + gap * k; const isSrc = k === patchLayer;
+    g += el("circle", { cx: lx, cy: y, r: 12, fill: isSrc ? "#D1FAE5" : "#E9DEF5",
+      stroke: isSrc ? "#059669" : "#9333EA", "stroke-width": isSrc ? 2.6 : 2 });
+  }
+  for (let k = 0; k < nLayers; k++) {
+    const y = top + gap * k;
+    let fill = "#FDE2E2", stroke = "#DC2626";
+    if (patched) {
+      if (k === patchLayer) { fill = "#D1FAE5"; stroke = "#059669"; }
+      else if (k > patchLayer) { fill = "#E9DEF5"; stroke = "#9333EA"; }
+    }
+    g += el("circle", { cx: rx, cy: y, r: 12, fill, stroke, "stroke-width": 2.2 });
+  }
+  const py = top + gap * patchLayer;
+  if (patched) {
+    g += el("line", { x1: lx + 13, y1: py, x2: rx - 13, y2: py, stroke: "#059669",
+      "stroke-width": 3, "marker-end": `url(#ptlh-${id})`, "stroke-dasharray": "5 3" });
+    g += el("text", { x: (lx + rx) / 2, y: py - 8, "text-anchor": "middle", fill: "#059669",
+      "font-size": 12, "font-weight": 700 }, "transplante");
+  } else {
+    g += el("text", { x: (lx + rx) / 2, y: py + 5, "text-anchor": "middle", fill: "#B8B8C0", "font-size": 20 }, "→");
+  }
+  g += el("rect", { x: rx - 44, y: botLabel + 6, width: 88, height: 26, rx: 8,
+    fill: patched ? "#D1FAE5" : "#FDE2E2", stroke: patched ? "#059669" : "#DC2626", "stroke-width": 2 });
+  g += el("text", { x: rx, y: botLabel + 24, "text-anchor": "middle",
+    fill: patched ? "#059669" : "#DC2626", "font-size": 15, "font-weight": 700 }, patched ? "Paris ✓" : "Roma ✗");
+  const defs = el("marker", { id: `ptlh-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3,
+    orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#059669" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}

@@ -1,0 +1,247 @@
+/* ============================================================
+   Interpretabilidade Mecanística — identidade visual
+   Fundo branco · texto quase-preto · acento roxo · limpo
+   ============================================================ */
+
+:root{
+  --bg:        #FFFFFF;
+  --ink:       #1A1A1A;
+  --ink-soft:  #3F3F46;
+  --muted:     #71717A;
+  --line:      #E5E7EB;
+  --purple:    #6B21A8;   /* acento principal */
+  --purple-md: #9333EA;
+  --purple-lt: #F5EEFC;   /* tint de card */
+  --purple-xlt:#FAF6FE;
+  /* selos de nível */
+  --green:#059669;   --green-lt:#D1FAE5;
+  --amber:#B45309;   --amber-lt:#FDF0D5;
+  --blue:#1D4ED8;    --blue-lt:#DBEAFE;
+  /* cores de destaque para vetores/termos nas visualizações */
+  --v1:#6B21A8;  --v2:#0891B2;  --v3:#DB2777;  --v4:#059669;
+}
+
+/* ---------- tipografia ---------- */
+.reveal{
+  font-family:"Georgia","Cambria",serif;   /* fallback seguro; body real definido abaixo */
+  font-size:30px;
+  color:var(--ink);
+}
+.reveal .slides{ text-align:left; }
+.reveal h1,.reveal h2,.reveal h3{
+  font-family:"Playfair Display","Georgia",serif;
+  color:var(--ink);
+  font-weight:800;
+  letter-spacing:-.01em;
+  line-height:1.08;
+  margin:0 0 .35em 0;
+  text-transform:none;
+}
+.reveal p,.reveal li,.reveal td,.reveal .body{
+  font-family:"Inter","Helvetica Neue",Arial,sans-serif;
+  line-height:1.4;
+}
+.reveal strong{ color:var(--purple); font-weight:700; }
+.reveal em{ color:var(--muted); font-style:italic; }
+
+/* barra de progresso e controles em roxo */
+.reveal .progress{ color:var(--purple); height:4px; }
+.reveal .controls{ color:var(--purple); }
+
+/* ---------- layout base de slide ---------- */
+.reveal .slides section{
+  padding:0; height:100%; top:0!important;
+}
+.slide-pad{ padding:54px 66px 64px 66px; height:100%; box-sizing:border-box; position:relative;
+  display:flex; flex-direction:column; overflow:hidden; }
+/* miolo do slide (cols): ocupa o espaço restante entre título e fonte,
+   centraliza verticalmente e nunca vaza para fora do slide. */
+.slide-pad > .cols{ flex:1 1 auto; min-height:0; align-content:center; }
+.cols .body{ min-width:0; }
+
+/* cabeçalho: eyebrow (bloco) + número + selo */
+.eyebrow{
+  font-family:"Inter",sans-serif; font-size:15px; font-weight:700;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--purple);
+  margin-bottom:10px;
+}
+.slide-num{
+  position:absolute; top:50px; right:64px;
+  font-family:"Inter",sans-serif; font-size:15px; color:var(--muted); letter-spacing:.05em;
+}
+.title{ font-size:46px; margin-bottom:22px; max-width:15em; }
+.title.sm{ font-size:38px; }
+
+/* selo de nível */
+.badge{
+  display:inline-block; font-family:"Inter",sans-serif; font-size:13px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; padding:5px 14px; border-radius:999px;
+  vertical-align:middle;
+}
+.badge.intu{ background:var(--green-lt); color:var(--green); }
+.badge.tech{ background:var(--amber-lt); color:var(--amber); }
+.badge.demo{ background:var(--blue-lt); color:var(--blue); }
+.badge-row{ position:absolute; top:46px; right:150px; }
+
+/* ---------- colunas ---------- */
+.cols{ display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start; }
+.cols.w6040{ grid-template-columns:1.35fr 1fr; }
+.cols.w4060{ grid-template-columns:1fr 1.35fr; }
+
+/* corpo de texto denso */
+.body{ font-size:20px; color:var(--ink-soft); }
+.body p{ margin:0 0 12px 0; }
+.body .lead{ font-size:21px; color:var(--purple); font-weight:600; }
+.body ul{ margin:6px 0 12px 0; padding-left:0; list-style:none; }
+.body ul li{ position:relative; padding-left:22px; margin:0 0 8px 0; }
+.body ul li::before{ content:""; position:absolute; left:2px; top:.62em;
+  width:7px; height:7px; border-radius:2px; background:var(--purple-md); }
+.small{ font-size:16px; }
+
+/* cards */
+.card{ background:var(--purple-lt); border-radius:16px; padding:22px 24px;
+  box-shadow:0 6px 20px rgba(107,33,168,.07); }
+.card.plain{ background:#F8F8FA; box-shadow:0 6px 20px rgba(0,0,0,.05); }
+.card.blue{ background:var(--blue-lt); box-shadow:0 6px 20px rgba(29,78,216,.08); }
+.card h3{ font-size:22px; margin-bottom:8px; }
+.card .k{ font-family:"Inter",sans-serif; font-size:13px; font-weight:700;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--purple); margin-bottom:6px; }
+
+/* fonte/crédito */
+.source{ position:absolute; left:66px; bottom:26px; right:66px;
+  font-family:"Inter",sans-serif; font-size:14px; font-style:italic; color:var(--muted); }
+
+/* frase-âncora centralizada */
+.anchor{ text-align:center; font-family:"Playfair Display",serif; font-style:italic;
+  font-weight:700; color:var(--purple); font-size:26px; }
+
+/* ---------- slide de capa / seção / escuro ---------- */
+.dark{ background:var(--ink); }
+.dark .title,.dark h1,.dark h2,.dark h3{ color:#fff; }
+.dark .body,.dark p{ color:#E4E4E7; }
+.dark .eyebrow{ color:var(--purple-md); }
+.dark strong{ color:var(--purple-md); }
+
+/* ---------- KaTeX / fórmulas incrementais ---------- */
+.reveal .katex{ font-size:1.05em; }
+.formula{ font-size:30px; margin:14px 0; line-height:1.7; }
+.formula.big{ font-size:40px; text-align:center; }
+/* termo de fórmula que aparece/realça por fragmento */
+.term{ transition:opacity .3s, color .3s; }
+.term.v1{ color:var(--v1); }
+.term.v2{ color:var(--v2); }
+.term.v3{ color:var(--v3); }
+.term.dim{ color:#C7C7CC; }
+
+/* legenda de termo (aparece junto do fragmento) */
+.termlab{ display:flex; align-items:flex-start; gap:10px; margin:9px 0; font-size:18px;
+  font-family:"Inter",sans-serif; color:var(--ink-soft); }
+.termlab .chip{ flex:none; width:16px; height:16px; border-radius:5px; margin-top:3px; }
+.termlab b{ color:var(--ink); }
+
+/* fill do fragmento: revela sem saltar layout */
+.reveal .fragment.fade-in-then{ opacity:0; }
+.reveal .fragment.fade-in-then.visible{ opacity:1; }
+
+/* figura de paper com fallback elegante */
+.figbox{ position:relative; border-radius:14px; overflow:hidden; background:#FAFAFA;
+  border:1.5px dashed var(--purple-md); min-height:210px; max-height:64vh;
+  display:flex; align-items:stretch; }
+.figbox img{ width:100%; height:100%; object-fit:contain; display:block; background:#fff; }
+.figcap{ position:absolute; left:0; right:0; bottom:0; padding:10px 14px;
+  background:rgba(255,255,255,.94); font-family:"Inter",sans-serif; font-size:14px; color:var(--ink); }
+.figcap a{ color:var(--purple); text-decoration:none; }
+/* placeholder mostrado quando a imagem falha (via onerror) */
+.figfallback{ display:none; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:26px; width:100%; }
+.figbox.failed img{ display:none; }
+.figbox.failed .figfallback{ display:flex; }
+.figbox.failed .figcap{ position:static; background:transparent; }
+.figfallback .ph{ font-family:"Inter",sans-serif; font-weight:700; letter-spacing:.14em;
+  color:var(--purple-md); font-size:15px; margin-bottom:10px; }
+.figfallback .cap{ font-family:"Inter",sans-serif; font-size:16px; color:var(--ink); max-width:26em; }
+.figfallback .url{ font-family:"Inter",sans-serif; font-size:13px; font-style:italic; color:var(--muted); margin-top:10px; }
+
+/* svg helpers */
+.viz{ width:100%; max-width:440px; max-height:62vh; display:block; margin:0 auto; }
+.viz text{ font-family:"Inter",sans-serif; }
+
+/* realce sincronizado fórmula ↔ gráfico: elemento pulsa quando o
+   termo correspondente está em foco/hover (classe .lit) */
+.vterm{ transition:opacity .18s ease, filter .18s ease; }
+.viz.dimmed .vterm{ opacity:.28; }
+.viz.dimmed .vterm.lit{ opacity:1; filter:drop-shadow(0 0 6px currentColor); }
+.viz.dimmed .vterm.lit line,
+.viz.dimmed .vterm.lit path{ stroke-width:6; }
+/* termos clicáveis na fórmula/legenda */
+.termsync{ cursor:pointer; border-radius:6px; padding:1px 4px; transition:background .15s ease; }
+.termsync:hover,.termsync.active{ background:var(--purple-xlt); }
+.axis{ stroke:#B8B8C0; stroke-width:2; }
+.gridln{ stroke:#ECECF0; stroke-width:1; }
+
+/* tabela-síntese das técnicas */
+.synth{ width:100%; border-collapse:collapse; font-size:16px; margin-top:6px; }
+.synth th{ text-align:left; padding:9px 12px; background:var(--purple-xlt); color:var(--purple);
+  font-weight:700; font-size:14px; letter-spacing:.02em; border-bottom:2px solid var(--purple-md); }
+.synth td{ padding:9px 12px; border-bottom:1px solid #EDEDF0; vertical-align:top; line-height:1.4; }
+.synth tbody tr:last-child td{ border-bottom:none; }
+.synth td.yes{ color:#059669; font-weight:700; font-size:14px; }
+.synth td.no{ color:#1D4ED8; font-weight:700; font-size:14px; }
+.synth tr:hover td{ background:#FAFAFA; }
+
+/* mini-roadmap "você está aqui" nas transições de bloco */
+.progress-map{ display:flex; align-items:center; gap:0; margin:2px 0 14px; flex-wrap:nowrap; }
+.progress-map .step{ font-family:"Inter",sans-serif; font-size:12px; color:#A1A1AA;
+  padding:4px 10px; border-radius:999px; white-space:nowrap; background:#F4F4F6; }
+.progress-map .step.done{ color:#6B21A8; background:#F3E8FC; }
+.progress-map .step.now{ color:#fff; background:var(--purple); font-weight:700; }
+.progress-map .sep{ color:#D4D4D8; font-size:12px; padding:0 4px; }
+
+/* pill de interação */
+.interact-hint{ display:inline-flex; align-items:center; gap:8px;
+  font-family:"Inter",sans-serif; font-size:14px; color:var(--purple);
+  background:var(--purple-xlt); padding:5px 12px; border-radius:999px; margin-top:6px; }
+.interact-hint::before{ content:"◑"; font-size:15px; }
+
+/* slider custom */
+input[type=range].vrange{ -webkit-appearance:none; appearance:none; width:100%; height:6px;
+  border-radius:3px; background:linear-gradient(90deg,var(--purple),var(--purple-lt)); outline:none; }
+input[type=range].vrange::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none;
+  width:20px; height:20px; border-radius:50%; background:var(--purple); cursor:pointer;
+  box-shadow:0 2px 6px rgba(107,33,168,.4); }
+
+/* timeline rodapé (aparece nos slides de bloco) */
+.tlmini{ position:absolute; left:66px; bottom:26px; display:flex; gap:6px; align-items:center; }
+.tlmini .dot{ width:8px; height:8px; border-radius:50%; background:var(--line); }
+.tlmini .dot.on{ background:var(--purple); }
+.tlmini .lbl{ font-family:"Inter",sans-serif; font-size:12px; color:var(--muted); margin-left:6px; }
+
+/* number chips grandes (estatística/marco) */
+.bignum{ font-family:"Playfair Display",serif; font-weight:800; color:var(--purple); font-size:56px; line-height:1; }
+
+/* utilidades */
+.mt8{margin-top:8px} .mt16{margin-top:16px} .mt24{margin-top:24px}
+.center{ text-align:center; } .muted{ color:var(--muted); }
+.hl{ background:linear-gradient(transparent 60%, var(--purple-lt) 60%); }
+
+/* ============ SLIDES "SOB O CAPÔ" (rigor matemático) ============ */
+.hood{ background:#F4F6FB; }
+.hood .slide-pad{ border-left:5px solid #3B4C7A; }
+.hood-badge{ display:inline-flex; align-items:center; gap:7px;
+  font-family:"Inter",sans-serif; font-size:13px; font-weight:700; letter-spacing:.06em;
+  color:#3B4C7A; background:#E3E9F5; padding:5px 13px; border-radius:999px; }
+.hood-badge::before{ content:"⚙"; font-size:15px; }
+.hood .title{ color:#1E2A44; }
+/* caixa de fórmula destacada no modo técnico */
+.mathbox{ background:#fff; border:1px solid #D3DBEC; border-radius:12px;
+  padding:14px 20px; margin:10px 0; box-shadow:0 1px 3px rgba(30,42,68,.06); }
+.mathbox.accent{ border-left:4px solid #3B4C7A; }
+/* ponte com ML/DL: card com selo "você já viu isso" */
+.bridge{ background:#EAF4EC; border:1px solid #BCE0C4; border-radius:10px; padding:11px 16px; }
+.bridge .btag{ font-family:"Inter",sans-serif; font-size:12px; font-weight:700;
+  color:#1B7A3D; letter-spacing:.04em; text-transform:uppercase; }
+.hood .k{ color:#3B4C7A; }
+/* derivação passo a passo */
+.deriv{ font-family:"Inter",sans-serif; font-size:16px; line-height:1.9; }
+.deriv .step{ padding:3px 0; }
+.deriv .rule{ color:#71717A; font-size:14px; font-style:italic; }
