@@ -165,7 +165,7 @@
         </ul>
         <p>Daí nascem os dois conceitos que estruturam todo o campo: <strong>features</strong> e <strong>circuitos</strong>.</p>
       </div>
-      <div class="figbox"
+      <div class="figbox" data-img="images/img01.jpg"
            data-cap="Detectores de curva na InceptionV1 (Zoom In)"
            data-url="distill.pub/2020/circuits/zoom-in">
         <img alt="Feature visualizations do Zoom In">
@@ -193,12 +193,12 @@
         <p>Ninguém disse à rede “aprenda a detectar curvas”. Ela chegou a isso durante o treino.</p>
         <p><strong>A interpretabilidade começa quando percebemos que esses conceitos internos existem e podem ser identificados.</strong></p>
       </div>
-      <div class="figbox"
-           data-cap="Feature visualizations: curvas, rodas, cabeças de cachorro"
+      <div class="figbox" data-img="images/img02.jpg"
+           data-cap="Detector de carro: features (roda, janela, carroceria) se combinam"
            data-url="distill.pub/2020/circuits/zoom-in">
-        <img alt="Feature visualizations">
-        <div class="figfallback"><div class="ph">IMAGEM</div><div class="cap">Feature visualizations: curvas, rodas, cabeças de cachorro</div><div class="url">distill.pub/2020/circuits/zoom-in</div></div>
-        <div class="figcap">Feature visualizations — <a href="https://distill.pub/2020/circuits/zoom-in">Olah et al. (2020)</a></div>
+        <img alt="Circuito detector de carro">
+        <div class="figfallback"><div class="ph">IMAGEM</div><div class="cap">Detector de carro: features (roda, janela, carroceria) se combinam</div><div class="url">distill.pub/2020/circuits/zoom-in</div></div>
+        <div class="figcap">Detector de carro — <a href="https://distill.pub/2020/circuits/zoom-in">Olah et al. (2020)</a></div>
       </div>
     </div>
     <div class="source">Fonte: Olah et al. (2020), Distill. Reproduzido com crédito.</div>
@@ -232,37 +232,61 @@
 </section>
 
 <!-- ============================================================
-     SOB O CAPÔ 2 — Linear Representation Hypothesis
+     SOB O CAPÔ 2a — Linear Representation Hypothesis (fórmula)
      ============================================================ -->
 <section class="hood">
   <div class="slide-pad">
     <span class="hood-badge">SOB O CAPÔ</span>
     <div class="slide-num">09</div>
-    <h2 class="title sm">O enunciado formal: a hipótese da representação linear</h2>
-    <div class="cols" style="align-items:start;gap:30px">
-      <div class="body">
-        <p>“Feature é uma direção” não é frouxo — é uma <strong>hipótese testável</strong>, e vale distinguir duas versões.</p>
-        <div class="mathbox accent">
-          <div class="k" style="margin-bottom:4px">Forma fraca</div>
-          <p class="body small" style="margin:2px 0 0">Cada feature $f_i$ é lida por uma <strong>direção</strong> $\mathbf{d}_i$: a ativação é $\;a(x)=\sum_i f_i(x)\,\mathbf{d}_i$. Features são <em>funções lineares</em> das ativações.</p>
-        </div>
-        <div class="mathbox accent" style="margin-top:10px">
-          <div class="k" style="margin-bottom:4px">Forma forte (composicional)</div>
-          <p class="body small" style="margin:2px 0 0">As direções se <strong>somam</strong> de forma independente — operações viram aritmética de vetores: $\;\mathbf{d}_{\text{rei}}-\mathbf{d}_{\text{homem}}+\mathbf{d}_{\text{mulher}}\approx\mathbf{d}_{\text{rainha}}$.</p>
+    <h2 class="title sm">“Feature é uma direção”: lendo o enunciado formal</h2>
+    <div class="hood-flow">
+      <p class="hquestion">O que essa frase quer dizer, símbolo a símbolo?</p>
+      <div class="fragment" data-frag="1">
+        <div class="mathbox accent" style="text-align:center;padding:16px">
+          <div class="formula" id="hlrh" style="margin:0;font-size:26px"></div>
         </div>
       </div>
-      <div>
-        <div class="mathbox">
-          <div class="k" style="margin-bottom:6px">Por que isso importa metodologicamente</div>
-          <p class="body small" style="margin:0">Se features são <strong>direções lineares</strong>, então extraí-las é um problema de <em>álgebra linear</em> — projeções, produtos internos, bases. É <u>exatamente por isso</u> que um SAE (linear + ReLU) consegue recuperá-las. A hipótese é a <strong>licença teórica</strong> de todo o Bloco 3.</p>
-        </div>
-        <div class="bridge" style="margin-top:14px">
-          <div class="btag">Você já viu isso</div>
-          <p class="body small" style="margin:4px 0 0">É a mesma lógica do <strong>word2vec</strong> (rei − homem + mulher ≈ rainha). A novidade é elevar aquela observação empírica a uma <em>hipótese estrutural</em> sobre como qualquer rede representa conceitos — e testá-la causalmente.</p>
-        </div>
+      <div class="hstep fragment" data-frag="2">
+        <div class="dot" style="background:#1E2A44;font-size:12px">a(x)</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>$a(x)$ = a ativação</strong> que o modelo produz para uma entrada $x$ — o vetor de números numa camada.</p></div>
+      </div>
+      <div class="hstep fragment" data-frag="3">
+        <div class="dot" style="background:#DB2777;font-size:13px">fᵢ</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>$f_i(x)$ = o quanto a feature $i$ está ativa</strong> (um número). Zero se o conceito está ausente; positivo se presente.</p></div>
+      </div>
+      <div class="hstep fragment" data-frag="4">
+        <div class="dot" style="background:#6B21A8;font-size:13px">dᵢ</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>$\mathbf{d}_i$ = a direção da feature $i$</strong> (um vetor fixo). É o “eixo” do conceito no espaço de ativações.</p></div>
+      </div>
+      <div class="hstep fragment" data-frag="5">
+        <div class="dot">Σ</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>A soma:</strong> a ativação é a <span class="hl">combinação linear</span> das direções, cada uma pesada pela sua intensidade. Conceitos presentes “acendem” suas direções e se somam.</p></div>
       </div>
     </div>
-    <div class="source">Formalização: Park et al. (2023), “The Linear Representation Hypothesis”; Elhage et al. (2022). Contraponto: features multidimensionais (Engels et al., 2024).</div>
+    <div class="source">Formalização: Park et al. (2023); Elhage et al. (2022).</div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SOB O CAPÔ 2b — LRH (viz aritmética de vetores)
+     ============================================================ -->
+<section class="hood">
+  <div class="slide-pad">
+    <span class="hood-badge">SOB O CAPÔ</span>
+    <div class="slide-num">10</div>
+    <h2 class="title sm">A forma forte: conceitos viram aritmética de vetores</h2>
+    <div class="cols w4060" style="align-items:center;gap:26px">
+      <div class="body">
+        <p class="body small" style="margin:0 0 8px">Se as direções se somam de forma independente, então <strong>operar com conceitos</strong> vira somar e subtrair setas. O exemplo clássico:</p>
+        <div class="mathbox accent compact" style="margin:0 0 10px;text-align:center"><div class="formula" id="hlrh2" style="margin:0;font-size:18px"></div></div>
+        <div class="hstep" style="margin:8px 0"><div class="dot" style="background:#6B21A8">1</div><div class="hbody"><p class="body small" style="margin:0">Partimos da direção <strong style="color:#6B21A8">rei</strong>.</p></div></div>
+        <div class="hstep" style="margin:8px 0"><div class="dot" style="background:#DC2626">2</div><div class="hbody"><p class="body small" style="margin:0"><strong style="color:#DC2626">Subtraímos homem</strong> — tiramos a componente “masculino”.</p></div></div>
+        <div class="hstep" style="margin:8px 0"><div class="dot" style="background:#0891B2">3</div><div class="hbody"><p class="body small" style="margin:0"><strong style="color:#0891B2">Somamos mulher</strong> — e caímos perto de <strong style="color:#059669">rainha</strong>.</p></div></div>
+        <div class="interact-hint" style="margin-top:4px">clique para montar os vetores passo a passo</div>
+      </div>
+      <div class="center"><div id="vizVec" class="cc-click" style="cursor:pointer"></div></div>
+    </div>
+    <div class="source">É a lógica do <strong>word2vec</strong> — elevada a hipótese estrutural. Contraponto: já há features <em>multidimensionais</em> (Engels et al., 2024).</div>
   </div>
 </section>
 
@@ -273,7 +297,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 1 · Circuitos</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">10</div>
+    <div class="slide-num">11</div>
     <h2 class="title">O que é um <em style="color:#6B21A8;font-style:normal">circuito</em></h2>
     <div class="cols w6040">
       <div class="body">
@@ -285,7 +309,7 @@
         </ul>
         <p><strong>Tese do Zoom In:</strong> redes são feitas de circuitos assim — mapeá-los é entender a rede.</p>
       </div>
-      <div class="figbox"
+      <div class="figbox" data-img="images/img03.jpg"
            data-cap="Dog-head detector: curvas + focinho + orelhas se combinam"
            data-url="distill.pub/2020/circuits/zoom-in">
         <img alt="Dog head detector circuit">
@@ -304,20 +328,21 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 1 · Circuitos</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">11</div>
+    <div class="slide-num">12</div>
     <h2 class="title sm">Transformers e o <em style="color:#6B21A8;font-style:normal">residual stream</em></h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
         <p>Em 2021, “A Mathematical Framework for Transformer Circuits” (Elhage et al.) levou os circuitos da visão para os <strong>transformers</strong> — a arquitetura dos LLMs.</p>
         <p class="lead">O conceito central: o residual stream.</p>
+        <p>Pense num <strong>quadro compartilhado</strong> na sala de aula. Os tokens de entrada escrevem a primeira coisa nele. Então, uma a uma, as <strong>camadas</strong> (cada uma com Atenção + MLP) agem como alunos:</p>
         <ul>
-          <li>Pense numa <strong>esteira transportadora</strong> que atravessa o modelo do início ao fim.</li>
-          <li>Cada camada (atenção e MLP) <strong>lê</strong> da esteira e <strong>escreve</strong> de volta.</li>
-          <li>A informação não é recriada a cada camada — ela se <strong>acumula</strong>.</li>
+          <li>cada camada <strong style="color:#059669">lê</strong> o que já está no quadro,</li>
+          <li>faz sua conta, e <strong style="color:#DB2777">escreve</strong> sua contribuição de volta.</li>
         </ul>
-        <p>É o “canal comum” onde todas as features vivem e se comunicam.</p>
+        <p>Ninguém apaga o quadro — a informação só <strong>se acumula</strong>. No fim, a resposta é lida do que ficou escrito. É o “canal comum” onde todas as features vivem e se comunicam.</p>
+        <div class="interact-hint" style="margin-top:6px">clique para as camadas lerem e escreverem, uma a uma</div>
       </div>
-      <div class="center"><div id="viz09"></div></div>
+      <div class="center"><div id="viz09" class="cc-click" style="cursor:pointer"></div></div>
     </div>
     <div class="source">Fonte: Elhage et al. (2021), “A Mathematical Framework for Transformer Circuits”, Anthropic.</div>
   </div>
@@ -330,7 +355,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 1 · Circuitos</div>
     <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">12</div>
+    <div class="slide-num">13</div>
     <h2 class="title sm">Induction heads: a primeira vitória</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -353,7 +378,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 2 · Superposição</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">13</div>
+    <div class="slide-num">14</div>
     <h2 class="title">O problema que quebrou tudo</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -387,7 +412,7 @@
   <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center;height:100%">
     <div class="eyebrow">Bloco 2 · Superposição</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">14</div>
+    <div class="slide-num">15</div>
     <div class="center" style="margin:auto 0">
       <div style="font-family:'Playfair Display',serif;font-size:64px;font-weight:800">
         <span style="color:#6B21A8">poli</span><span style="color:#71717A">+</span><span style="color:#6B21A8">semântico</span>
@@ -423,7 +448,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 2 · Superposição</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">15</div>
+    <div class="slide-num">16</div>
     <h2 class="title">A hipótese da superposição</h2>
     <div class="cols w6040">
       <div class="body">
@@ -433,7 +458,7 @@
         <p><strong>Analogia da mala:</strong> dobrar muito mais roupa (features) do que a mala (dimensões) comportaria — aceitando alguns amassados (interferência) para levar mais coisa.</p>
         <p>Segundo Elhage et al. (2022), essa compressão é <strong>parte de por que redes são tão poderosas</strong>: simulam uma rede maior e mais esparsa.</p>
       </div>
-      <div class="figbox"
+      <div class="figbox" data-img="images/img04.jpg"
            data-cap="Toy model: M features comprimidas num gargalo de N < M dimensões"
            data-url="transformer-circuits.pub/2022/toy_model">
         <img alt="Toy model architecture">
@@ -452,7 +477,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 2 · Superposição</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">16</div>
+    <div class="slide-num">17</div>
     <h2 class="title sm">Por que é possível: quase-ortogonalidade</h2>
     <div class="cols" style="align-items:center">
       <div class="body">
@@ -477,7 +502,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 2 · Superposição</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">17</div>
+    <div class="slide-num">18</div>
     <h2 class="title sm">A matemática da interferência</h2>
     <div class="cols w6040" style="align-items:start">
       <div class="body">
@@ -509,38 +534,69 @@
 </section>
 
 <!-- ============================================================
-     SOB O CAPÔ 1 — Johnson-Lindenstrauss (capacidade)
+     SOB O CAPÔ 1a — Johnson-Lindenstrauss (a fórmula decomposta)
      ============================================================ -->
 <section class="hood">
   <div class="slide-pad">
     <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">18</div>
-    <h2 class="title sm">Quantas features cabem? O argumento de Johnson–Lindenstrauss</h2>
-    <div class="cols" style="align-items:start;gap:30px">
-      <div class="body">
-        <p>A intuição do “leque” tem um teorema por trás. A pergunta precisa: em $\mathbb{R}^d$, quantos vetores unitários dá para ter com <strong>$|\cos\theta|\le\epsilon$</strong> par a par (quase-ortogonais)?</p>
-        <div class="mathbox accent">
-          <div class="k" style="margin-bottom:4px">Resultado (assintótico)</div>
-          <div class="formula" id="hf1a" style="margin:2px 0"></div>
-          <p class="body small" style="margin:6px 0 0">O número de direções quase-ortogonais cresce <strong>exponencialmente</strong> em $d$ — não linearmente como as $d$ direções perfeitamente ortogonais.</p>
+    <div class="slide-num">19</div>
+    <h2 class="title sm">Quantas features cabem? Lendo a fórmula</h2>
+    <div class="hood-flow">
+      <p class="hquestion">Em $\mathbb{R}^d$, quantos vetores dá para ter todos <em>quase</em>-ortogonais?</p>
+      <div class="fragment" data-frag="1">
+        <div class="mathbox accent" style="text-align:center;padding:18px">
+          <div class="formula" id="hf1a" style="margin:0;font-size:26px"></div>
         </div>
-        <p class="body small">Ideia da prova: tome $N$ vetores aleatórios. A chance de <em>um par</em> ter $|\cos\theta|>\epsilon$ decai como $e^{-d\epsilon^2/2}$ (concentração de medida). Enquanto $N^2 e^{-d\epsilon^2/2}<1$, o conjunto existe — logo $N \sim e^{d\epsilon^2/4}$.</p>
       </div>
-      <div>
-        <div class="mathbox">
-          <div class="k" style="margin-bottom:6px">O porém honesto (rigor ≠ hype)</div>
-          <div class="deriv">
-            <div class="step">O bound é <strong>assintótico</strong>. Para $d$ moderado ele é <em>conservador</em>: com $\epsilon=0{,}1$, o exponencial só supera o trivial ($N\!\ge\! d$) por volta de $d\approx 30\text{k}$.</div>
-            <div class="step rule">Na prática as redes empacotam <strong>muito mais</strong> que o bound garante — a otimização acha configurações melhores que as aleatórias.</div>
-          </div>
+      <p class="body small fragment" data-frag="2" style="margin:10px 0 4px;color:#71717A">Vamos ler cada peça — nada aqui é decoração:</p>
+      <div class="hstep fragment" data-frag="3">
+        <div class="dot" style="background:#3B4C7A;font-size:13px">N</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>$N$ = quantas features cabem.</strong> É o que queremos maximizar — o número de conceitos distintos que a camada guarda.</p></div>
+      </div>
+      <div class="hstep fragment" data-frag="4">
+        <div class="dot" style="background:#6B21A8;font-size:13px">d</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>$d$ = a dimensão</strong> (nº de neurônios da camada). Está <em>no expoente</em> — por isso o crescimento é exponencial, e não linear.</p></div>
+      </div>
+      <div class="hstep fragment" data-frag="5">
+        <div class="dot" style="background:#DB2777;font-size:12px">ε</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>$\epsilon$ = tolerância de “quase”.</strong> Quão longe de 90° a gente aceita: $|\cos\theta|\le\epsilon$. Maior $\epsilon$ = mais frouxo = cabem mais features (mas com mais interferência).</p></div>
+      </div>
+      <div class="hstep fragment" data-frag="6">
+        <div class="dot">✓</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>Leitura conjunta:</strong> dobrar a dimensão não dobra a capacidade — <span class="hl">multiplica-a exponencialmente</span>. É daí que vêm “milhares de features em centenas de neurônios”.</p></div>
+      </div>
+    </div>
+    <div class="source">Johnson &amp; Lindenstrauss (1984); aplicação à superposição em Elhage et al. (2022).</div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SOB O CAPÔ 1b — Johnson-Lindenstrauss (viz interativa)
+     ============================================================ -->
+<section class="hood">
+  <div class="slide-pad">
+    <span class="hood-badge">SOB O CAPÔ</span>
+    <div class="slide-num">20</div>
+    <h2 class="title sm">Veja o exponencial acontecer</h2>
+    <div class="cols w4060" style="align-items:center;gap:26px">
+      <div class="body">
+        <p class="body small" style="margin:0 0 10px">Mexa nos controles e observe o número de features $N$ disparar conforme a dimensão $d$ cresce. A linha vermelha é o trivial ($d$ direções ortogonais) — a curva azul deixa ela para trás rápido.</p>
+        <div class="mathbox compact" style="margin:0 0 12px">
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px"><span class="k">dimensão $d$</span><span id="jlDval" style="font-weight:700;color:#3B4C7A">512</span></div>
+          <input type="range" min="8" max="2000" value="512" step="8" id="jlD" class="vrange" style="width:100%">
+        </div>
+        <div class="mathbox compact" style="margin:0">
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px"><span class="k">tolerância $\epsilon$</span><span id="jlEval" style="font-weight:700;color:#DB2777">0,10</span></div>
+          <input type="range" min="5" max="30" value="10" step="1" id="jlE" class="vrange" style="width:100%">
         </div>
         <div class="bridge" style="margin-top:14px">
           <div class="btag">Você já viu isso</div>
-          <p class="body small" style="margin:4px 0 0">É a mesma <strong>concentração de medida</strong> do JL clássico em redução de dimensionalidade. Aqui ela aparece “do avesso”: em vez de projetar preservando distância, a rede <em>empacota</em> aproveitando o espaço quase-ortogonal.</p>
+          <p class="body small" style="margin:2px 0 0">Mesma <strong>concentração de medida</strong> do JL clássico de redução de dimensionalidade — aqui “do avesso”: a rede <em>empacota</em> em vez de projetar.</p>
         </div>
       </div>
+      <div class="center"><div id="vizJL"></div></div>
     </div>
-    <div class="source">Johnson &amp; Lindenstrauss (1984); superposição em Elhage et al. (2022). Nota: bounds práticos são empíricos, não garantidos pelo JL.</div>
+    <div class="source">Curva $N\sim e^{d\epsilon^2/4}$ (assintótica). Para $d$ moderado o bound real é conservador; na prática as redes empacotam ainda mais.</div>
   </div>
 </section>
 
@@ -551,7 +607,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 2 · Superposição</div>
     <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">19</div>
+    <div class="slide-num">21</div>
     <h2 class="title sm">Toy Models e a geometria da superposição</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -565,10 +621,9 @@
         <input type="range" min="0" max="100" value="30" class="vrange" id="sparsity16" style="margin-top:10px">
         <div class="center" style="font-size:18px;margin-top:10px;line-height:1.7">
           esparsidade <b id="sp16val" style="color:#6B21A8">baixa</b>
-          <span id="ang16" style="display:none"></span>
           <div style="margin-top:4px;color:#3F3F46">
             <b id="nfeat16" style="color:#6B21A8;font-size:22px">4</b> features no mesmo espaço<br>
-            interferência <b id="interf16" style="color:#059669">0.00</b> <span style="color:#71717A;font-size:15px">(0 = perpendiculares)</span>
+            organizadas em <b id="poly16" style="color:#9333EA">quadrado</b>
           </div>
         </div>
       </div>
@@ -584,7 +639,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 2 · Superposição</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">20</div>
+    <div class="slide-num">22</div>
     <h2 class="title">Recapitulando o dilema</h2>
     <div class="cols" style="grid-template-columns:1fr 1fr 1fr;gap:24px">
       <div class="card center"><h3>escondidas</h3><p class="body small">As features úteis não estão à vista — estão distribuídas por muitos neurônios.</p></div>
@@ -603,7 +658,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">21</div>
+    <div class="slide-num">23</div>
     <h2 class="title sm">O que queremos fazer, em uma imagem</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -627,7 +682,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">22</div>
+    <div class="slide-num">24</div>
     <h2 class="title">A ideia: desembaralhar</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -664,7 +719,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">23</div>
+    <div class="slide-num">25</div>
     <h2 class="title sm">Primeiro, o que é um autoencoder</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -689,7 +744,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">24</div>
+    <div class="slide-num">26</div>
     <h2 class="title sm">O truque do SAE: expandir, não comprimir</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -711,7 +766,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">25</div>
+    <div class="slide-num">27</div>
     <h2 class="title sm">A fórmula do SAE, decomposta</h2>
     <div class="cols" style="align-items:center">
       <div class="body">
@@ -743,7 +798,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">26</div>
+    <div class="slide-num">28</div>
     <h2 class="title sm">A função de perda: dois objetivos em tensão</h2>
     <p class="body" style="margin-bottom:6px">Como treinar o SAE para separar features? Com uma perda de dois termos que competem. <em>Passe o mouse em cada termo para ver o peso na balança.</em></p>
     <div class="cols w6040" style="align-items:start;gap:30px;margin-top:10px">
@@ -770,38 +825,64 @@
 </section>
 
 <!-- ============================================================
-     SOB O CAPÔ 3 — por que L1 esparsifica (derivação)
+     SOB O CAPÔ 3a — por que L1 esparsifica (derivadas)
      ============================================================ -->
 <section class="hood">
   <div class="slide-pad">
     <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">27</div>
-    <h2 class="title sm">Por que a norma L1 zera features (e a L2 não)</h2>
-    <div class="cols" style="align-items:start;gap:30px">
-      <div class="body">
-        <p>A esparsidade não é mágica — vem da <strong>geometria do subgradiente na origem</strong>. Olhe o que cada penalidade faz com uma feature $f_i$ que “quer” ser desligada.</p>
-        <div class="mathbox accent">
-          <div class="k" style="margin-bottom:4px">A derivada perto de zero</div>
-          <div class="deriv">
-            <div class="step"><strong>L1:</strong> $\;\frac{\partial}{\partial f_i}\lambda|f_i| = \lambda\cdot\text{sinal}(f_i)$ &nbsp;→ empurrão <strong>constante</strong> $\lambda$ rumo a zero, não importa quão pequeno seja $f_i$.</div>
-            <div class="step"><strong>L2:</strong> $\;\frac{\partial}{\partial f_i}\lambda f_i^2 = 2\lambda f_i$ &nbsp;→ empurrão <strong>proporcional</strong> a $f_i$: some quando $f_i\to 0$.</div>
-          </div>
+    <div class="slide-num">29</div>
+    <h2 class="title sm">Por que a norma L1 zera features: a derivada</h2>
+    <div class="hood-flow">
+      <p class="hquestion">O que cada penalidade faz com uma feature que “quer” desligar?</p>
+      <p class="body small fragment" data-frag="1" style="margin:6px 0 2px;color:#71717A">A chave é a <strong>derivada</strong> da penalidade perto de zero — a “força” que empurra $f_i$ para baixo:</p>
+      <div class="hstep fragment" data-frag="2">
+        <div class="dot" style="background:#059669">L1</div>
+        <div class="hbody">
+          <div class="mathbox accent compact" style="margin:0 0 4px"><div class="formula" id="hl1a" style="margin:0;font-size:18px"></div></div>
+          <p class="body small" style="margin:0">Força <strong>constante</strong> $\lambda$ — <span class="hl">não importa quão pequeno</span> seja $f_i$. Continua empurrando até <strong>zerar</strong>.</p>
         </div>
-        <p class="body small" style="margin-top:8px">Resultado: a L1 continua “empurrando” até <strong>cravar em zero exato</strong>; a L2 só encolhe, deixando um resíduo. Por isso L1 → esparsidade <em>de verdade</em>.</p>
       </div>
-      <div>
-        <div class="mathbox">
-          <div class="k" style="margin-bottom:6px">O custo escondido (liga com o Bloco 5)</div>
-          <p class="body small" style="margin:0 0 6px">Esse empurrão constante $\lambda$ também encolhe as features que <strong>deveriam</strong> estar ativas — o <em>shrinkage</em>. A feature ativa fica subestimada por ~$\lambda$.</p>
-          <p class="body small" style="margin:0">É a raiz da <strong>instabilidade do L1</strong> que vamos criticar depois — e a razão de existirem Gated SAE e JumpReLU, que separam “quais features ativar” de “com que intensidade”.</p>
+      <div class="hstep fragment" data-frag="3">
+        <div class="dot" style="background:#DC2626">L2</div>
+        <div class="hbody">
+          <div class="mathbox accent compact" style="margin:0 0 4px"><div class="formula" id="hl1b" style="margin:0;font-size:18px"></div></div>
+          <p class="body small" style="margin:0">Força <strong>proporcional</strong> a $f_i$ — <em>some</em> quando $f_i\to0$. Só <strong>encolhe</strong>, deixa resíduo.</p>
         </div>
-        <div class="bridge" style="margin-top:14px">
-          <div class="btag">Você já viu isso</div>
-          <p class="body small" style="margin:4px 0 0">É <strong>exatamente o Lasso</strong> vs Ridge da regressão regularizada. A mesma geometria de “bola L1 tem quinas nos eixos” que faz o Lasso zerar coeficientes faz o SAE zerar features.</p>
-        </div>
+      </div>
+      <div class="hstep fragment" data-frag="4">
+        <div class="dot">!</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>Custo escondido:</strong> a força fixa da L1 também encolhe features que <em>deveriam</em> estar ativas — o <strong>shrinkage</strong>. Daí Gated SAE e JumpReLU (Bloco 5).</p></div>
       </div>
     </div>
-    <div class="source">Geometria do subgradiente: Tibshirani (1996, Lasso). Shrinkage em SAEs: Rajamanoharan et al. (2024, Gated); Bussmann et al. (2024).</div>
+    <div class="source">Subgradiente: Tibshirani (1996, Lasso). Shrinkage em SAEs: Rajamanoharan et al. (2024); Bussmann et al. (2024).</div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SOB O CAPÔ 3b — L1 vs L2 (viz geométrica)
+     ============================================================ -->
+<section class="hood">
+  <div class="slide-pad">
+    <span class="hood-badge">SOB O CAPÔ</span>
+    <div class="slide-num">30</div>
+    <h2 class="title sm">A geometria: por que a solução L1 “gruda” no eixo</h2>
+    <div class="cols w4060" style="align-items:center;gap:26px">
+      <div class="body">
+        <p class="body small" style="margin:0 0 8px">As <strong>elipses roxas</strong> são curvas de nível da perda (o mínimo no centro). A <strong>região azul</strong> é a restrição da penalidade. A solução é onde a menor elipse <em>toca</em> a região.</p>
+        <div class="hstep" style="margin:8px 0"><div class="dot" style="background:#059669">L1</div><div class="hbody"><p class="body small" style="margin:0">Losango com <strong>quinas nos eixos</strong> → o toque cai numa quina → um coeficiente vira <strong>exatamente 0</strong>.</p></div></div>
+        <div class="hstep" style="margin:8px 0"><div class="dot" style="background:#DC2626">L2</div><div class="hbody"><p class="body small" style="margin:0">Círculo <strong>liso, sem quinas</strong> → o toque cai num ponto genérico → nenhum coeficiente zera.</p></div></div>
+        <div class="interact-hint" style="margin-top:4px">clique para alternar entre L1 e L2</div>
+        <div class="bridge" style="margin-top:10px">
+          <div class="btag">Você já viu isso</div>
+          <p class="body small" style="margin:2px 0 0">É <strong>exatamente Lasso vs Ridge</strong>. A mesma geometria que zera coeficientes na regressão zera features no SAE.</p>
+        </div>
+      </div>
+      <div class="center">
+        <div id="vizNorm" class="cc-click" style="cursor:pointer"></div>
+        <div class="center" style="margin-top:2px;font-size:15px"><b id="normLabel" style="color:#059669">L1 — esparsifica</b></div>
+      </div>
+    </div>
+    <div class="source">Geometria clássica do Lasso (Tibshirani, 1996). A “bola” L1 é $|\beta_1|+|\beta_2|\le t$; a L2 é $\beta_1^2+\beta_2^2\le t$.</div>
   </div>
 </section>
 
@@ -812,7 +893,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
     <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">28</div>
+    <div class="slide-num">31</div>
     <h2 class="title sm">Monossemanticidade: a prova de conceito</h2>
     <div class="cols w6040">
       <div class="body">
@@ -821,7 +902,7 @@
         <p><strong style="color:#059669">Depois:</strong> esses sinais se separam em features distintas, cada uma com um significado único.</p>
         <p><strong>Primeira demonstração convincente de que dá para “desfazer” a superposição na prática.</strong></p>
       </div>
-      <div class="figbox"
+      <div class="figbox" data-img="images/img05.jpg"
            data-cap="Features monossemânticas: textos que ativam cada feature, tokens destacados"
            data-url="transformer-circuits.pub/2023/monosemantic-features">
         <img alt="Features monossemânticas">
@@ -840,7 +921,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
     <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">29</div>
+    <div class="slide-num">32</div>
     <h2 class="title sm">Escalando: a feature da Golden Gate</h2>
     <div class="cols w6040">
       <div class="body">
@@ -848,7 +929,7 @@
         <p>O exemplo famoso: a <strong>feature da Golden Gate Bridge</strong>. Ao <em>amplificá-la</em> artificialmente, o modelo passou a mencionar a ponte obsessivamente — achava que <em>era</em> a ponte.</p>
         <p><strong>Além de divertido, prova algo sério: a feature é causal, não apenas correlacional.</strong> Mexer nela muda o comportamento.</p>
       </div>
-      <div class="figbox"
+      <div class="figbox" data-img="images/img06.jpg"
            data-cap="“Golden Gate Claude”: respostas com a feature amplificada"
            data-url="anthropic.com/news/golden-gate-claude">
         <img alt="Golden Gate Claude">
@@ -867,7 +948,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">30</div>
+    <div class="slide-num">33</div>
     <h2 class="title sm">Gemma Scope e a democratização</h2>
     <div class="cols w6040">
       <div class="body">
@@ -876,7 +957,7 @@
         <p>Qualquer pesquisador passou a poder estudar as features internas <strong>sem treinar os SAEs do zero</strong>.</p>
         <p><strong>Divisor de águas para a acessibilidade:</strong> transformou a interpretabilidade de algo que só grandes laboratórios faziam em algo que um mestrando pode explorar.</p>
       </div>
-      <div class="figbox"
+      <div class="figbox" data-img="images/img07.jpg"
            data-cap="Neuronpedia: navegação interativa das features do Gemma Scope"
            data-url="neuronpedia.org">
         <img alt="Neuronpedia">
@@ -894,7 +975,7 @@
 <section>
   <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center;height:100%">
     <div class="eyebrow" style="color:#059669">✓ Checkpoint · fim do Bloco 3</div>
-    <div class="slide-num">31</div>
+    <div class="slide-num">34</div>
     <h2 class="title sm" style="margin-bottom:20px">O que já temos até aqui</h2>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
       <div class="card center" style="border-left:4px solid #6B21A8"><div class="bignum" style="font-size:22px;color:#6B21A8">Circuitos</div><p class="body small" style="margin-top:6px">features são <strong>direções</strong>; circuitos as conectam em computações.</p></div>
@@ -915,7 +996,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">32</div>
+    <div class="slide-num">35</div>
     <h2 class="title sm">Como se descobre um circuito?</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -945,7 +1026,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">33</div>
+    <div class="slide-num">36</div>
     <h2 class="title sm">Ferramenta observacional: logit lens</h2>
     <div class="cols w6040" style="align-items:center;gap:28px">
       <div class="body">
@@ -967,7 +1048,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">34</div>
+    <div class="slide-num">37</div>
     <h2 class="title sm">Activation patching: o coração do método</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -994,11 +1075,11 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">35</div>
+    <div class="slide-num">38</div>
     <h2 class="title sm">A matemática: quanto um componente importa</h2>
     <div class="cols w6040" style="align-items:center;gap:28px">
       <div class="body">
-        <p>Medimos o efeito com a <strong>diferença de logits</strong> (LD) entre a resposta certa e a errada, e normalizamos o efeito do patch numa escala de 0 a 1. <em>Passe o mouse em cada termo.</em></p>
+        <p>Medimos o efeito com a <strong>diferença de logits</strong> (LD) entre a resposta certa e a errada, e normalizamos numa escala de 0 a 1. O resultado é o <strong>IE — <em>Indirect Effect</em></strong> (efeito indireto): <em>o quanto aquele componente importa</em>. <em>Passe o mouse em cada termo.</em></p>
         <div class="formula" id="ft4" style="margin:12px 0;font-size:28px"></div>
         <div class="termlab termsync" data-term="patched" data-viz="viz29ie" style="margin:7px 0"><span class="chip" style="background:#059669"></span><span><b>LD<sub>patched</sub></b> — a diferença de logits <em>depois</em> de transplantar a ativação.</span></div>
         <div class="termlab termsync" data-term="corr" data-viz="viz29ie" style="margin:7px 0"><span class="chip" style="background:#DC2626"></span><span><b>LD<sub>corr</sub></b> — o piso: o run corrompido, sem intervenção (referência do “0”).</span></div>
@@ -1010,46 +1091,67 @@
       </div>
     </div>
     <p class="anchor" style="font-size:17px;margin-top:8px"><strong>Duas direções:</strong> <span style="color:#1D4ED8">denoising</span> (corromp.→limpo) mede <em>suficiência</em> — lógica OR; <span style="color:#B45309">noising</span> (limpo→corromp.) mede <em>necessidade</em> — lógica AND.</p>
-    <div class="source">Fórmula (IE): Wang et al. (2023, IOI); Heimersheim &amp; Nanda (2024). Direções: Bereska &amp; Gavves (2024).</div>
+    <div class="source">Fórmula (IE): Wang et al. (2023) — circuito <strong>IOI</strong> (<em>Indirect Object Identification</em>, tarefa-padrão de teste); Heimersheim &amp; Nanda (2024). Direções: Bereska &amp; Gavves (2024).</div>
   </div>
 </section>
 
 <!-- ============================================================
-     SOB O CAPÔ 4 — métrica de indirect effect (exemplo numérico)
+     SOB O CAPÔ 4a — métrica de indirect effect (fórmula)
      ============================================================ -->
 <section class="hood">
   <div class="slide-pad">
     <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">36</div>
-    <h2 class="title sm">A métrica, com números de verdade</h2>
-    <div class="cols" style="align-items:start;gap:30px">
-      <div class="body">
-        <p>A métrica-padrão é a <strong>diferença de logits</strong> (logit diff): o logit da resposta certa menos o da errada. É ela que a gente mede antes e depois do patch.</p>
-        <div class="mathbox accent">
-          <div class="k" style="margin-bottom:4px">Exemplo (recuperação factual)</div>
-          <div class="deriv">
-            <div class="step">Limpo (“…France is”): LD$_\text{clean}$ = logit(Paris) − logit(Rome) = <strong>+6{,}2</strong></div>
-            <div class="step">Corrompido (“…Italy is”): LD$_\text{corr}$ = <strong>−3{,}1</strong></div>
-            <div class="step">Após patch de <em>uma</em> cabeça: LD$_\text{patched}$ = <strong>+4{,}0</strong></div>
-            <div class="step" style="border-top:1px solid #D3DBEC;padding-top:6px;margin-top:4px">IE $=\dfrac{4{,}0-(-3{,}1)}{6{,}2-(-3{,}1)}=\dfrac{7{,}1}{9{,}3}\approx \mathbf{0{,}76}$</div>
-          </div>
+    <div class="slide-num">39</div>
+    <h2 class="title sm">A métrica causal: lendo a fórmula do IE</h2>
+    <div class="hood-flow">
+      <p class="hquestion">Como virar “restaurou a resposta” num número entre 0 e 1?</p>
+      <p class="body small" style="margin:2px 0 8px;color:#3B4C7A"><strong>IE = <em>Indirect Effect</em></strong> (efeito indireto): a medida de quanto um componente contribui causalmente para a resposta.</p>
+      <div class="fragment" data-frag="1">
+        <div class="mathbox accent" style="text-align:center;padding:16px">
+          <div class="formula" id="hie" style="margin:0;font-size:22px"></div>
         </div>
-        <p class="body small" style="margin-top:8px">Leitura: essa cabeça sozinha restaura <strong>76%</strong> do efeito. Componente forte, mas não o único.</p>
       </div>
-      <div>
-        <div class="mathbox">
-          <div class="k" style="margin-bottom:6px">Duas intervenções, dois significados</div>
-          <p class="body small" style="margin:0 0 6px"><strong style="color:#1D4ED8">Denoising</strong> (corromp.→limpo): “essa ativação <em>sozinha basta</em> para consertar?” → mede <strong>suficiência</strong>.</p>
-          <p class="body small" style="margin:0"><strong style="color:#B45309">Noising</strong> (limpo→corromp.): “<em>quebrar</em> essa ativação estraga tudo?” → mede <strong>necessidade</strong>.</p>
-          <p class="body small" style="margin:8px 0 0"><em>Não são simétricas:</em> um componente pode ser suficiente e não necessário (redundância) ou o contrário.</p>
-        </div>
-        <div class="bridge" style="margin-top:14px">
-          <div class="btag">Você já viu isso</div>
-          <p class="body small" style="margin:4px 0 0">É <strong>causal mediation analysis</strong> (Pearl): o <em>indirect effect</em> é o efeito que passa por um mediador. Patching é o do-operador $\text{do}(\cdot)$ aplicado a uma ativação interna.</p>
-        </div>
+      <p class="body small fragment" data-frag="2" style="margin:10px 0 2px;color:#71717A">Cada peça é uma <strong>diferença de logits</strong> (LD = logit certo − logit errado), medida numa condição:</p>
+      <div class="hstep fragment" data-frag="3">
+        <div class="dot" style="background:#059669;font-size:11px">patch</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>$\text{LD}_{\text{patched}}$ = depois do transplante.</strong> É o que queremos avaliar: até onde a resposta voltou.</p></div>
+      </div>
+      <div class="hstep fragment" data-frag="4">
+        <div class="dot" style="background:#DC2626;font-size:11px">corr</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>$\text{LD}_{\text{corr}}$ = o piso</strong> (rodada corrompida, sem intervenção). Subtraído em cima <em>e</em> embaixo: é o ponto zero da régua.</p></div>
+      </div>
+      <div class="hstep fragment" data-frag="5">
+        <div class="dot" style="background:#6B21A8;font-size:10px">clean</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>$\text{LD}_{\text{clean}}$ = o teto</strong> (rodada limpa). O denominador é o caminho <em>total</em> a recuperar — por isso o resultado é uma <span class="hl">fração de 0 a 1</span>.</p></div>
       </div>
     </div>
-    <div class="source">Números ilustrativos no padrão do circuito IOI (Wang et al., 2023). Mediação causal: Pearl (2001); Vig et al. (2020).</div>
+    <div class="source">Fórmula (IE): Wang et al. (2023, IOI); Heimersheim &amp; Nanda (2024).</div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SOB O CAPÔ 4b — IE régua interativa
+     ============================================================ -->
+<section class="hood">
+  <div class="slide-pad">
+    <span class="hood-badge">SOB O CAPÔ</span>
+    <div class="slide-num">40</div>
+    <h2 class="title sm">A régua: o IE é “que fração do caminho o patch recuperou”</h2>
+    <div class="cols w4060" style="align-items:center;gap:26px">
+      <div class="body">
+        <p class="body small" style="margin:0 0 10px">Arraste a posição do <strong style="color:#059669">patch</strong> e veja o IE mudar. Perto do <strong style="color:#DC2626">corrompido</strong> → efeito ~0 (o componente não importa). Perto do <strong style="color:#6B21A8">limpo</strong> → efeito ~1 (o componente sozinho quase restaura tudo).</p>
+        <div class="mathbox compact" style="margin:0 0 12px">
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px"><span class="k">LD após o patch</span><span id="ieVal" style="font-weight:700;color:#059669">+4,0</span></div>
+          <input type="range" min="-31" max="62" value="40" step="1" id="ieP" class="vrange" style="width:100%">
+        </div>
+        <div class="bridge" style="margin-top:8px">
+          <div class="btag">Você já viu isso</div>
+          <p class="body small" style="margin:2px 0 0">É <strong>causal mediation analysis</strong> (Pearl): o <em>indirect effect</em> é o efeito que passa por um mediador. Patching é o operador $\text{do}(\cdot)$ numa ativação interna.</p>
+        </div>
+      </div>
+      <div class="center"><div id="vizIE"></div></div>
+    </div>
+    <div class="source">Exemplo no padrão IOI. Duas direções: <span style="color:#1D4ED8">denoising</span> mede suficiência; <span style="color:#B45309">noising</span> mede necessidade.</div>
   </div>
 </section>
 
@@ -1058,7 +1160,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">37</div>
+    <div class="slide-num">41</div>
     <h2 class="title sm">Ablation: e se este componente sumisse?</h2>
     <p class="body" style="margin-bottom:12px">Patching troca uma ativação por <em>outra específica</em>. Ablation a <strong>remove</strong> — substituindo por um valor “neutro”. A escolha do neutro define três variantes, do mais brusco ao mais principiado:</p>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
@@ -1079,7 +1181,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">38</div>
+    <div class="slide-num">42</div>
     <h2 class="title sm">Escalar: de um teste por vez a milhares</h2>
     <p class="body" style="margin-bottom:4px">Patching exige <em>um forward pass por componente</em> — inviável para todos os elos. <strong>Attribution patching (EAP)</strong> aproxima o efeito com um <strong>Taylor de 1ª ordem</strong>. <em>Passe o mouse em cada termo.</em></p>
     <div class="cols w6040" style="align-items:start;gap:26px;margin-top:8px">
@@ -1094,42 +1196,64 @@
         <p class="body small muted center" style="margin-top:0">a tangente estima o efeito sem re-rodar o patch</p>
       </div>
     </div>
-    <p class="anchor" style="font-size:16px;margin-top:10px"><strong>O preço da velocidade:</strong> a aproximação linear falha quando o gradiente satura — o <em>QK saturation problem</em> do softmax de atenção. Daí refinamentos como AtP* e EAP-IG.</p>
+    <p class="anchor" style="font-size:16px;margin-top:10px"><strong>O preço da velocidade:</strong> a aproximação linear falha quando o gradiente satura — o <em>QK saturation problem</em> (saturação do produto <em>Query-Key</em> no softmax de atenção). Daí refinamentos como AtP* e EAP-IG (<em>Integrated Gradients</em>).</p>
     <div class="source">Fontes: Syed et al. (2023, EAP); Kramár et al. (2024, AtP*). ACDC (busca automática): ver quadro-síntese a seguir.</div>
   </div>
 </section>
 
 <!-- ============================================================
-     SOB O CAPÔ 5 — a expansão de Taylor do EAP
+     SOB O CAPÔ 5a — Taylor do EAP (fórmula)
      ============================================================ -->
 <section class="hood">
   <div class="slide-pad">
     <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">39</div>
-    <h2 class="title sm">De onde vem a aproximação: Taylor de 1ª ordem</h2>
-    <div class="cols" style="align-items:start;gap:30px">
-      <div class="body">
-        <p>“Inclinação × deslocamento” não é analogia — é <strong>literalmente</strong> o primeiro termo de uma série de Taylor da métrica $\mathcal{L}$ em torno da ativação limpa.</p>
-        <div class="mathbox accent">
-          <div class="k" style="margin-bottom:4px">A expansão (Syed et al., 2023)</div>
-          <div class="formula" id="hf5a" style="margin:4px 0"></div>
-          <p class="body small" style="margin:6px 0 0">O termo destacado é o <strong>attribution score</strong>. Ele estima o efeito do patch <em>sem</em> rodar o forward — só precisa do gradiente, que vem de <u>um</u> backward pass.</p>
+    <div class="slide-num">43</div>
+    <h2 class="title sm">De onde vem a aproximação: lendo o Taylor de 1ª ordem</h2>
+    <div class="hood-flow">
+      <p class="hquestion">“Inclinação × deslocamento” — de onde sai, símbolo a símbolo?</p>
+      <div class="fragment" data-frag="1">
+        <div class="mathbox accent" style="text-align:center;padding:16px">
+          <div class="formula" id="hf5a" style="margin:0;font-size:17px"></div>
         </div>
-        <p class="body small" style="margin-top:6px">Por isso o custo cai de “um forward por componente” para <strong>2 forwards + 1 backward</strong> para <em>todos</em> os componentes de uma vez.</p>
       </div>
-      <div>
-        <div class="mathbox">
-          <div class="k" style="margin-bottom:6px">Por que (e quando) ela mente</div>
-          <p class="body small" style="margin:0 0 6px">Taylor de 1ª ordem só vale <strong>localmente</strong>. Quando a ativação limpa está numa região <em>plana</em> da métrica (gradiente ≈ 0), a estimativa vai a zero mesmo que o efeito real seja grande.</p>
-          <p class="body small" style="margin:0">É o <strong>QK saturation</strong>: dentro de um softmax de atenção já saturado, mexer no input quase não muda a saída — o gradiente some, e o EAP subestima. Daí AtP* e correções de 2ª ordem (Hessiano).</p>
-        </div>
-        <div class="bridge" style="margin-top:14px">
-          <div class="btag">Você já viu isso</div>
-          <p class="body small" style="margin:4px 0 0">É <strong>Input × Gradient</strong> — a mesma família de saliency maps / atribuição por gradiente que vocês conhecem de explicabilidade em visão. Aqui aplicada a ativações internas em vez de pixels de entrada.</p>
-        </div>
+      <div class="hstep fragment" data-frag="2">
+        <div class="dot" style="background:#3B4C7A;font-size:11px">Δa</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>$(e_{\text{corr}}-e_{\text{clean}})$ = o deslocamento</strong> da ativação entre as duas rodadas. É o “quanto” a gente mexe — o eixo horizontal.</p></div>
+      </div>
+      <div class="hstep fragment" data-frag="3">
+        <div class="dot" style="background:#059669;font-size:12px">∇</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>$\nabla_e\mathcal{L}$ = o gradiente</strong> da métrica na ativação limpa — a <em>inclinação</em> da curva ali. Vem de <strong>1 backward pass</strong>.</p></div>
+      </div>
+      <div class="hstep fragment" data-frag="4">
+        <div class="dot">·</div>
+        <div class="hbody"><p class="body small" style="margin:0"><strong>O produto interno</strong> dos dois é o <span class="hl">attribution score</span>: estima o efeito do patch <em>sem</em> rodar o forward. Custo cai para <strong>2 forwards + 1 backward</strong> para todos os componentes.</p></div>
       </div>
     </div>
-    <div class="source">Formulação: Syed et al. (2023), eq. 2; Nanda (2022). Correções de curvatura: Kramár et al. (2024, AtP*).</div>
+    <div class="source">Formulação: Syed et al. (2023), eq. 2; Nanda (2022).</div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SOB O CAPÔ 5b — Taylor tangente interativa
+     ============================================================ -->
+<section class="hood">
+  <div class="slide-pad">
+    <span class="hood-badge">SOB O CAPÔ</span>
+    <div class="slide-num">44</div>
+    <h2 class="title sm">Por que ela acerta perto e erra longe</h2>
+    <div class="cols w4060" style="align-items:center;gap:26px">
+      <div class="body">
+        <p class="body small" style="margin:0 0 10px">A <strong style="color:#9333EA">curva roxa</strong> é a métrica real; a <strong style="color:#059669">reta verde</strong> é a aproximação de Taylor (a tangente no ponto limpo). Arraste o deslocamento <strong>Δ</strong> e veja o <strong style="color:#DC2626">erro</strong> entre elas.</p>
+        <div class="mathbox compact" style="margin:0 0 12px">
+          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px"><span class="k">deslocamento Δ</span><span id="ttVal" style="font-weight:700;color:#3B4C7A">+0,40</span></div>
+          <input type="range" min="-60" max="26" value="40" step="2" id="ttD" class="vrange" style="width:100%">
+        </div>
+        <div class="hstep" style="margin:6px 0"><div class="dot" style="background:#059669">✓</div><div class="hbody"><p class="body small" style="margin:0"><strong>Δ pequeno:</strong> reta e curva quase coincidem — a estimativa é fiel.</p></div></div>
+        <div class="hstep" style="margin:6px 0"><div class="dot" style="background:#DC2626">✗</div><div class="hbody"><p class="body small" style="margin:0"><strong>Δ grande:</strong> a reta se descola — é a <em>saturação do Query-Key</em> na atenção que faz o EAP mentir.</p></div></div>
+      </div>
+      <div class="center"><div id="vizTaylor"></div></div>
+    </div>
+    <div class="source">Correções de curvatura (2ª ordem/Hessiano): Kramár et al. (2024, AtP*). Analogia: Input × Gradient / saliency maps.</div>
   </div>
 </section>
 
@@ -1140,7 +1264,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
     <span class="badge-row"><span class="badge tech">Síntese</span></span>
-    <div class="slide-num">40</div>
+    <div class="slide-num">45</div>
     <h2 class="title sm">A caixa de ferramentas, num quadro</h2>
     <table class="synth">
       <thead>
@@ -1167,7 +1291,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 4 · Attribution Graphs (2025)</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">41</div>
+    <div class="slide-num">46</div>
     <h2 class="title">O elo perdido</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -1204,7 +1328,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 4 · Attribution Graphs</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">42</div>
+    <div class="slide-num">47</div>
     <h2 class="title sm">Cross-Layer Transcoders</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -1228,7 +1352,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 4 · Attribution Graphs</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">43</div>
+    <div class="slide-num">48</div>
     <h2 class="title sm">O que é um attribution graph</h2>
     <div class="cols w6040">
       <div class="body">
@@ -1237,7 +1361,7 @@
         <p>É, na prática, uma <strong>árvore genealógica da resposta</strong>: dá para ler, passo a passo, quais conceitos levaram a quais.</p>
         <p><strong>Pela primeira vez, temos algo próximo de “ver o raciocínio” do modelo desenhado.</strong></p>
       </div>
-      <div class="figbox"
+      <div class="figbox" data-img="images/img08.jpg"
            data-cap="Um attribution graph: nós = features, setas = influências causais"
            data-url="transformer-circuits.pub/2025/attribution-graphs/biology.html">
         <img alt="Attribution graph">
@@ -1269,7 +1393,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 4 · Demonstração 1</div>
     <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">44</div>
+    <div class="slide-num">49</div>
     <h2 class="title sm">Raciocínio multi-passo: Dallas → Austin</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -1290,7 +1414,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 4 · Demonstração 2</div>
     <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">45</div>
+    <div class="slide-num">50</div>
     <h2 class="title sm">O modelo planeja poesia</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -1321,7 +1445,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 4 · Attribution Graphs</div>
     <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">46</div>
+    <div class="slide-num">51</div>
     <h2 class="title sm">A chave: intervenção causal</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -1351,7 +1475,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 4 · Attribution Graphs</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">47</div>
+    <div class="slide-num">52</div>
     <h2 class="title sm">Código aberto e replicação</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -1377,7 +1501,7 @@
 <section>
   <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center;height:100%">
     <div class="eyebrow" style="color:#059669">✓ Checkpoint · fim do Bloco 4</div>
-    <div class="slide-num">48</div>
+    <div class="slide-num">53</div>
     <h2 class="title sm" style="margin-bottom:20px">A jornada completa, num olhar</h2>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
       <div class="card center" style="padding:14px 10px"><div class="body small muted">ver features</div><div class="bignum" style="font-size:19px;color:#6B21A8;margin-top:4px">SAEs</div></div>
@@ -1398,7 +1522,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 5 · Fronteira e desafios</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">49</div>
+    <div class="slide-num">54</div>
     <h2 class="title">A honestidade científica</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -1422,7 +1546,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 5 · Desafios</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">50</div>
+    <div class="slide-num">55</div>
     <h2 class="title sm">Ainda não sabemos definir “feature”</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -1451,7 +1575,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 5 · Desafios</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">51</div>
+    <div class="slide-num">56</div>
     <h2 class="title sm">Os SAEs têm falhas sérias</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -1489,7 +1613,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 5 · Desafios</div>
     <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">52</div>
+    <div class="slide-num">57</div>
     <h2 class="title sm">O problema da fidelidade</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -1522,7 +1646,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 5 · Desafios</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">53</div>
+    <div class="slide-num">58</div>
     <h2 class="title sm">Avaliação e benchmarks</h2>
     <div class="cols w6040" style="align-items:center">
       <div class="body">
@@ -1552,11 +1676,11 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 5 · Desafios</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">54</div>
+    <div class="slide-num">59</div>
     <h2 class="title sm">As fronteiras de 2026</h2>
     <div style="display:flex;flex-direction:column;gap:16px;margin-top:6px">
       <div class="card"><h3 style="font-size:20px;margin-bottom:4px">Decomposição no espaço de parâmetros</h3>
-        <p class="body small">Em vez de decompor <em>ativações</em>, decompor os próprios <em>pesos</em> do modelo em mecanismos (ex.: APD, Braun et al., 2025). Mudança de perspectiva potencialmente mais fundamental.</p></div>
+        <p class="body small">Em vez de decompor <em>ativações</em>, decompor os próprios <em>pesos</em> do modelo em mecanismos (ex.: <strong>APD</strong> — <em>Attribution-based Parameter Decomposition</em>, Braun et al., 2025). Mudança de perspectiva potencialmente mais fundamental.</p></div>
       <div class="card plain"><h3 style="font-size:20px;margin-bottom:4px">Steering causal guiado por circuitos</h3>
         <p class="body small">Usar o entendimento dos circuitos para dirigir o comportamento do modelo de forma controlada e segura.</p></div>
       <div class="card"><h3 style="font-size:20px;margin-bottom:4px">Agentes de interpretabilidade</h3>
@@ -1574,21 +1698,21 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 6 · Da teoria à prática</div>
     <span class="badge-row"><span class="badge intu">Panorama</span></span>
-    <div class="slide-num">55</div>
+    <div class="slide-num">60</div>
     <h2 class="title sm">Para que isso já serve</h2>
     <p class="body" style="margin-bottom:14px">A interpretabilidade deixou de ser só ciência básica — já alimenta aplicações concretas. Quatro frentes ativas:</p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div class="card"><h3 style="font-size:19px;margin-bottom:4px">🛡️ Segurança &amp; alinhamento</h3>
         <p class="body small">Localizar e ablar direções “perigosas”; identificar as poucas <em>safety heads</em> que sustentam os guardrails; auditar o modelo por dentro em vez de só testar entradas e saídas.</p></div>
       <div class="card blue"><h3 style="font-size:19px;margin-bottom:4px">🔍 Detecção de alucinação</h3>
-        <p class="body small">Ler estados internos para flagrar quando o modelo “inventa”. Ex.: <strong>RedeEP</strong> detecta alucinação em RAG via interpretabilidade mecanística (ICLR 2025).</p></div>
+        <p class="body small">Ler estados internos para flagrar quando o modelo “inventa”. Ex.: <strong>RedeEP</strong> detecta alucinação em <strong>RAG</strong> (<em>Retrieval-Augmented Generation</em> — geração com busca) via interpretabilidade mecanística (ICLR 2025).</p></div>
       <div class="card"><h3 style="font-size:19px;margin-bottom:4px">✏️ Edição de conhecimento</h3>
         <p class="body small">Localizar onde um fato “mora” e editá-lo cirurgicamente (ROME, AlphaEdit, edição baseada em circuitos), sem re-treinar o modelo inteiro.</p></div>
       <div class="card plain"><h3 style="font-size:19px;margin-bottom:4px">🎛️ Steering &amp; red-teaming</h3>
         <p class="body small">Amplificar ou suprimir features para dirigir comportamento (o “Golden Gate Claude”), e sondar vulnerabilidades de forma mecanística.</p></div>
     </div>
     <p class="anchor" style="font-size:19px;margin-top:14px">Detecção de alucinação e checagem factual são <strong>portas de entrada naturais</strong> para quem vem de NLP.</p>
-    <div class="source">Fontes: Sun et al. (2025, RedeEP); Bereska &amp; Gavves (2024, MI for AI Safety); Templeton et al. (2024); Meng et al. (ROME).</div>
+    <div class="source">Fontes: Sun et al. (2025, RedeEP); Bereska &amp; Gavves (2024, <em>Mechanistic Interpretability</em> for AI Safety); Templeton et al. (2024); Meng et al. (ROME).</div>
   </div>
 </section>
 
@@ -1599,7 +1723,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 6 · Da teoria à prática</div>
     <span class="badge-row"><span class="badge tech">Ferramentas</span></span>
-    <div class="slide-num">56</div>
+    <div class="slide-num">61</div>
     <h2 class="title sm">O ecossistema: por onde começar a mexer</h2>
     <p class="body" style="margin-bottom:12px">O campo tem um fluxo de trabalho estável — <strong>acessar → decompor → explorar</strong> — e ferramentas abertas para cada etapa:</p>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
@@ -1622,7 +1746,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Bloco 6 · Da teoria à prática</div>
     <span class="badge-row"><span class="badge intu">Agenda</span></span>
-    <div class="slide-num">57</div>
+    <div class="slide-num">62</div>
     <h2 class="title sm">Onde há dissertação para fazer</h2>
     <p class="body" style="margin-bottom:12px">Os problemas abertos do Bloco 5 não são becos sem saída — são <strong>temas de pesquisa</strong>. Alguns caminhos concretos:</p>
     <div style="display:flex;flex-direction:column;gap:11px">
@@ -1639,7 +1763,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Síntese</div>
     <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">58</div>
+    <div class="slide-num">63</div>
     <h2 class="title sm">O fio da história</h2>
     <p class="anchor" style="font-size:22px;margin-bottom:20px">Cada avanço criou o próximo problema.</p>
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px">
@@ -1660,7 +1784,7 @@
   <div class="slide-pad">
     <div class="eyebrow">Antecipando o Q&amp;A</div>
     <span class="badge-row"><span class="badge tech">Perguntas difíceis</span></span>
-    <div class="slide-num">59</div>
+    <div class="slide-num">64</div>
     <h2 class="title sm">As objeções que você vai ouvir</h2>
     <div style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
       <div class="card"><p class="body small" style="margin:0"><strong style="color:#DB2777">“Isso não é só ler folhas de chá — achar padrões onde não há?”</strong><br>Por isso a <strong>intervenção causal</strong> importa: não basta observar correlação, testamos se mexer no componente muda a saída. E benchmarks com gabarito (MIB, InterpBench) medem se recuperamos o circuito certo.</p></div>
@@ -1766,9 +1890,17 @@ K("ft6", String.raw`\text{EAP}(u,v) = \underbrace{({\color{#DC2626}\mathbf{z}_u^
 
 /* ---------- fórmulas dos slides "Sob o capô" ---------- */
 // HOOD1 — Johnson–Lindenstrauss
-K("hf1a", String.raw`N \;\sim\; \exp\!\left(\tfrac{d\,\epsilon^2}{4}\right)\quad\text{direções com } |\cos\theta|\le\epsilon`);
+K("hf1a", String.raw`{\color{#3B4C7A}N} \;\sim\; \exp\!\left(\dfrac{{\color{#6B21A8}d}\,\cdot\,{\color{#DB2777}\epsilon}^{2}}{4}\right)`);
+// HOOD2 — Linear Representation Hypothesis
+K("hlrh", String.raw`{\color{#1E2A44}a(x)} \;=\; \sum_i {\color{#DB2777}f_i(x)}\,{\color{#6B21A8}\mathbf{d}_i}`);
+K("hlrh2", String.raw`{\color{#6B21A8}\mathbf{d}_{\text{rei}}} - {\color{#DC2626}\mathbf{d}_{\text{homem}}} + {\color{#0891B2}\mathbf{d}_{\text{mulher}}} \approx {\color{#059669}\mathbf{d}_{\text{rainha}}}`);
+// HOOD3 — L1 vs L2 (derivadas)
+K("hl1a", String.raw`\frac{\partial}{\partial f_i}\,\lambda|f_i| \;=\; {\color{#059669}\lambda\cdot\text{sinal}(f_i)}`);
+K("hl1b", String.raw`\frac{\partial}{\partial f_i}\,\lambda f_i^{2} \;=\; {\color{#DC2626}2\lambda f_i}`);
+// HOOD4 — indirect effect
+K("hie", String.raw`\text{IE} \;=\; \dfrac{{\color{#059669}\text{LD}_{\text{patched}}} - {\color{#DC2626}\text{LD}_{\text{corr}}}}{{\color{#6B21A8}\text{LD}_{\text{clean}}} - {\color{#DC2626}\text{LD}_{\text{corr}}}}`);
 // HOOD5 — Taylor de 1ª ordem (EAP)
-K("hf5a", String.raw`\mathcal{L}(x_{\text{clean}}\,|\,\text{do}(e{=}e_{\text{corr}})) \approx \mathcal{L}(x_{\text{clean}}) + \underbrace{(e_{\text{corr}}-e_{\text{clean}})^{\!\top}\,\nabla_{\!e}\,\mathcal{L}}_{\text{\color{#3B4C7A}attribution score}}`);
+K("hf5a", String.raw`\mathcal{L}(x_{\text{clean}}\,|\,\text{do}(e{=}e_{\text{corr}})) \approx \mathcal{L}(x_{\text{clean}}) + \underbrace{{\color{#3B4C7A}(e_{\text{corr}}-e_{\text{clean}})^{\!\top}}\,{\color{#059669}\nabla_{\!e}\,\mathcal{L}}}_{\text{attribution score}}`);
 
 /* renderiza $...$ inline depois de tudo */
 renderInlineMath();
@@ -1809,7 +1941,16 @@ setViz("viz07", VIZ.plane2D({ w:400,h:340,id:"pl07",
   axisLabels:["neurônio 1","neurônio 2"] }));
 
 // 09 — transformer/residual stream
-setViz("viz09", VIZ.transformerStack({ w:380,h:340,id:"tr09",nBlocks:3 }));
+// 12 — transformer + residual stream como QUADRO (clique revela camadas lendo/escrevendo)
+(function(){
+  let stage=0;
+  function render(){
+    setViz("viz09", VIZ.transformerBoard({w:460,h:360,id:"tb12",nLayers:3,stage}));
+    const node=document.querySelector('#viz09');
+    if(node) node.onclick=()=>{ stage = stage>=3 ? 0 : stage+1; render(); };
+  }
+  render();
+})();
 
 // 10 — induction heads (tokens)
 setViz("viz10", (function(){
@@ -1952,25 +2093,86 @@ function wireTermSync(vizId){
   });
 }
 
-/* ---------- interativo 16: esparsidade → superposição ---------- */
+/* ---------- interativo 16: esparsidade → polígonos regulares ---------- */
 (function(){
   const sp=document.getElementById("sparsity16"); if(!sp) return;
   function draw(v){
     const s=v/100;
-    const r=VIZ.superposition({w:320,h:320,id:"sp16",sparsity:s});
+    const r=VIZ.polygonSuperposition({w:320,h:320,id:"sp16",sparsity:s});
     setViz("viz16i", r.svg);
-    // leitura ao vivo
     const lvl = s<0.34?"baixa":(s<0.67?"média":"alta");
     document.getElementById("sp16val").textContent=lvl;
     document.getElementById("nfeat16").textContent=r.n;
-    document.getElementById("ang16").textContent=r.minAngleDeg+"°";
-    const iv=document.getElementById("interf16");
-    iv.textContent=r.interf;
-    // menos interferência = melhor (verde); mais = alerta
-    iv.style.color = r.interf<0.2?"#059669":(r.interf<0.5?"#B45309":"#DC2626");
+    document.getElementById("poly16").textContent=r.polygon;
   }
   sp.addEventListener("input",e=>draw(+e.target.value));
   draw(30);
+})();
+
+/* ---------- interativo 18b: Johnson-Lindenstrauss (d e eps) ---------- */
+(function(){
+  const dS=document.getElementById("jlD"), eS=document.getElementById("jlE");
+  if(!dS||!eS) return;
+  function draw(){
+    const d=+dS.value, eps=(+eS.value)/100;
+    setViz("vizJL", VIZ.jlCurve({w:440,h:290,id:"jlv",d,eps}));
+    document.getElementById("jlDval").textContent=d;
+    document.getElementById("jlEval").textContent=eps.toFixed(2).replace(".",",");
+  }
+  dS.addEventListener("input",draw);
+  eS.addEventListener("input",draw);
+  draw();
+})();
+
+/* ---------- interativo 09b: aritmética de vetores (clique acumula) ---------- */
+(function(){
+  let step=0;
+  function render(){
+    setViz("vizVec", VIZ.vecAlgebra({w:360,h:320,id:"vecA",step}));
+    const node=document.querySelector('#vizVec');
+    if(node) node.onclick=()=>{ step = step>=3 ? 1 : step+1; render(); };
+  }
+  render();
+})();
+
+/* ---------- interativo 27b: bolas L1 vs L2 (toggle) ---------- */
+(function(){
+  let mode="l1";
+  function render(){
+    setViz("vizNorm", VIZ.normBall({w:300,h:300,id:"nbv",mode}));
+    const lbl=document.getElementById("normLabel");
+    if(lbl){ lbl.textContent = mode==="l1" ? "L1 — esparsifica" : "L2 — só encolhe";
+             lbl.style.color = mode==="l1" ? "#059669" : "#DC2626"; }
+    const node=document.querySelector('#vizNorm');
+    if(node) node.onclick=()=>{ mode = mode==="l1"?"l2":"l1"; render(); };
+  }
+  render();
+})();
+
+/* ---------- interativo 36b: régua do IE ---------- */
+(function(){
+  const s=document.getElementById("ieP"); if(!s) return;
+  function draw(){
+    const ld=(+s.value)/10;   // slider em décimos
+    setViz("vizIE", VIZ.ieRuler({w:440,h:170,id:"iev",ldCorr:-3.1,ldClean:6.2,ldPatched:ld}));
+    const v=document.getElementById("ieVal");
+    v.textContent=(ld>=0?"+":"")+ld.toFixed(1).replace(".",",");
+  }
+  s.addEventListener("input",draw);
+  draw();
+})();
+
+/* ---------- interativo 39b: tangente de Taylor ---------- */
+(function(){
+  const s=document.getElementById("ttD"); if(!s) return;
+  function draw(){
+    const delta=(+s.value)/100;
+    setViz("vizTaylor", VIZ.taylorTangent({w:440,h:290,id:"ttv",delta}));
+    const v=document.getElementById("ttVal");
+    v.textContent=(delta>=0?"+":"")+delta.toFixed(2).replace(".",",");
+  }
+  s.addEventListener("input",draw);
+  draw();
 })();
 
 /* ---------- construção incremental: fragmentos → estágio do gráfico ----------
@@ -2002,8 +2204,8 @@ function wireTermSync(vizId){
 
 /* ---------- imagens de paper com fallback ----------
    Para inserir a imagem real de um slide depois: adicione o atributo
-   data-img="URL_ou_caminho_local" na <div class="figbox"> desejada
-   (ex.: data-img="figuras/dallas.png"). Sem data-img, mostra o
+   data-img="URL_ou_caminho_local" na div.figbox desejada
+   (ex.: data-img="images/img01.jpg"). Sem data-img, mostra o
    placeholder limpo com legenda + link. Se a imagem falhar ao
    carregar, cai automaticamente no placeholder. */
 document.querySelectorAll(".figbox").forEach(box=>{

@@ -243,9 +243,133 @@ function transformerStack(opts) {
 }
 
 /* ============================================================
-   6) ATTRIBUTION GRAPH — nós conceituais com setas causais.
-      Usado em: Dallas→Texas→Austin (29), intervenção (31).
+   21) TRANSFORMER + RESIDUAL STREAM como "QUADRO" — os tokens
+       entram embaixo; o residual stream é um quadro/lousa vertical
+       que cada camada LÊ e ESCREVE. Mostra a acumulação.
+       stage: quantos passos de leitura/escrita revelar (0..nLayers)
    ============================================================ */
+function transformerBoard(opts) {
+  const { w = 460, h = 380, id = "tb", nLayers = 3, stage = 99 } = opts;
+  const boardX = w * 0.30, boardW = w * 0.16;      // o "quadro" (faixa vertical)
+  const top = 30, bot = h - 52;
+  const boardTop = top, boardBot = bot;
+  let g = "";
+  // ---- tokens de entrada (embaixo) ----
+  const toks = ["A", "capital", "da", "França"];
+  const tokY = h - 26;
+  const tokW = (boardX + boardW) / toks.length;
+  toks.forEach((t, i) => {
+    const tx = 8 + i * ((boardX + boardW - 8) / toks.length);
+    g += el("rect", { x: tx, y: tokY - 16, width: (boardX + boardW - 12) / toks.length - 4, height: 22, rx: 5,
+      fill: "#EDE4F7", stroke: "#9333EA", "stroke-width": 1 });
+    g += el("text", { x: tx + ((boardX + boardW - 12) / toks.length - 4) / 2, y: tokY, "text-anchor": "middle",
+      fill: "#6B21A8", "font-size": 11 }, t);
+  });
+  g += el("text", { x: (boardX + boardW) / 2, y: tokY - 24, "text-anchor": "middle", fill: "#A1A1AA", "font-size": 11 }, "tokens de entrada");
+  // seta dos tokens subindo pro quadro
+  g += el("line", { x1: (boardX + boardW) / 2, y1: tokY - 34, x2: boardX + boardW / 2, y2: boardBot + 4,
+    stroke: "#C9B8DD", "stroke-width": 2, "marker-end": `url(#tbah-${id})` });
+
+  // ---- o QUADRO (residual stream) ----
+  g += el("rect", { x: boardX, y: boardTop, width: boardW, height: boardBot - boardTop, rx: 6,
+    fill: "#F8F5FC", stroke: "#6B21A8", "stroke-width": 2.5 });
+  g += el("text", { x: boardX + boardW / 2, y: boardTop - 10, "text-anchor": "middle", fill: "#6B21A8",
+    "font-size": 13, "font-weight": 700 }, "o quadro");
+  g += el("text", { x: boardX + boardW / 2, y: boardBot + 18, "text-anchor": "middle", fill: "#6B21A8",
+    "font-size": 12, "font-style": "italic" }, "residual stream");
+  // "escritos" acumulados no quadro (aparecem conforme stage)
+  const layerH = (boardBot - boardTop) / nLayers;
+  for (let i = 0; i < nLayers; i++) {
+    if (i < stage) {
+      // marca de escrita acumulada — um tracinho colorido dentro do quadro
+      const yy = boardBot - (i + 0.5) * layerH;
+      g += el("line", { x1: boardX + 6, y1: yy, x2: boardX + boardW - 6, y2: yy,
+        stroke: i % 2 ? "#DB2777" : "#9333EA", "stroke-width": 3, opacity: 0.7 });
+    }
+  }
+
+  // ---- camadas (alunos que leem e escrevem) à direita ----
+  const camX = boardX + boardW + w * 0.10;
+  const camW = w - camX - 12;
+  for (let i = 0; i < nLayers; i++) {
+    const cy = boardBot - (i + 0.5) * layerH;      // camada i alinhada à faixa i
+    const active = i < stage;
+    const boxH = layerH * 0.62;
+    // caixa da camada
+    g += el("rect", { x: camX, y: cy - boxH / 2, width: camW, height: boxH, rx: 8,
+      fill: active ? "#fff" : "#FAFAFA", stroke: active ? "#9333EA" : "#D4D4D8", "stroke-width": active ? 2 : 1.2 });
+    g += el("text", { x: camX + camW / 2, y: cy - 2, "text-anchor": "middle",
+      fill: active ? "#3F3F46" : "#A1A1AA", "font-size": 12, "font-weight": 600 }, `Camada ${i + 1}`);
+    g += el("text", { x: camX + camW / 2, y: cy + 13, "text-anchor": "middle",
+      fill: active ? "#71717A" : "#C4C4CC", "font-size": 10 }, "Atenção + MLP");
+    // setas LER (quadro→camada) e ESCREVER (camada→quadro)
+    if (active) {
+      const yRead = cy - boxH * 0.28, yWrite = cy + boxH * 0.28;
+      // ler: do quadro para a camada
+      g += el("line", { x1: boardX + boardW + 2, y1: yRead, x2: camX - 2, y2: yRead,
+        stroke: "#059669", "stroke-width": 2, "marker-end": `url(#tbread-${id})` });
+      // escrever: da camada de volta pro quadro
+      g += el("line", { x1: camX - 2, y1: yWrite, x2: boardX + boardW + 2, y2: yWrite,
+        stroke: "#DB2777", "stroke-width": 2, "marker-end": `url(#tbwrite-${id})` });
+    }
+  }
+  // legenda ler/escrever (topo direito)
+  if (stage > 0) {
+    g += el("circle", { cx: camX, cy: top + 2, r: 4, fill: "#059669" });
+    g += el("text", { x: camX + 8, y: top + 6, fill: "#059669", "font-size": 11, "font-weight": 700 }, "lê");
+    g += el("circle", { cx: camX + 42, cy: top + 2, r: 4, fill: "#DB2777" });
+    g += el("text", { x: camX + 50, y: top + 6, fill: "#DB2777", "font-size": 11, "font-weight": 700 }, "escreve");
+  }
+  const defs =
+    el("marker", { id: `tbah-${id}`, markerWidth: 8, markerHeight: 8, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#C9B8DD" })) +
+    el("marker", { id: `tbread-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#059669" })) +
+    el("marker", { id: `tbwrite-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#DB2777" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   22) POLÍGONOS REGULARES (superposição uniforme) — features como
+       vértices de um polígono regular no plano 2D. Conforme a
+       esparsidade sobe, mais features → mais vértices (dígono →
+       triângulo → pentágono...). Réplica didática da figura do
+       Toy Models (Elhage 2022).
+   ============================================================ */
+function polygonSuperposition(opts) {
+  const { w = 340, h = 340, id = "ps", sparsity = 0.3 } = opts;
+  const cx = w / 2, cy = h / 2, R = Math.min(w, h) * 0.32;
+  // nº de features/vértices cresce com a esparsidade: 2..7
+  const n = Math.round(2 + sparsity * 5);          // 2..7
+  const names = { 2: "dígono (par antipodal)", 3: "triângulo", 4: "quadrado", 5: "pentágono", 6: "hexágono", 7: "heptágono" };
+  let g = "";
+  // círculo-guia
+  g += el("circle", { cx, cy, r: R, fill: "none", stroke: "#ECECF0", "stroke-width": 1.5 });
+  g += el("circle", { cx, cy, r: 3, fill: "#1A1A1A" });
+  // vértices = pontas dos vetores de feature, distribuídos uniformemente
+  const pts = [];
+  for (let k = 0; k < n; k++) {
+    const a = -Math.PI / 2 + (2 * Math.PI * k) / n;   // começa no topo
+    pts.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]);
+  }
+  // arestas do polígono (convex hull) — só se n>=3
+  if (n >= 3) {
+    let path = "M" + pts.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L") + " Z";
+    g += el("path", { d: path, fill: "#6B21A8", "fill-opacity": 0.06, stroke: "#C9B8DD", "stroke-width": 1.5 });
+  }
+  // vetores (do centro a cada vértice) + ponto
+  pts.forEach((p, k) => {
+    const col = k % 2 ? "#9333EA" : "#6B21A8";
+    g += el("line", { x1: cx, y1: cy, x2: p[0], y2: p[1], stroke: col, "stroke-width": 3,
+      "marker-end": `url(#psh-${id})`, opacity: 0.9 });
+    g += el("circle", { cx: p[0], cy: p[1], r: 4, fill: col });
+  });
+  // rótulo do polígono
+  g += el("text", { x: cx, y: h - 14, "text-anchor": "middle", fill: "#6B21A8", "font-size": 16, "font-weight": 700 },
+    `${n} features → ${names[n] || n + "-gono"}`);
+  const defs = el("marker", { id: `psh-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3,
+    orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#6B21A8" }));
+  return { svg: el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g), n, polygon: names[n] || n + "-gono" };
+}
+
 function attribGraph(opts) {
   const { w = 300, h = 380, id = "ag", nodes = [], swap = null } = opts;
   // nodes: [{label, y(0..1), out?}]
@@ -643,7 +767,7 @@ function mapTerritory(opts) {
 }
 
 if (typeof window !== "undefined") {
-  window.VIZ = { plane2D, fanVectors, miniNet, saeDiagram, transformerStack, attribGraph, superposition, causalChain, lossBalance, patchingDiagram, logitLens, indirectEffect, eapViz, featureCloud, mapTerritory, patchingLive };
+  window.VIZ = { plane2D, fanVectors, miniNet, saeDiagram, transformerStack, attribGraph, superposition, causalChain, lossBalance, patchingDiagram, logitLens, indirectEffect, eapViz, featureCloud, mapTerritory, patchingLive, jlCurve, vecAlgebra, normBall, ieRuler, taylorTangent, transformerBoard, polygonSuperposition };
 }
 
 /* ============================================================
@@ -691,3 +815,238 @@ function patchingLive(opts) {
     orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#059669" }));
   return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
 }
+
+/* ============================================================
+   16) JOHNSON–LINDENSTRAUSS — curva N = e^(d·eps²/4) desenhada,
+       com o ponto atual (d, N) destacado. Interativo via sliders
+       de d e eps. Mostra o "explode exponencialmente".
+   ============================================================ */
+function jlCurve(opts) {
+  const { w = 440, h = 300, id = "jl", d = 512, eps = 0.1 } = opts;
+  const ox = 58, oy = h - 42, pw = w - 90, ph = h - 76;
+  const dMax = 2000;
+  // N = exp(d*eps^2/4); trabalhamos em log10 para o eixo y
+  const log10N = (dd) => (dd * eps * eps / 4) / Math.LN10;
+  const yMaxLog = Math.max(log10N(dMax), 6);   // teto do eixo (log10)
+  let g = "";
+  // eixos
+  g += el("line", { x1: ox, y1: oy, x2: ox + pw, y2: oy, stroke: "#B8B8C0", "stroke-width": 1.5 });
+  g += el("line", { x1: ox, y1: oy, x2: ox, y2: oy - ph, stroke: "#B8B8C0", "stroke-width": 1.5 });
+  g += el("text", { x: ox + pw / 2, y: oy + 30, "text-anchor": "middle", fill: "#71717A", "font-size": 13 }, "dimensão  d");
+  g += el("text", { x: ox - 40, y: oy - ph / 2, "text-anchor": "middle", fill: "#71717A", "font-size": 13, transform: `rotate(-90 ${ox - 40} ${oy - ph / 2})` }, "nº de features (log)");
+  // marcas do eixo y (potências de 10)
+  for (let p = 0; p <= yMaxLog; p += Math.ceil(yMaxLog / 5)) {
+    const yy = oy - (p / yMaxLog) * ph;
+    g += el("line", { x1: ox - 4, y1: yy, x2: ox, y2: yy, stroke: "#B8B8C0", "stroke-width": 1 });
+    g += el("text", { x: ox - 8, y: yy + 4, "text-anchor": "end", fill: "#A1A1AA", "font-size": 10 }, `10^${p}`);
+  }
+  // linha "d direções triviais" (referência linear) — log10(d)
+  const yTrivial = oy - (Math.log10(Math.max(d, 1)) / yMaxLog) * ph;
+  g += el("line", { x1: ox, y1: yTrivial, x2: ox + pw, y2: yTrivial, stroke: "#DC2626", "stroke-width": 1.2, "stroke-dasharray": "4 3", opacity: 0.6 });
+  g += el("text", { x: ox + pw - 4, y: yTrivial - 5, "text-anchor": "end", fill: "#DC2626", "font-size": 11 }, "d ortogonais (trivial)");
+  // curva exponencial
+  let path = "";
+  for (let i = 0; i <= 60; i++) {
+    const dd = (i / 60) * dMax;
+    const x = ox + (dd / dMax) * pw;
+    const yv = oy - Math.min(log10N(dd) / yMaxLog, 1) * ph;
+    path += (i === 0 ? "M" : "L") + x.toFixed(1) + " " + yv.toFixed(1) + " ";
+  }
+  g += el("path", { d: path, fill: "none", stroke: "#3B4C7A", "stroke-width": 3, class: "vterm", "data-term": "curve" });
+  // ponto atual (d, N)
+  const px = ox + (Math.min(d, dMax) / dMax) * pw;
+  const py = oy - Math.min(log10N(d) / yMaxLog, 1) * ph;
+  g += el("line", { x1: px, y1: oy, x2: px, y2: py, stroke: "#3B4C7A", "stroke-width": 1, "stroke-dasharray": "3 2", opacity: 0.5 });
+  g += el("circle", { cx: px, cy: py, r: 7, fill: "#3B4C7A", stroke: "#fff", "stroke-width": 2 });
+  // valor de N em notação legível
+  const Nlog = log10N(d);
+  const Nlabel = Nlog > 6 ? `≈ 10^${Math.round(Nlog)}` : "≈ " + Math.round(Math.pow(10, Nlog)).toLocaleString();
+  g += el("text", { x: Math.min(px + 10, ox + pw - 70), y: Math.max(py - 12, oy - ph + 12), fill: "#1E2A44", "font-size": 15, "font-weight": 700 }, `N ${Nlabel}` );
+  g += el("text", { x: px, y: oy + 16, "text-anchor": "middle", fill: "#3B4C7A", "font-size": 12, "font-weight": 700 }, `d=${d}`);
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   17) VECTOR ALGEBRA — soma/subtração de vetores no plano para a
+       hipótese linear: rei - homem + mulher ≈ rainha. Cada termo
+       é uma seta; o resultado cai perto do alvo.
+   ============================================================ */
+function vecAlgebra(opts) {
+  const { w = 360, h = 320, id = "va", step = 3 } = opts;
+  const ox = w / 2, oy = h / 2, S = 46;
+  // vetores conceituais (coordenadas 2D ilustrativas)
+  const rei = [1.3, 1.5], homem = [1.4, -0.2], mulher = [-0.9, 0.1];
+  const rainha = [rei[0] - homem[0] + mulher[0], rei[1] - homem[1] + mulher[1]];
+  const P = (v) => [ox + v[0] * S, oy - v[1] * S];
+  let g = "";
+  // grade leve
+  g += el("line", { x1: 20, y1: oy, x2: w - 20, y2: oy, stroke: "#E5E7EB", "stroke-width": 1 });
+  g += el("line", { x1: ox, y1: 20, x2: ox, y2: h - 20, stroke: "#E5E7EB", "stroke-width": 1 });
+  const arrow = (from, to, col, lab, show) => {
+    if (!show) return "";
+    const [x1, y1] = P(from), [x2, y2] = P(to);
+    return el("line", { x1, y1, x2, y2, stroke: col, "stroke-width": 3, "marker-end": `url(#vah-${id})` }) +
+      el("text", { x: (x1 + x2) / 2 + 6, y: (y1 + y2) / 2 - 4, fill: col, "font-size": 13, "font-weight": 700 }, lab);
+  };
+  // construção acumulada: origem→rei, →(−homem), →(+mulher) = rainha
+  const p0 = [0, 0];
+  const p1 = rei;
+  const p2 = [rei[0] - homem[0], rei[1] - homem[1]];
+  const p3 = rainha;
+  g += arrow(p0, p1, "#6B21A8", "rei", step >= 1);
+  g += arrow(p1, p2, "#DC2626", "− homem", step >= 2);
+  g += arrow(p2, p3, "#0891B2", "+ mulher", step >= 3);
+  // alvo "rainha" (real) como estrela/círculo
+  if (step >= 3) {
+    const [qx, qy] = P(rainha);
+    g += el("circle", { cx: qx, cy: qy, r: 10, fill: "none", stroke: "#059669", "stroke-width": 2.5, "stroke-dasharray": "3 2" });
+    g += el("circle", { cx: qx, cy: qy, r: 4, fill: "#059669" });
+    g += el("text", { x: qx + 12, y: qy + 4, fill: "#059669", "font-size": 14, "font-weight": 700 }, "≈ rainha ✓");
+  }
+  // pontos de referência
+  [[rei, "#6B21A8"], [rainha, "#059669"]].forEach(([v, c]) => {
+    const [x, y] = P(v); g += el("circle", { cx: x, cy: y, r: 3, fill: c });
+  });
+  const defs = el("marker", { id: `vah-${id}`, markerWidth: 8, markerHeight: 8, refX: 7, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "context-stroke" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   18) L1 vs L2 GEOMETRY — curvas de nível da perda (elipses) +
+       a "bola" de restrição (losango L1 / círculo L2). Mostra
+       por que a solução L1 toca numa QUINA (coeficiente=0).
+       mode: "l1" ou "l2".
+   ============================================================ */
+function normBall(opts) {
+  const { w = 300, h = 300, id = "nb", mode = "l1" } = opts;
+  const ox = w / 2, oy = h / 2, R = 70;
+  // centro da perda (solução sem regularização), deslocado
+  const cx = ox + 62, cy = oy - 46;
+  let g = "";
+  // eixos
+  g += el("line", { x1: 24, y1: oy, x2: w - 24, y2: oy, stroke: "#B8B8C0", "stroke-width": 1.5, "marker-end": `url(#nbx-${id})` });
+  g += el("line", { x1: ox, y1: h - 24, x2: ox, y2: 24, stroke: "#B8B8C0", "stroke-width": 1.5, "marker-end": `url(#nby-${id})` });
+  g += el("text", { x: w - 20, y: oy + 16, fill: "#71717A", "font-size": 12 }, "β₁");
+  g += el("text", { x: ox + 8, y: 30, fill: "#71717A", "font-size": 12 }, "β₂");
+  // curvas de nível da perda (elipses concêntricas em torno de cx,cy)
+  [1, 1.7, 2.5].forEach((k, i) => {
+    g += el("ellipse", { cx, cy, rx: 30 * k, ry: 22 * k, fill: "none", stroke: "#C9B8DD", "stroke-width": 1.5, opacity: 0.8 - i * 0.15 });
+  });
+  g += el("circle", { cx, cy, r: 3, fill: "#6B21A8" });
+  g += el("text", { x: cx + 8, y: cy - 6, fill: "#6B21A8", "font-size": 11 }, "mín. da perda");
+  // bola de restrição
+  if (mode === "l1") {
+    // losango |β1|+|β2| = R
+    g += el("polygon", { points: `${ox + R},${oy} ${ox},${oy - R} ${ox - R},${oy} ${ox},${oy + R}`,
+      fill: "#3B4C7A", "fill-opacity": 0.12, stroke: "#3B4C7A", "stroke-width": 2.5 });
+    // solução: toca a quina de cima (β1=0) — ponto no eixo β2
+    const sx = ox, sy = oy - R;
+    g += el("circle", { cx: sx, cy: sy, r: 7, fill: "#059669", stroke: "#fff", "stroke-width": 2 });
+    g += el("text", { x: sx + 12, y: sy + 2, fill: "#059669", "font-size": 13, "font-weight": 700 }, "β₁ = 0 ✓");
+    g += el("text", { x: ox, y: h - 8, "text-anchor": "middle", fill: "#3B4C7A", "font-size": 13, "font-weight": 700 }, "L1: quinas nos eixos → zera");
+  } else {
+    // círculo β1²+β2² = R²
+    g += el("circle", { cx: ox, cy: oy, r: R, fill: "#3B4C7A", "fill-opacity": 0.12, stroke: "#3B4C7A", "stroke-width": 2.5 });
+    // solução: toca a elipse num ponto genérico (nenhum coef exatamente 0)
+    const ang = Math.atan2(cy - oy, cx - ox);
+    const sx = ox + R * Math.cos(ang), sy = oy + R * Math.sin(ang);
+    g += el("circle", { cx: sx, cy: sy, r: 7, fill: "#DC2626", stroke: "#fff", "stroke-width": 2 });
+    g += el("text", { x: sx + 10, y: sy - 6, fill: "#DC2626", "font-size": 12, "font-weight": 700 }, "β₁,β₂ ≠ 0");
+    g += el("text", { x: ox, y: h - 8, "text-anchor": "middle", fill: "#3B4C7A", "font-size": 13, "font-weight": 700 }, "L2: círculo liso → encolhe");
+  }
+  const defs =
+    el("marker", { id: `nbx-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#B8B8C0" })) +
+    el("marker", { id: `nby-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#B8B8C0" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   19) IE RULER — reta numérica com LD_corr (0), LD_clean (1) e o
+       ponto LD_patched; a fração recuperada aparece como um
+       segmento preenchido. Interativo: slider de LD_patched.
+   ============================================================ */
+function ieRuler(opts) {
+  const { w = 440, h = 170, id = "ier", ldCorr = -3.1, ldClean = 6.2, ldPatched = 4.0 } = opts;
+  const x0 = 60, x1 = w - 60, y = 80;
+  const t = (ldPatched - ldCorr) / (ldClean - ldCorr);   // fração recuperada = IE
+  const px = x0 + Math.max(0, Math.min(1, t)) * (x1 - x0);
+  let g = "";
+  // trilho base
+  g += el("line", { x1: x0, y1: y, x2: x1, y2: y, stroke: "#D8D8DE", "stroke-width": 6, "stroke-linecap": "round" });
+  // segmento recuperado (de corr até patched)
+  g += el("line", { x1: x0, y1: y, x2: px, y2: y, stroke: "#059669", "stroke-width": 6, "stroke-linecap": "round" });
+  // extremos
+  g += el("circle", { cx: x0, cy: y, r: 8, fill: "#DC2626" });
+  g += el("text", { x: x0, y: y + 26, "text-anchor": "middle", fill: "#DC2626", "font-size": 12, "font-weight": 700 }, "corrompido");
+  g += el("text", { x: x0, y: y + 40, "text-anchor": "middle", fill: "#71717A", "font-size": 11 }, `LD=${ldCorr}`);
+  g += el("text", { x: x0, y: y - 16, "text-anchor": "middle", fill: "#DC2626", "font-size": 13, "font-weight": 700 }, "0");
+  g += el("circle", { cx: x1, cy: y, r: 8, fill: "#6B21A8" });
+  g += el("text", { x: x1, y: y + 26, "text-anchor": "middle", fill: "#6B21A8", "font-size": 12, "font-weight": 700 }, "limpo" );
+  g += el("text", { x: x1, y: y + 40, "text-anchor": "middle", fill: "#71717A", "font-size": 11 }, `LD=${ldClean}`);
+  g += el("text", { x: x1, y: y - 16, "text-anchor": "middle", fill: "#6B21A8", "font-size": 13, "font-weight": 700 }, "1");
+  // marcador patched
+  g += el("line", { x1: px, y1: y - 30, x2: px, y2: y + 10, stroke: "#059669", "stroke-width": 3 });
+  g += el("polygon", { points: `${px - 7},${y - 30} ${px + 7},${y - 30} ${px},${y - 20}`, fill: "#059669" });
+  g += el("text", { x: px, y: y - 36, "text-anchor": "middle", fill: "#059669", "font-size": 13, "font-weight": 700 }, `patched (LD=${ldPatched})`);
+  // valor de IE
+  g += el("text", { x: w / 2, y: h - 8, "text-anchor": "middle", fill: "#1E2A44", "font-size": 16, "font-weight": 700 }, `IE = ${t.toFixed(2)}  (recuperou ${Math.round(t * 100)}%)`);
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   20) TAYLOR TANGENT — curva da perda L(a) e a reta tangente no
+       ponto limpo. Um deslocamento Δ mostra a aproximação linear
+       (tangente) vs o valor real (curva): acerta perto, erra longe.
+       Interativo: slider de Δ.
+   ============================================================ */
+function taylorTangent(opts) {
+  const { w = 440, h = 300, id = "tt", delta = 0.4 } = opts;
+  const ox = 50, oy = h - 44, pw = w - 80, ph = h - 80;
+  // curva L(a): função convexa suave; ponto limpo em a0
+  const f = (a) => 0.35 + 1.15 * (a - 0.3) * (a - 0.3);   // parábola, mín em 0.3
+  const df = (a) => 2 * 1.15 * (a - 0.3);
+  const a0 = 0.3;                       // ponto limpo (no mínimo, gradiente pequeno? não: escolher fora)
+  const aClean = 0.72;                  // ponto limpo real (com gradiente != 0)
+  const X = (a) => ox + a * pw;
+  const Y = (v) => oy - (v * 0.62) * ph;
+  let g = "";
+  // eixos
+  g += el("line", { x1: ox, y1: oy, x2: ox + pw, y2: oy, stroke: "#B8B8C0", "stroke-width": 1.5 });
+  g += el("line", { x1: ox, y1: oy, x2: ox, y2: oy - ph, stroke: "#B8B8C0", "stroke-width": 1.5 });
+  g += el("text", { x: ox + pw / 2, y: oy + 28, "text-anchor": "middle", fill: "#71717A", "font-size": 12 }, "ativação do elo  a");
+  g += el("text", { x: ox - 32, y: oy - ph / 2, "text-anchor": "middle", fill: "#71717A", "font-size": 12, transform: `rotate(-90 ${ox - 32} ${oy - ph / 2})` }, "métrica  L");
+  // curva real
+  let path = "";
+  for (let i = 0; i <= 50; i++) { const a = (i / 50); const x = X(a), yv = Y(f(a));
+    path += (i === 0 ? "M" : "L") + x.toFixed(1) + " " + yv.toFixed(1) + " "; }
+  g += el("path", { d: path, fill: "none", stroke: "#C9B8DD", "stroke-width": 2.5, class: "vterm", "data-term": "real" });
+  // reta tangente no ponto limpo
+  const slope = df(aClean);
+  const tanX0 = 0.05, tanX1 = 0.98;
+  const tanY0 = f(aClean) + slope * (tanX0 - aClean);
+  const tanY1 = f(aClean) + slope * (tanX1 - aClean);
+  g += el("line", { x1: X(tanX0), y1: Y(tanY0), x2: X(tanX1), y2: Y(tanY1), stroke: "#059669", "stroke-width": 2, "stroke-dasharray": "5 3", class: "vterm", "data-term": "tangent" });
+  // ponto limpo
+  g += el("circle", { cx: X(aClean), cy: Y(f(aClean)), r: 6, fill: "#6B21A8" });
+  g += el("text", { x: X(aClean), y: Y(f(aClean)) + 22, "text-anchor": "middle", fill: "#6B21A8", "font-size": 12, "font-weight": 700 }, "limpo");
+  // ponto deslocado a_clean + delta
+  const aD = Math.max(0.02, Math.min(0.98, aClean + delta));
+  const realV = f(aD);
+  const approxV = f(aClean) + slope * (aD - aClean);
+  // linhas verticais mostrando real vs aproximado
+  g += el("circle", { cx: X(aD), cy: Y(realV), r: 6, fill: "#DC2626" });
+  g += el("circle", { cx: X(aD), cy: Y(approxV), r: 6, fill: "#059669", "fill-opacity": 0.6 });
+  // gap entre eles (erro da aproximação)
+  g += el("line", { x1: X(aD), y1: Y(realV), x2: X(aD), y2: Y(approxV), stroke: "#DC2626", "stroke-width": 2, "stroke-dasharray": "2 2" });
+  const err = Math.abs(realV - approxV);
+  g += el("text", { x: X(aD) + 10, y: (Y(realV) + Y(approxV)) / 2, fill: "#DC2626", "font-size": 12, "font-weight": 700 }, `erro ${err.toFixed(2)}`);
+  // Δ no eixo x
+  g += el("line", { x1: X(aClean), y1: oy + 4, x2: X(aD), y2: oy + 4, stroke: "#3B4C7A", "stroke-width": 2, "marker-end": `url(#tth-${id})` });
+  g += el("text", { x: (X(aClean) + X(aD)) / 2, y: oy + 18, "text-anchor": "middle", fill: "#3B4C7A", "font-size": 12, "font-weight": 700 }, "Δ");
+  // legenda
+  g += el("text", { x: ox + pw - 4, y: oy - ph + 6, "text-anchor": "end", fill: "#059669", "font-size": 11, "font-weight": 700 }, "— tangente (Taylor 1ª ordem)");
+  g += el("text", { x: ox + pw - 4, y: oy - ph + 22, "text-anchor": "end", fill: "#9333EA", "font-size": 11, "font-weight": 700 }, "— L real");
+  const defs = el("marker", { id: `tth-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#3B4C7A" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
