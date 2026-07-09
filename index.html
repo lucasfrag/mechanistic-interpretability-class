@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Interpretabilidade Mecanística</title>
+<title>Interpretabilidade Mecanística — Aula de 1h</title>
 <link rel="stylesheet" href="lib/reveal/dist/reveal.css">
 <link rel="stylesheet" href="lib/katex/dist/katex.min.css">
 <link rel="stylesheet" href="fonts.css">
@@ -21,7 +21,6 @@
       <svg viewBox="0 0 400 400" style="width:74%;opacity:.9">
         <defs><radialGradient id="cap" cx="50%" cy="45%"><stop offset="0%" stop-color="#F5EEFC"/><stop offset="100%" stop-color="#FFFFFF"/></radialGradient></defs>
         <circle cx="200" cy="185" r="150" fill="url(#cap)"/>
-        <!-- rede neural estilizada como "cérebro" -->
         <g stroke="#C9B8DD" stroke-width="1.2" fill="none">
           <line x1="120" y1="120" x2="200" y2="90"/><line x1="120" y1="120" x2="200" y2="185"/>
           <line x1="120" y1="185" x2="200" y2="90"/><line x1="120" y1="185" x2="200" y2="185"/>
@@ -37,16 +36,17 @@
       </svg>
     </div>
     <div style="max-width:60%;position:relative;z-index:2">
-      <div class="eyebrow">PPGCC · PUCRS</div>
-      <h1 style="font-size:62px;line-height:1.02;margin-bottom:18px">Interpretabilidade<br>Mecanística</h1>
-      <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:25px;color:#6B21A8;margin:0">
-        Abrindo a caixa-preta das redes neurais<br>— da origem aos desafios abertos</p>
+      <div class="eyebrow">Aula de pós-graduação · PPGCC / PUCRS</div>
+      <h1 style="font-size:60px;line-height:1.02;margin-bottom:18px">Interpretabilidade<br>Mecanística</h1>
+      <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:24px;color:#6B21A8;margin:0 0 20px">
+        Abrindo a caixa-preta — das <span style="font-weight:700">features</span> à <span style="font-weight:700">intervenção causal</span></p>
+      <p class="small muted" style="max-width:26em">Um panorama de mech interp em ~60 min. Público: mestrado e doutorado em ML/DL.</p>
     </div>
   </div>
 </section>
 
 <!-- ============================================================
-     02 — pergunta simples (escuro)
+     02 — pergunta-gancho (escuro)
      ============================================================ -->
 <section data-background-color="#1A1A1A">
   <div class="slide-pad dark" style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center">
@@ -54,479 +54,169 @@
       “A capital da França é <span style="color:#9333EA">___</span>”</p>
     <p style="font-size:30px;color:#9333EA;font-weight:700;font-family:'Playfair Display',serif;margin-bottom:26px">→ Paris</p>
     <h1 style="font-size:82px;color:#fff;margin:0 0 22px 0">Por quê?</h1>
-    <p class="fragment" style="font-size:21px;color:#C9C9CF;max-width:24em;font-style:italic">
-      Temos acesso a cada número dentro do modelo — e ainda assim não sabemos responder.</p>
+    <p class="fragment" style="font-size:21px;color:#C9C9CF;max-width:26em;font-style:italic">
+      Temos acesso a cada peso do modelo — e ainda assim não sabemos explicar
+      <span style="color:#fff">como</span> ele chegou lá.</p>
   </div>
 </section>
 
 <!-- ============================================================
-     03 — a caixa-preta
+     04 — SEÇÃO: Bloco 1 (transição com progress-map)
      ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">O problema</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">03</div>
-    <h2 class="title">A caixa-preta</h2>
-    <div class="cols w4060" style="align-items:center">
-      <div class="body">
-        <p>Uma rede neural moderna é uma <strong>caixa-preta</strong>: enxergamos a entrada e a saída, mas não o processo que liga uma à outra.</p>
-        <p style="color:#059669;font-weight:600">✓ Sabemos O QUE ela faz: recebe um texto, devolve uma resposta.</p>
-        <p style="color:#DC2626;font-weight:600">✗ Não sabemos COMO: que representações cria, que “raciocínio” executa, por que decide.</p>
-        <p>Sem entender o “como”, não conseguimos prever falhas nem corrigir a <em>causa</em> de um comportamento — só remendar sintomas.</p>
-      </div>
-      <div class="center">
-        <svg viewBox="0 0 460 220" class="viz">
-          <rect x="10" y="70" width="120" height="80" rx="12" fill="#F5EEFC"/>
-          <text x="70" y="105" text-anchor="middle" font-size="15" fill="#3F3F46">entrada</text>
-          <text x="70" y="128" text-anchor="middle" font-size="13" fill="#71717A">“capital?”</text>
-          <rect x="175" y="55" width="110" height="110" rx="10" fill="#1A1A1A"/>
-          <text x="230" y="128" text-anchor="middle" font-size="52" fill="#9333EA" font-family="Playfair Display,serif">?</text>
-          <rect x="330" y="70" width="120" height="80" rx="12" fill="#F5EEFC"/>
-          <text x="390" y="115" text-anchor="middle" font-size="16" fill="#3F3F46" font-weight="700">Paris</text>
-          <line x1="135" y1="110" x2="170" y2="110" stroke="#B8B8C0" stroke-width="2.5" marker-end="url(#a3)"/>
-          <line x1="290" y1="110" x2="325" y2="110" stroke="#B8B8C0" stroke-width="2.5" marker-end="url(#a3)"/>
-          <defs><marker id="a3" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#B8B8C0"/></marker></defs>
-        </svg>
-      </div>
-    </div>
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center">
+    <div id="pmap-1"></div>
+    <div class="eyebrow" style="margin-top:18px">Bloco 1</div>
+    <h1 style="font-size:54px;max-width:16em">Features: o átomo<br>da interpretabilidade</h1>
+    <p class="body" style="max-width:30em;font-size:22px">O que uma rede <strong>guarda</strong> nas suas ativações — e por que
+    o significado não mora nos neurônios, e sim nas <strong>direções</strong>.</p>
   </div>
 </section>
 
 <!-- ============================================================
-     04 — duas formas de espiar
+     05 — direções carregam significado
      ============================================================ -->
-<section>
+<section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <div class="eyebrow">Duas abordagens</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
     <div class="slide-num">04</div>
-    <h2 class="title">Duas formas de espiar dentro</h2>
-    <div class="cols" style="gap:30px">
-      <div class="card plain">
-        <div class="k" style="color:#3F3F46">👁 Black-box</div>
-        <div class="body small">
-          <p><strong style="color:#3F3F46">Observa entradas e saídas</strong>, testa comportamentos.</p>
-          <p><em>Como um psicólogo observando comportamento.</em></p>
-          <p>✓ Mais madura, dá resultados práticos hoje.<br>✗ Não explica os mecanismos internos.</p>
+    <div class="badge-row"><span class="badge intu">intuição</span></div>
+    <div class="eyebrow">Bloco 1 · features</div>
+    <h1 class="title">O significado está na <span class="hl">direção</span></h1>
+    <div class="cols w6040">
+      <div class="body">
+        <p>Uma ativação é um <strong>vetor</strong>. Um número isolado — um neurônio — quase nunca
+        corresponde a um conceito limpo.</p>
+        <div class="card plain mt8">
+          <p style="margin:0 0 6px"><strong>Feature</strong> = uma direção interpretável no espaço de ativação.</p>
+          <p class="small muted" style="margin:0">Andar nessa direção = ativar mais aquele conceito.</p>
         </div>
+        <p class="mt16">Se conceitos são direções, então <strong>combinar conceitos</strong> vira
+        aritmética de vetores. É o que veremos a seguir.</p>
       </div>
-      <div class="card">
-        <div class="k">🔍 Mecanística</div>
-        <div class="body small">
-          <p><strong>Abre o modelo</strong> e mapeia seus componentes internos.</p>
-          <p><em>Como um neurocientista mapeando neurônios.</em></p>
-          <p>✓ Entendimento mais profundo e causal.<br>✗ Muito mais difícil e trabalhosa.</p>
-        </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizDirs"></div></div>
       </div>
     </div>
-    <p class="anchor mt24">“neurociência para redes neurais”</p>
+    <div class="source">A hipótese da representação linear — a base de quase tudo que vem depois.</div>
   </div>
 </section>
 
 <!-- ============================================================
-     ROADMAP — teaser da linha do tempo
+     06 — VIZ-ÂNCORA: aritmética de vetores (clique acumula)
      ============================================================ -->
-<section>
+<section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <div class="eyebrow">O mapa da aula</div>
-    <span class="badge-row"><span class="badge intu">Visão geral</span></span>
     <div class="slide-num">05</div>
-    <h2 class="title sm">Para onde vamos: seis anos em uma aula</h2>
-    <p class="body" style="margin-bottom:18px">Vamos seguir a interpretabilidade mecanística na ordem em que ela se desenvolveu — cada etapa resolvendo um problema e abrindo o próximo.</p>
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
-      <div class="card center" style="padding:16px 10px"><div class="bignum" style="font-size:26px">2020</div><h3 style="font-size:16px;margin:6px 0 4px">Circuitos</h3><p class="body small muted">features e conexões</p></div>
-      <div class="card center" style="padding:16px 10px"><div class="bignum" style="font-size:26px">2022</div><h3 style="font-size:16px;margin:6px 0 4px">Superposição</h3><p class="body small muted">por que é difícil ler</p></div>
-      <div class="card center" style="padding:16px 10px"><div class="bignum" style="font-size:26px">2023</div><h3 style="font-size:16px;margin:6px 0 4px">SAEs</h3><p class="body small muted">desembaralhando features</p></div>
-      <div class="card center" style="padding:16px 10px"><div class="bignum" style="font-size:26px">2024</div><h3 style="font-size:16px;margin:6px 0 4px">Técnicas causais</h3><p class="body small muted">testando o que importa</p></div>
-      <div class="card center" style="padding:16px 10px"><div class="bignum" style="font-size:26px">2025</div><h3 style="font-size:16px;margin:6px 0 4px">Attribution graphs</h3><p class="body small muted">vendo o raciocínio</p></div>
+    <div class="badge-row"><span class="badge demo">interativo</span></div>
+    <div class="eyebrow">Bloco 1 · direções se combinam</div>
+    <h1 class="title">Aritmética de conceitos</h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p>Cada palavra é uma <strong>posição</strong>; cada <strong>deslocamento</strong> entre elas é uma
+        direção — uma feature. Partindo de <em>rei</em>, subtraio a direção <em>homem</em>, somo <em>mulher</em>,
+        e chego em <em>rainha</em>.</p>
+        <div class="formula big" style="font-size:28px;margin:14px 0" id="fx-analogy"></div>
+        <div class="interact-hint">clique para andar pela cadeia, passo a passo</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizVec" style="cursor:pointer"></div></div>
+      </div>
     </div>
-    <p class="anchor" style="font-size:19px;margin-top:18px">E terminamos onde a pesquisa está <strong>hoje</strong>: os desafios abertos e as aplicações — onde você pode entrar.</p>
-    <div class="source">Guardaremos este mapa; ao final, revisitamos como cada avanço gerou o próximo.</div>
+    <div class="source">Analogias vetoriais (Mikolov et al., 2013) — a intuição vale para as features internas de um LLM.</div>
   </div>
 </section>
 
 <!-- ============================================================
-     05 — onde começou
+     07 — gancho: conceitos demais, dimensões de menos
      ============================================================ -->
-<section>
+<section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <div class="eyebrow">Bloco 1 · Circuitos (2020)</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
     <div class="slide-num">06</div>
-    <h2 class="title">Onde tudo começou</h2>
+    <div class="eyebrow">Bloco 1 · o problema que aparece</div>
+    <h1 class="title">Conceitos demais,<br><span style="color:#DC2626">dimensões de menos</span></h1>
     <div class="cols w6040">
       <div class="body">
-        <p>O campo tem um marco fundador claro: o artigo <strong>“Zoom In: An Introduction to Circuits”</strong> (Olah et al., 2020).</p>
-        <p>Dois pontos que surpreendem:</p>
-        <ul>
-          <li><strong>Não começou com modelos de linguagem.</strong> Começou em <em>visão computacional</em>, analisando uma rede convolucional (InceptionV1) que reconhece imagens.</li>
-          <li><strong>A proposta era radical:</strong> tratar a rede não como um todo indecifrável, mas como um circuito que pode ser aberto e entendido, componente por componente.</li>
-        </ul>
-        <p>Daí nascem os dois conceitos que estruturam todo o campo: <strong>features</strong> e <strong>circuitos</strong>.</p>
+        <p>Direções <strong>ortogonais</strong> não colidem — mas só cabem <em>d</em> delas num
+        espaço de <em>d</em> dimensões.</p>
+        <p class="lead" style="color:#DC2626">Um modelo conhece muito mais conceitos do que tem dimensões.</p>
+        <p>Milhares de features, centenas de dimensões. <strong>Como todas cabem?</strong></p>
       </div>
-      <div class="figbox" data-img="images/img01.jpg"
-           data-cap="Detectores de curva na InceptionV1 (Zoom In)"
-           data-url="distill.pub/2020/circuits/zoom-in">
-        <img alt="Feature visualizations do Zoom In">
-        <div class="figfallback"><div class="ph">IMAGEM</div><div class="cap">Detectores de curva na InceptionV1 (Zoom In)</div><div class="url">distill.pub/2020/circuits/zoom-in</div></div>
-        <div class="figcap">Detectores de curva — <a href="https://distill.pub/2020/circuits/zoom-in">Olah et al. (2020)</a></div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizCrowd"></div></div>
       </div>
     </div>
-    <div class="source">Fonte: Olah et al. (2020), “Zoom In: An Introduction to Circuits”, Distill.</div>
+    <div class="source">→ Bloco 2: <strong>superposição</strong> — a saída geométrica que a rede encontra.</div>
   </div>
 </section>
 
 <!-- ============================================================
-     06 — o que é uma feature
+     07 — SEÇÃO: Bloco 2 (transição com progress-map)
      ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 1 · Circuitos</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">07</div>
-    <h2 class="title">O que é uma <em style="color:#6B21A8;font-style:normal">feature</em></h2>
-    <div class="cols w6040">
-      <div class="body">
-        <p><strong>Uma feature é um conceito que a rede aprendeu a detectar — sozinha, sem ninguém programar.</strong></p>
-        <p>No InceptionV1 há um detector de <em>curvas</em>, um de <em>rodas de carro</em>, um de <em>orelhas de cachorro</em>. Cada um é uma feature: uma unidade de “significado” que a rede construiu porque era útil para a tarefa.</p>
-        <p>Ninguém disse à rede “aprenda a detectar curvas”. Ela chegou a isso durante o treino.</p>
-        <p><strong>A interpretabilidade começa quando percebemos que esses conceitos internos existem e podem ser identificados.</strong></p>
-      </div>
-      <div class="figbox" data-img="images/img02.jpg"
-           data-cap="Detector de carro: features (roda, janela, carroceria) se combinam"
-           data-url="distill.pub/2020/circuits/zoom-in">
-        <img alt="Circuito detector de carro">
-        <div class="figfallback"><div class="ph">IMAGEM</div><div class="cap">Detector de carro: features (roda, janela, carroceria) se combinam</div><div class="url">distill.pub/2020/circuits/zoom-in</div></div>
-        <div class="figcap">Detector de carro — <a href="https://distill.pub/2020/circuits/zoom-in">Olah et al. (2020)</a></div>
-      </div>
-    </div>
-    <div class="source">Fonte: Olah et al. (2020), Distill. Reproduzido com crédito.</div>
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center">
+    <div id="pmap-2"></div>
+    <div class="eyebrow" style="margin-top:18px">Bloco 2</div>
+    <h1 style="font-size:54px;max-width:16em">Superposição: <span class="hl">features</span><br>além das dimensões</h1>
+    <p class="body" style="max-width:32em;font-size:22px">Se não cabem ortogonais, a rede as <strong>empacota</strong> em ângulos
+    quase-perpendiculares — e aceita um pouco de interferência em troca.</p>
   </div>
 </section>
 
 <!-- ============================================================
-     07 — feature = direção (VISUAL INCREMENTAL)
+     08 — o empacotamento (leque interativo)
      ============================================================ -->
-<section>
+<section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <div class="eyebrow">Bloco 1 · Circuitos</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
     <div class="slide-num">08</div>
-    <h2 class="title sm">Feature = uma direção no espaço</h2>
-    <div class="cols" style="align-items:center">
+    <div class="badge-row"><span class="badge demo">interativo</span><span class="badge tech">achado</span></div>
+    <div class="eyebrow">Bloco 2 · a geometria da superposição</div>
+    <h1 class="title">Features viram <span class="hl">formas geométricas</span></h1>
+    <div class="cols w4060">
       <div class="body">
-        <p>Para trabalhar com features de forma rigorosa, precisamos de uma definição geométrica:</p>
-        <p class="lead">uma feature é uma direção no espaço de ativações.</p>
-        <ul>
-          <li class="fragment" data-frag="1">Cada <strong>eixo</strong> é a ativação de um neurônio. Com 2 neurônios, um plano; com milhares, um espaço de milhares de dimensões.</li>
-          <li class="fragment" data-frag="2">Cada entrada processada produz um <strong>ponto</strong> nesse espaço.</li>
-          <li class="fragment" data-frag="3">Uma feature é uma <strong>direção</strong> — uma seta a partir da origem.</li>
-        </ul>
-        <p class="fragment" data-frag="4"><strong>Consequência contraintuitiva:</strong> uma feature geralmente não é um único neurônio — é uma <em>combinação</em> de vários.</p>
+        <p>Para minimizar interferência, N features espalham-se o mais <strong>longe possível</strong>
+        umas das outras — nos vértices de um <strong>polígono regular</strong>.</p>
+        <div class="card plain mt8">
+          <p style="margin:0"><span id="pf-readout" class="hl" style="font-weight:700">—</span></p>
+        </div>
+        <div class="result-line"><span class="tag">2 features</span> → linha (antípodas, <strong>180°</strong>)</div>
+        <div class="result-line"><span class="tag">4 features</span> → quadrado (<strong>90°</strong>, ortogonais!)</div>
+        <div class="result-line"><span class="tag">5+ features</span> → pentágono, hexágono… (&lt; 90°, interferência)</div>
+        <div class="slider-wrap mt16">
+          <input type="range" id="pf-slider" min="2" max="8" value="3" class="viz-slider">
+          <div class="interact-hint">arraste para adicionar features e ver a forma mudar</div>
+        </div>
       </div>
-      <div class="center"><div id="viz07"></div></div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizPack"></div></div>
+      </div>
     </div>
-    <div class="source">Fonte da definição geométrica: Olah et al. (2017; 2020).</div>
+    <div class="source">Elhage et al. (2022), <em>Toy Models of Superposition</em> — features formam polígonos/politopos regulares.</div>
   </div>
 </section>
 
 <!-- ============================================================
-     SOB O CAPÔ 2a — Linear Representation Hypothesis (fórmula)
+     09 — o custo: interferência (cos θ interativo)
      ============================================================ -->
-<section class="hood">
+<section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <span class="hood-badge">SOB O CAPÔ</span>
     <div class="slide-num">09</div>
-    <h2 class="title sm">“Feature é uma direção”: lendo o enunciado formal</h2>
-    <div class="hood-flow">
-      <p class="hquestion">O que essa frase quer dizer, símbolo a símbolo?</p>
-      <div class="fragment" data-frag="1">
-        <div class="mathbox accent" style="text-align:center;padding:16px">
-          <div class="formula" id="hlrh" style="margin:0;font-size:26px"></div>
+    <div class="badge-row"><span class="badge demo">interativo</span></div>
+    <div class="eyebrow">Bloco 2 · o custo</div>
+    <h1 class="title">O preço é a <span style="color:#DC2626">interferência</span></h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p>Duas features não perpendiculares “vazam” uma na outra. Essa medida de vazamento
+        é o <strong>produto interno</strong> entre suas direções.</p>
+        <div class="formula" style="font-size:22px;margin:10px 0" id="fx-dot"></div>
+        <div class="result-line"><span class="tag hl-verde">cos 90° = 0</span> → ortogonais, interferência <strong>zero</strong> (ideal)</div>
+        <div class="result-line"><span class="tag" style="color:#DC2626">cos 0° = 1</span> → mesma direção, interferência <strong>máxima</strong> (evitada)</div>
+        <div class="slider-wrap mt16">
+          <input type="range" id="if-slider" min="0" max="90" value="35" class="viz-slider">
+          <div class="viz-readout" id="if-readout">—</div>
         </div>
       </div>
-      <div class="hstep fragment" data-frag="2">
-        <div class="dot" style="background:#1E2A44;font-size:12px">a(x)</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>$a(x)$ = a ativação</strong> que o modelo produz para uma entrada $x$ — o vetor de números numa camada.</p></div>
-      </div>
-      <div class="hstep fragment" data-frag="3">
-        <div class="dot" style="background:#DB2777;font-size:13px">fᵢ</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>$f_i(x)$ = o quanto a feature $i$ está ativa</strong> (um número). Zero se o conceito está ausente; positivo se presente.</p></div>
-      </div>
-      <div class="hstep fragment" data-frag="4">
-        <div class="dot" style="background:#6B21A8;font-size:13px">dᵢ</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>$\mathbf{d}_i$ = a direção da feature $i$</strong> (um vetor fixo). É o “eixo” do conceito no espaço de ativações.</p></div>
-      </div>
-      <div class="hstep fragment" data-frag="5">
-        <div class="dot">Σ</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>A soma:</strong> a ativação é a <span class="hl">combinação linear</span> das direções, cada uma pesada pela sua intensidade. Conceitos presentes “acendem” suas direções e se somam.</p></div>
-      </div>
-    </div>
-    <div class="source">Formalização: Park et al. (2023); Elhage et al. (2022).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     SOB O CAPÔ 2b — LRH (viz aritmética de vetores)
-     ============================================================ -->
-<section class="hood">
-  <div class="slide-pad">
-    <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">10</div>
-    <h2 class="title sm">A forma forte: conceitos viram aritmética de vetores</h2>
-    <div class="cols w4060" style="align-items:center;gap:26px">
-      <div class="body">
-        <p class="body small" style="margin:0 0 8px">Se as direções se somam de forma independente, então <strong>operar com conceitos</strong> vira somar e subtrair setas. O exemplo clássico:</p>
-        <div class="mathbox accent compact" style="margin:0 0 10px;text-align:center"><div class="formula" id="hlrh2" style="margin:0;font-size:18px"></div></div>
-        <div class="hstep" style="margin:8px 0"><div class="dot" style="background:#6B21A8">1</div><div class="hbody"><p class="body small" style="margin:0">Partimos da direção <strong style="color:#6B21A8">rei</strong>.</p></div></div>
-        <div class="hstep" style="margin:8px 0"><div class="dot" style="background:#DC2626">2</div><div class="hbody"><p class="body small" style="margin:0"><strong style="color:#DC2626">Subtraímos homem</strong> — tiramos a componente “masculino”.</p></div></div>
-        <div class="hstep" style="margin:8px 0"><div class="dot" style="background:#0891B2">3</div><div class="hbody"><p class="body small" style="margin:0"><strong style="color:#0891B2">Somamos mulher</strong> — e caímos perto de <strong style="color:#059669">rainha</strong>.</p></div></div>
-        <div class="interact-hint" style="margin-top:4px">clique para montar os vetores passo a passo</div>
-      </div>
-      <div class="center"><div id="vizVec" class="cc-click" style="cursor:pointer"></div></div>
-    </div>
-    <div class="source">É a lógica do <strong>word2vec</strong> — elevada a hipótese estrutural. Contraponto: já há features <em>multidimensionais</em> (Engels et al., 2024).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     08 — o que é um circuito
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 1 · Circuitos</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">11</div>
-    <h2 class="title">O que é um <em style="color:#6B21A8;font-style:normal">circuito</em></h2>
-    <div class="cols w6040">
-      <div class="body">
-        <p><strong>Se features são os conceitos, circuitos são as conexões entre eles</strong> — o “raciocínio” que liga features para computar algo.</p>
-        <p>Formalmente, um circuito é um <em>subgrafo</em> da rede: features conectadas que, juntas, implementam uma função. Ex.: “curva em cima” + “curva embaixo” → “círculo”.</p>
-        <ul>
-          <li><strong>Receita:</strong> ingredientes (features) combinados produzem um prato (feature de saída).</li>
-          <li><strong>Circuito elétrico:</strong> componentes simples realizam uma função que nenhum faria sozinho.</li>
-        </ul>
-        <p><strong>Tese do Zoom In:</strong> redes são feitas de circuitos assim — mapeá-los é entender a rede.</p>
-      </div>
-      <div class="figbox" data-img="images/img03.jpg"
-           data-cap="Dog-head detector: curvas + focinho + orelhas se combinam"
-           data-url="distill.pub/2020/circuits/zoom-in">
-        <img alt="Dog head detector circuit">
-        <div class="figfallback"><div class="ph">IMAGEM</div><div class="cap">Dog-head detector: curvas + focinho + orelhas se combinam (setas + / −)</div><div class="url">distill.pub/2020/circuits/zoom-in</div></div>
-        <div class="figcap">Circuito do detector de cabeça de cachorro — <a href="https://distill.pub/2020/circuits/zoom-in">Olah et al. (2020)</a></div>
-      </div>
-    </div>
-    <div class="source">Fonte: Olah et al. (2020), Distill.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     09 — residual stream (VISUAL)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 1 · Circuitos</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">12</div>
-    <h2 class="title sm">Transformers e o <em style="color:#6B21A8;font-style:normal">residual stream</em></h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>Em 2021, “A Mathematical Framework for Transformer Circuits” (Elhage et al.) levou os circuitos da visão para os <strong>transformers</strong> — a arquitetura dos LLMs.</p>
-        <p class="lead">O conceito central: o residual stream.</p>
-        <p>Pense num <strong>quadro compartilhado</strong> na sala de aula. Os tokens de entrada escrevem a primeira coisa nele. Então, uma a uma, as <strong>camadas</strong> (cada uma com Atenção + MLP) agem como alunos:</p>
-        <ul>
-          <li>cada camada <strong style="color:#059669">lê</strong> o que já está no quadro,</li>
-          <li>faz sua conta, e <strong style="color:#DB2777">escreve</strong> sua contribuição de volta.</li>
-        </ul>
-        <p>Ninguém apaga o quadro — a informação só <strong>se acumula</strong>. No fim, a resposta é lida do que ficou escrito. É o “canal comum” onde todas as features vivem e se comunicam.</p>
-        <div class="interact-hint" style="margin-top:6px">clique para as camadas lerem e escreverem, uma a uma</div>
-      </div>
-      <div class="center"><div id="viz09" class="cc-click" style="cursor:pointer"></div></div>
-    </div>
-    <div class="source">Fonte: Elhage et al. (2021), “A Mathematical Framework for Transformer Circuits”, Anthropic.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     10 — induction heads (VISUAL INCREMENTAL)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 1 · Circuitos</div>
-    <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">13</div>
-    <h2 class="title sm">Induction heads: a primeira vitória</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>O trabalho de 2021, aprofundado em Olsson et al. (2022), encontrou um circuito concreto: as <strong>induction heads</strong>.</p>
-        <p class="lead">O que fazem: completam padrões repetidos.</p>
-        <p><strong>Regra:</strong> <em>“se já vi A B antes, e agora vejo A, prevejo B.”</em></p>
-        <p><strong>Exemplo:</strong> se o texto já disse “Maria Silva”, ao reencontrar “Maria”, a cabeça empurra o modelo a prever “Silva”.</p>
-        <p><strong>Por que foi um marco:</strong> é o mecanismo do <em>in-context learning</em> — aprender com exemplos do próprio prompt. Um comportamento abstrato rastreado a um circuito compreensível.</p>
-      </div>
-      <div class="center"><div id="viz10"></div></div>
-    </div>
-    <div class="source">Fonte: Elhage et al. (2021); Olsson et al. (2022), Anthropic.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     11 — polissemanticidade (VISUAL)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 2 · Superposição</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">14</div>
-    <h2 class="title">O problema que quebrou tudo</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>Se features fossem sempre um neurônio cada, interpretar seria fácil. Mas não são.</p>
-        <p><strong>Um mesmo neurônio frequentemente ativa para conceitos sem relação</strong> — por exemplo, rodas de carro <em>e</em> focinhos de cachorro.</p>
-        <p>Isso destrói a esperança ingênua de “ler” a rede neurônio a neurônio.</p>
-        <p class="lead">Se um único neurônio guarda dois conceitos sem relação, como interpretá-lo?</p>
-      </div>
-      <div class="center">
-        <svg viewBox="0 0 400 300" class="viz">
-          <rect x="8" y="40" width="150" height="56" rx="12" fill="#F5EEFC"/>
-          <text x="83" y="75" text-anchor="middle" font-size="19" fill="#3F3F46">🚗 roda</text>
-          <rect x="8" y="200" width="150" height="56" rx="12" fill="#F5EEFC"/>
-          <text x="83" y="235" text-anchor="middle" font-size="19" fill="#3F3F46">🐕 focinho</text>
-          <circle cx="320" cy="148" r="46" fill="#6B21A8"/>
-          <text x="320" y="215" text-anchor="middle" font-size="14" fill="#71717A">1 neurônio</text>
-          <line x1="160" y1="72" x2="272" y2="130" stroke="#B8B8C0" stroke-width="2.5" marker-end="url(#a11)"/>
-          <line x1="160" y1="224" x2="272" y2="166" stroke="#B8B8C0" stroke-width="2.5" marker-end="url(#a11)"/>
-          <defs><marker id="a11" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#B8B8C0"/></marker></defs>
-        </svg>
-      </div>
-    </div>
-    <div class="source">Fonte: fenômeno observado em Olah et al. (2020); explicado em Elhage et al. (2022).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     12 — a palavra: polissemanticidade
-     ============================================================ -->
-<section>
-  <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center;height:100%">
-    <div class="eyebrow">Bloco 2 · Superposição</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">15</div>
-    <div class="center" style="margin:auto 0">
-      <div style="font-family:'Playfair Display',serif;font-size:64px;font-weight:800">
-        <span style="color:#6B21A8">poli</span><span style="color:#71717A">+</span><span style="color:#6B21A8">semântico</span>
-      </div>
-      <div style="font-size:22px;color:#71717A;font-style:italic;margin-top:8px">
-        <span style="margin-right:5em">muitos</span><span>significados</span></div>
-      <p class="body" style="max-width:30em;margin:34px auto 0;text-align:center;font-size:21px">
-        <strong>Um neurônio polissemântico responde a múltiplos conceitos não relacionados.</strong></p>
-      <p class="body muted" style="max-width:34em;margin:14px auto 0;text-align:center;font-size:18px">
-        O fenômeno foi <em>observado</em> em 2020 (Zoom In). A <em>explicação</em> — por que acontece — só veio em 2022, com a superposição.</p>
-    </div>
-    <div class="source">Termo consolidado em Olah et al. (2020) e Elhage et al. (2022).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     PERGUNTA 1 — quantos conceitos cabem?
-     ============================================================ -->
-<section data-background-color="#1A1A1A">
-  <div class="slide-pad dark" style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center">
-    <p style="font-size:22px;color:#9333EA;font-weight:700;letter-spacing:.08em;margin-bottom:18px">PENSE UM POUCO…</p>
-    <h1 style="font-size:44px;color:#fff;margin:0 0 8px 0;max-width:20em;line-height:1.25">Um modelo tem <span style="color:#9333EA">512 neurônios</span> numa camada.</h1>
-    <p style="font-size:30px;color:#fff;font-family:'Playfair Display',serif;margin:10px 0 30px">Quantos <em>conceitos distintos</em> ele consegue representar?</p>
-    <p class="fragment" style="font-size:24px;color:#C9C9CF;max-width:26em"><span style="color:#fff;font-weight:700">A intuição diz 512</span> — um por neurônio.</p>
-    <p class="fragment" style="font-size:26px;color:#9333EA;font-weight:700;max-width:26em;margin-top:10px">A resposta real: <span style="color:#fff">muito mais.</span> É o que a superposição vai explicar.</p>
-  </div>
-</section>
-
-<!-- ============================================================
-     13 — hipótese da superposição
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 2 · Superposição</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">16</div>
-    <h2 class="title">A hipótese da superposição</h2>
-    <div class="cols w6040">
-      <div class="body">
-        <p>A grande ideia que explica a polissemanticidade:</p>
-        <p class="lead">a rede guarda mais conceitos do que tem neurônios.</p>
-        <p>Ela comprime as features em combinações sobrepostas, aproveitando que, na prática, poucas estão ativas ao mesmo tempo (<strong>esparsidade</strong>).</p>
-        <p><strong>Analogia da mala:</strong> dobrar muito mais roupa (features) do que a mala (dimensões) comportaria — aceitando alguns amassados (interferência) para levar mais coisa.</p>
-        <p>Segundo Elhage et al. (2022), essa compressão é <strong>parte de por que redes são tão poderosas</strong>: simulam uma rede maior e mais esparsa.</p>
-      </div>
-      <div class="figbox" data-img="images/img04.jpg"
-           data-cap="Toy model: M features comprimidas num gargalo de N < M dimensões"
-           data-url="transformer-circuits.pub/2022/toy_model">
-        <img alt="Toy model architecture">
-        <div class="figfallback"><div class="ph">IMAGEM</div><div class="cap">Toy model: M features comprimidas num gargalo de N &lt; M dimensões</div><div class="url">transformer-circuits.pub/2022/toy_model</div></div>
-        <div class="figcap">Arquitetura do toy model — <a href="https://transformer-circuits.pub/2022/toy_model">Elhage et al. (2022)</a></div>
-      </div>
-    </div>
-    <div class="source">Fonte: Elhage et al. (2022), “Toy Models of Superposition”, Anthropic.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     14 — quase-ortogonalidade (VISUAL INCREMENTAL)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 2 · Superposição</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">17</div>
-    <h2 class="title sm">Por que é possível: quase-ortogonalidade</h2>
-    <div class="cols" style="align-items:center">
-      <div class="body">
-        <p>Como comprimir mais features do que dimensões? A resposta está na <strong>geometria de espaços de alta dimensão</strong>.</p>
-        <p class="fragment" data-frag="1"><strong>Em 2D,</strong> só cabem 2 setas <em>perfeitamente</em> perpendiculares (90°). Duas features “limpas”, sem interferência.</p>
-        <p class="fragment" data-frag="2"><strong>Mas se aceitarmos setas quase perpendiculares</strong> (~85°–95°), cabem muitas mais no mesmo espaço.</p>
-        <p class="fragment" data-frag="3" class="lead"><strong style="color:#6B21A8">O insight:</strong> em dimensões altas existe um número <em>enorme</em> de direções quase perpendiculares. É nesse “espaço extra” que a rede esconde features adicionais — pagando só um pouco de interferência por par.</p>
-      </div>
-      <div class="center" style="display:flex;flex-direction:row;align-items:flex-start;justify-content:center;gap:8px;flex-wrap:wrap">
-        <div id="viz14a" class="fragment" data-frag="1"></div>
-        <div id="viz14b" class="fragment" data-frag="2"></div>
-      </div>
-    </div>
-    <div class="source">Fonte: Elhage et al. (2022). Base: concentração de medida em alta dimensão.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     15 — interferência (INTERATIVO)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 2 · Superposição</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">18</div>
-    <h2 class="title sm">A matemática da interferência</h2>
-    <div class="cols w6040" style="align-items:start">
-      <div class="body">
-        <p>Duas features em direções não perpendiculares “vazam” uma na outra. Essa medida de vazamento é o <strong>produto interno</strong> entre suas direções.</p>
-        <div class="formula" id="f15" style="margin:12px 0"></div>
-        <div class="termlab termsync" data-term="d" data-viz="viz15" style="margin:6px 0"><span class="chip" style="background:#6B21A8"></span><span><b>dᵢ, dⱼ</b> — as direções de duas features.</span></div>
-        <div class="termlab termsync" data-term="theta" data-viz="viz15" style="margin:6px 0"><span class="chip" style="background:#0891B2"></span><span><b>θ</b> — o ângulo entre elas; <b>cos θ</b> traduz o ângulo num número.</span></div>
-        <div style="margin-top:10px;font-size:17px;line-height:1.7">
-          <div><b style="color:#059669">cos 90° = 0</b> → perpendiculares, interferência <b>zero</b> (ideal)</div>
-          <div><b style="color:#B45309">cos θ ≈ 0</b> → quase perp., interferência <b>pequena</b> (tolerável)</div>
-          <div><b style="color:#DC2626">cos 0° = 1</b> → mesma direção, interferência <b>máxima</b> (evitada)</div>
-        </div>
-      </div>
-      <div class="center">
-        <div id="viz15"></div>
-        <div class="interact-hint" style="margin-top:2px">arraste para mudar o ângulo</div>
-        <input type="range" min="6" max="90" value="35" class="vrange" id="angle15" style="margin-top:8px">
-        <div class="center" style="font-size:20px;margin-top:4px">θ = <b id="angval">35°</b> &nbsp;·&nbsp; cos θ = <b id="cosval" style="color:#B45309">0.82</b></div>
-        <div style="margin-top:6px;width:82%;margin-left:auto;margin-right:auto">
-          <div style="height:11px;border-radius:6px;background:#F0F0F4;overflow:hidden">
-            <div id="leakbar" style="height:100%;width:82%;border-radius:6px;background:#B45309;transition:width .05s linear"></div>
-          </div>
-          <div style="font-size:12px;color:#71717A;text-align:center;margin-top:2px">vazamento (interferência)</div>
-        </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizInterf"></div></div>
       </div>
     </div>
     <div class="source">A superposição empacota features em ângulos próximos de 90°. Fonte: Elhage et al. (2022).</div>
@@ -534,1283 +224,28 @@
 </section>
 
 <!-- ============================================================
-     SOB O CAPÔ 1a — Johnson-Lindenstrauss (a fórmula decomposta)
+     10 — consequência: polissemanticidade + gancho SAEs
      ============================================================ -->
-<section class="hood">
+<section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">19</div>
-    <h2 class="title sm">Quantas features cabem? Lendo a fórmula</h2>
-    <div class="hood-flow">
-      <p class="hquestion">Em $\mathbb{R}^d$, quantos vetores dá para ter todos <em>quase</em>-ortogonais?</p>
-      <div class="fragment" data-frag="1">
-        <div class="mathbox accent" style="text-align:center;padding:18px">
-          <div class="formula" id="hf1a" style="margin:0;font-size:26px"></div>
-        </div>
-      </div>
-      <p class="body small fragment" data-frag="2" style="margin:10px 0 4px;color:#71717A">Vamos ler cada peça — nada aqui é decoração:</p>
-      <div class="hstep fragment" data-frag="3">
-        <div class="dot" style="background:#3B4C7A;font-size:13px">N</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>$N$ = quantas features cabem.</strong> É o que queremos maximizar — o número de conceitos distintos que a camada guarda.</p></div>
-      </div>
-      <div class="hstep fragment" data-frag="4">
-        <div class="dot" style="background:#6B21A8;font-size:13px">d</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>$d$ = a dimensão</strong> (nº de neurônios da camada). Está <em>no expoente</em> — por isso o crescimento é exponencial, e não linear.</p></div>
-      </div>
-      <div class="hstep fragment" data-frag="5">
-        <div class="dot" style="background:#DB2777;font-size:12px">ε</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>$\epsilon$ = tolerância de “quase”.</strong> Quão longe de 90° a gente aceita: $|\cos\theta|\le\epsilon$. Maior $\epsilon$ = mais frouxo = cabem mais features (mas com mais interferência).</p></div>
-      </div>
-      <div class="hstep fragment" data-frag="6">
-        <div class="dot">✓</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>Leitura conjunta:</strong> dobrar a dimensão não dobra a capacidade — <span class="hl">multiplica-a exponencialmente</span>. É daí que vêm “milhares de features em centenas de neurônios”.</p></div>
-      </div>
-    </div>
-    <div class="source">Johnson &amp; Lindenstrauss (1984); aplicação à superposição em Elhage et al. (2022).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     SOB O CAPÔ 1b — Johnson-Lindenstrauss (viz interativa)
-     ============================================================ -->
-<section class="hood">
-  <div class="slide-pad">
-    <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">20</div>
-    <h2 class="title sm">Veja o exponencial acontecer</h2>
-    <div class="cols w4060" style="align-items:center;gap:26px">
+    <div class="slide-num">10</div>
+    <div class="eyebrow">Bloco 2 · a consequência</div>
+    <h1 class="title">Um neurônio ≠ <span class="hl">uma feature</span></h1>
+    <div class="cols w6040">
       <div class="body">
-        <p class="body small" style="margin:0 0 10px">Mexa nos controles e observe o número de features $N$ disparar conforme a dimensão $d$ cresce. A linha vermelha é o trivial ($d$ direções ortogonais) — a curva azul deixa ela para trás rápido.</p>
-        <div class="mathbox compact" style="margin:0 0 12px">
-          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px"><span class="k">dimensão $d$</span><span id="jlDval" style="font-weight:700;color:#3B4C7A">512</span></div>
-          <input type="range" min="8" max="2000" value="512" step="8" id="jlD" class="vrange" style="width:100%">
-        </div>
-        <div class="mathbox compact" style="margin:0">
-          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px"><span class="k">tolerância $\epsilon$</span><span id="jlEval" style="font-weight:700;color:#DB2777">0,10</span></div>
-          <input type="range" min="5" max="30" value="10" step="1" id="jlE" class="vrange" style="width:100%">
-        </div>
-        <div class="bridge" style="margin-top:14px">
-          <div class="btag">Você já viu isso</div>
-          <p class="body small" style="margin:2px 0 0">Mesma <strong>concentração de medida</strong> do JL clássico de redução de dimensionalidade — aqui “do avesso”: a rede <em>empacota</em> em vez de projetar.</p>
-        </div>
-      </div>
-      <div class="center"><div id="vizJL"></div></div>
-    </div>
-    <div class="source">Curva $N\sim e^{d\epsilon^2/4}$ (assintótica). Para $d$ moderado o bound real é conservador; na prática as redes empacotam ainda mais.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     16 — toy models e geometria
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 2 · Superposição</div>
-    <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">21</div>
-    <h2 class="title sm">Toy Models e a geometria da superposição</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>Por que modelos-brinquedo? Para <strong>isolar o fenômeno</strong> num ambiente controlado, onde sabemos exatamente quantas features existem.</p>
-        <p>A descoberta elegante: sob esparsidade, as features <strong>não se distribuem ao acaso</strong> — organizam-se em <strong>polígonos regulares</strong> (dígono, triângulo, pentágono…).</p>
-        <p>Há uma <em>transição de fase</em>: conforme a esparsidade aumenta, a rede <strong>“liga”</strong> mais features no mesmo espaço, aceitando um pouco de interferência.</p>
-        <div class="interact-hint" style="margin-top:6px">arraste a esparsidade e veja a geometria mudar</div>
-      </div>
-      <div class="center">
-        <div id="viz16i"></div>
-        <input type="range" min="0" max="100" value="30" class="vrange" id="sparsity16" style="margin-top:10px">
-        <div class="center" style="font-size:18px;margin-top:10px;line-height:1.7">
-          esparsidade <b id="sp16val" style="color:#6B21A8">baixa</b>
-          <div style="margin-top:4px;color:#3F3F46">
-            <b id="nfeat16" style="color:#6B21A8;font-size:22px">4</b> features no mesmo espaço<br>
-            organizadas em <b id="poly16" style="color:#9333EA">quadrado</b>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="source">Fonte: Elhage et al. (2022), “Toy Models of Superposition”, Anthropic.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     17 — recapitulando (fim da aula 1)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 2 · Superposição</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">22</div>
-    <h2 class="title">Recapitulando o dilema</h2>
-    <div class="cols" style="grid-template-columns:1fr 1fr 1fr;gap:24px">
-      <div class="card center"><h3>escondidas</h3><p class="body small">As features úteis não estão à vista — estão distribuídas por muitos neurônios.</p></div>
-      <div class="card center"><h3>comprimidas</h3><p class="body small">A rede guarda mais features do que dimensões, via superposição.</p></div>
-      <div class="card center"><h3>sobrepostas</h3><p class="body small">Cada neurônio mistura vários conceitos (polissemanticidade).</p></div>
-    </div>
-    <p class="anchor mt24">Precisamos de uma ferramenta para desembaralhar isso. → Sparse Autoencoders</p>
-    <div class="source">Fim da Aula 1 · o intervalo cai aqui.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     PONTE — a mesma nuvem, embaralhada vs desembaralhada
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">23</div>
-    <h2 class="title sm">O que queremos fazer, em uma imagem</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>Estas são as features de um modelo, cada cor um <strong>conceito</strong> diferente. Em superposição, elas vivem <strong>misturadas</strong> — nenhum eixo corresponde a um conceito limpo.</p>
-        <p>O que um <strong>Sparse Autoencoder</strong> faz, em essência, é <strong>reorganizar</strong> esse espaço: dar a cada conceito a sua própria direção, separando o que estava embaralhado.</p>
-        <div class="interact-hint" style="margin-top:8px">clique para ver o SAE desembaralhar</div>
-      </div>
-      <div class="center">
-        <div id="vizPonte" class="cc-click" style="cursor:pointer"></div>
-        <div class="center" style="margin-top:6px;font-size:17px"><b id="ponteLabel" style="color:#DC2626">superposição — embaralhado</b></div>
-      </div>
-    </div>
-    <div class="source">Ilustração conceitual do que os SAEs fazem (dictionary learning).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     18 — desembaralhar (VISUAL: prisma)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">24</div>
-    <h2 class="title">A ideia: desembaralhar</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>O problema do Bloco 2: as features úteis existem, mas estão <strong>comprimidas e sobrepostas</strong>. Não conseguimos lê-las diretamente.</p>
-        <p class="lead">A estratégia: dictionary learning.</p>
-        <p>A intuição é a de um <strong>prisma</strong>: assim como um prisma separa a luz branca (mistura) nas cores que a compõem, queremos separar a ativação misturada de um neurônio nas features “puras” ali dentro.</p>
-        <p>A ferramenta que faz isso é o <strong>Sparse Autoencoder (SAE)</strong>.</p>
-      </div>
-      <div class="center">
-        <svg viewBox="0 0 380 260" class="viz">
-          <line x1="10" y1="130" x2="120" y2="130" stroke="#B8B8C0" stroke-width="4"/>
-          <text x="60" y="118" text-anchor="middle" font-size="14" fill="#71717A">luz branca</text>
-          <polygon points="150,80 210,170 150,170" fill="#F5EEFC" stroke="#6B21A8" stroke-width="2"/>
-          <text x="168" y="192" text-anchor="middle" font-size="13" fill="#6B21A8" font-style="italic">prisma</text>
-          <g stroke-width="3">
-            <line x1="200" y1="128" x2="360" y2="70" stroke="#DC2626"/>
-            <line x1="200" y1="130" x2="360" y2="105" stroke="#F59E0B"/>
-            <line x1="200" y1="132" x2="360" y2="140" stroke="#059669"/>
-            <line x1="200" y1="134" x2="360" y2="175" stroke="#2563EB"/>
-            <line x1="200" y1="136" x2="360" y2="210" stroke="#7C3AED"/>
-          </g>
-          <text x="300" y="235" text-anchor="middle" font-size="14" fill="#71717A" font-style="italic">features “puras”</text>
-        </svg>
-      </div>
-    </div>
-    <div class="source">Analogia do dictionary learning aplicado a ativações neurais.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     19 — autoencoder (VISUAL: ampulheta)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">25</div>
-    <h2 class="title sm">Primeiro, o que é um autoencoder</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>Antes do “sparse”, o autoencoder comum: uma rede treinada para uma tarefa que parece boba — <strong>copiar a própria entrada na saída</strong>.</p>
-        <p>O truque está no meio: um <strong>gargalo</strong> (camada menor). Como a informação precisa passar por esse aperto, a rede é forçada a aprender uma representação comprimida e eficiente.</p>
-        <p><em>É como resumir um texto e reconstruí-lo: para o resumo funcionar, você captura o essencial.</em></p>
-        <ul>
-          <li><strong>Encoder:</strong> comprime a entrada até o gargalo.</li>
-          <li><strong>Decoder:</strong> reconstrói a entrada a partir do gargalo.</li>
+        <p>Se as features se sobrepõem, um <strong>neurônio</strong> isolado responde a
+        <em>várias</em> features não relacionadas ao mesmo tempo.</p>
+        <ul class="bullets">
+          <li class="b-vermelho">Isso é <strong>polissemanticidade</strong> — olhar um neurônio não revela um conceito limpo.</li>
+          <li>A feature verdadeira está <strong>espalhada</strong> por muitos neurônios, e cada neurônio mistura muitas features.</li>
         </ul>
+        <p class="mt8">Então, como <strong>desembaralhar</strong> as features de volta?</p>
       </div>
-      <div class="center"><div id="viz19"></div></div>
-    </div>
-    <div class="source">Arquitetura clássica de autoencoder.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     20 — expandir não comprimir (VISUAL INCREMENTAL: SAE)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">26</div>
-    <h2 class="title sm">O truque do SAE: expandir, não comprimir</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>Aqui vem a inversão que define o SAE. O autoencoder comprime (gargalo menor). O SAE faz o <strong>oposto</strong>: projeta a ativação num espaço <em>muito maior</em> — mas exige que quase todas as dimensões sejam <strong>zero</strong> a cada vez. Isso é a <strong>esparsidade</strong>.</p>
-        <p><strong>Por que faz sentido?</strong> A rede tem muito mais features do que neurônios, amontoadas. Para “desamontoar”, precisamos de <em>mais</em> espaço, não menos.</p>
-        <p>O SAE dá uma dimensão para cada feature possível; a esparsidade garante que só as poucas features presentes “acendam”.</p>
-        <p class="lead">Cada dimensão tende a virar monossemântica — um único conceito limpo.</p>
-      </div>
-      <div class="center"><div id="viz20"></div></div>
-    </div>
-    <div class="source">A esparsidade força monossemanticidade. Fonte: Bricken et al. (2023).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     21 — fórmula SAE (VISUAL INCREMENTAL: fórmula + diagrama)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">27</div>
-    <h2 class="title sm">A fórmula do SAE, decomposta</h2>
-    <div class="cols" style="align-items:center">
-      <div class="body">
-        <p>O SAE cabe em duas equações — o encoder produz features, o decoder reconstrói. <em>Avance para montar o decoder.</em></p>
-        <div class="card" data-stage="1" style="padding:16px 20px;margin:12px 0">
-          <div class="k">1 · Encoder <span style="font-weight:400;color:#71717A">— comprime x em features</span></div>
-          <div class="formula" id="f21a" style="margin:4px 0"></div>
-        </div>
-        <div class="card blue fragment" data-frag="1" data-stage="2" style="padding:16px 20px;margin:12px 0">
-          <div class="k" style="color:#1D4ED8">2 · Decoder <span style="font-weight:400;color:#71717A">— reconstrói x a partir das features</span></div>
-          <div class="formula" id="f21b" style="margin:4px 0"></div>
-        </div>
-        <div class="body small fragment" data-frag="2" style="margin-top:10px">
-          <p><b>ReLU</b> zera o que é negativo → cria a esparsidade. As colunas de <b>W<sub>dec</sub></b> são as <em>direções das features</em> (o dicionário).</p>
-        </div>
-      </div>
-      <div class="center"><div id="viz21"></div>
-        <p class="body small muted center" style="margin-top:6px">x (ativação) → f(x) (features esparsas) → x̂ (reconstrução)</p>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizPoly"></div></div>
       </div>
     </div>
-    <div class="source">Formulação: Bricken et al. (2023), “Towards Monosemanticity”, Anthropic.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     22 — função de perda (VISUAL INCREMENTAL)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">28</div>
-    <h2 class="title sm">A função de perda: dois objetivos em tensão</h2>
-    <p class="body" style="margin-bottom:6px">Como treinar o SAE para separar features? Com uma perda de dois termos que competem. <em>Passe o mouse em cada termo para ver o peso na balança.</em></p>
-    <div class="cols w6040" style="align-items:start;gap:30px;margin-top:10px">
-      <div>
-        <div class="card blue fragment termsync" data-frag="1" data-term="recon" data-viz="viz22" style="padding:12px 16px;margin:6px 0">
-          <div class="k" style="color:#1D4ED8">Termo 1 · Reconstrução</div>
-          <div class="formula" id="f22a" style="margin:4px 0"></div>
-          <p class="body small" style="margin:0">Mede o <strong style="color:#1D4ED8">erro</strong>: o quão longe a reconstrução ficou do original. Empurra o SAE a ser <strong>fiel</strong>.</p>
-        </div>
-        <div class="card fragment termsync" data-frag="2" data-term="sparse" data-viz="viz22" style="padding:12px 16px;margin:6px 0">
-          <div class="k">Termo 2 · Esparsidade</div>
-          <div class="formula" id="f22b" style="margin:4px 0"></div>
-          <p class="body small" style="margin:0">Penaliza o <strong>número de features ativas</strong> (norma L1). λ equilibra os dois.</p>
-        </div>
-      </div>
-      <div class="center">
-        <div class="formula" id="f22" style="margin:0 0 14px;font-size:24px"></div>
-        <div id="viz22" style="max-width:300px;margin:0 auto"></div>
-        <p class="body fragment center" data-frag="3" style="font-style:italic;font-size:16px;margin-top:2px"><strong>Cabo de guerra:</strong> “reconstrua bem” × “use poucas features”.</p>
-      </div>
-    </div>
-    <div class="source">Formulação (eq. 4): Rajamanoharan et al. (2024). A penalidade L1 será criticada no Bloco 5.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     SOB O CAPÔ 3a — por que L1 esparsifica (derivadas)
-     ============================================================ -->
-<section class="hood">
-  <div class="slide-pad">
-    <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">29</div>
-    <h2 class="title sm">Por que a norma L1 zera features: a derivada</h2>
-    <div class="hood-flow">
-      <p class="hquestion">O que cada penalidade faz com uma feature que “quer” desligar?</p>
-      <p class="body small fragment" data-frag="1" style="margin:6px 0 2px;color:#71717A">A chave é a <strong>derivada</strong> da penalidade perto de zero — a “força” que empurra $f_i$ para baixo:</p>
-      <div class="hstep fragment" data-frag="2">
-        <div class="dot" style="background:#059669">L1</div>
-        <div class="hbody">
-          <div class="mathbox accent compact" style="margin:0 0 4px"><div class="formula" id="hl1a" style="margin:0;font-size:18px"></div></div>
-          <p class="body small" style="margin:0">Força <strong>constante</strong> $\lambda$ — <span class="hl">não importa quão pequeno</span> seja $f_i$. Continua empurrando até <strong>zerar</strong>.</p>
-        </div>
-      </div>
-      <div class="hstep fragment" data-frag="3">
-        <div class="dot" style="background:#DC2626">L2</div>
-        <div class="hbody">
-          <div class="mathbox accent compact" style="margin:0 0 4px"><div class="formula" id="hl1b" style="margin:0;font-size:18px"></div></div>
-          <p class="body small" style="margin:0">Força <strong>proporcional</strong> a $f_i$ — <em>some</em> quando $f_i\to0$. Só <strong>encolhe</strong>, deixa resíduo.</p>
-        </div>
-      </div>
-      <div class="hstep fragment" data-frag="4">
-        <div class="dot">!</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>Custo escondido:</strong> a força fixa da L1 também encolhe features que <em>deveriam</em> estar ativas — o <strong>shrinkage</strong>. Daí Gated SAE e JumpReLU (Bloco 5).</p></div>
-      </div>
-    </div>
-    <div class="source">Subgradiente: Tibshirani (1996, Lasso). Shrinkage em SAEs: Rajamanoharan et al. (2024); Bussmann et al. (2024).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     SOB O CAPÔ 3b — L1 vs L2 (viz geométrica)
-     ============================================================ -->
-<section class="hood">
-  <div class="slide-pad">
-    <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">30</div>
-    <h2 class="title sm">A geometria: por que a solução L1 “gruda” no eixo</h2>
-    <div class="cols w4060" style="align-items:center;gap:26px">
-      <div class="body">
-        <p class="body small" style="margin:0 0 8px">As <strong>elipses roxas</strong> são curvas de nível da perda (o mínimo no centro). A <strong>região azul</strong> é a restrição da penalidade. A solução é onde a menor elipse <em>toca</em> a região.</p>
-        <div class="hstep" style="margin:8px 0"><div class="dot" style="background:#059669">L1</div><div class="hbody"><p class="body small" style="margin:0">Losango com <strong>quinas nos eixos</strong> → o toque cai numa quina → um coeficiente vira <strong>exatamente 0</strong>.</p></div></div>
-        <div class="hstep" style="margin:8px 0"><div class="dot" style="background:#DC2626">L2</div><div class="hbody"><p class="body small" style="margin:0">Círculo <strong>liso, sem quinas</strong> → o toque cai num ponto genérico → nenhum coeficiente zera.</p></div></div>
-        <div class="interact-hint" style="margin-top:4px">clique para alternar entre L1 e L2</div>
-        <div class="bridge" style="margin-top:10px">
-          <div class="btag">Você já viu isso</div>
-          <p class="body small" style="margin:2px 0 0">É <strong>exatamente Lasso vs Ridge</strong>. A mesma geometria que zera coeficientes na regressão zera features no SAE.</p>
-        </div>
-      </div>
-      <div class="center">
-        <div id="vizNorm" class="cc-click" style="cursor:pointer"></div>
-        <div class="center" style="margin-top:2px;font-size:15px"><b id="normLabel" style="color:#059669">L1 — esparsifica</b></div>
-      </div>
-    </div>
-    <div class="source">Geometria clássica do Lasso (Tibshirani, 1996). A “bola” L1 é $|\beta_1|+|\beta_2|\le t$; a L2 é $\beta_1^2+\beta_2^2\le t$.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     23 — monossemanticidade
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
-    <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">31</div>
-    <h2 class="title sm">Monossemanticidade: a prova de conceito</h2>
-    <div class="cols w6040">
-      <div class="body">
-        <p>Em 2023, <strong>“Towards Monosemanticity”</strong> (Bricken et al.) mostrou que funciona. Aplicando um SAE às ativações de um modelo pequeno, extraíram features limpas dos neurônios polissemânticos.</p>
-        <p><strong style="color:#DC2626">Antes:</strong> um neurônio acende para citações acadêmicas, diálogo em inglês, pedidos HTTP e texto em coreano — tudo junto, ininterpretável.</p>
-        <p><strong style="color:#059669">Depois:</strong> esses sinais se separam em features distintas, cada uma com um significado único.</p>
-        <p><strong>Primeira demonstração convincente de que dá para “desfazer” a superposição na prática.</strong></p>
-      </div>
-      <div class="figbox" data-img="images/img05.jpg"
-           data-cap="Features monossemânticas: textos que ativam cada feature, tokens destacados"
-           data-url="transformer-circuits.pub/2023/monosemantic-features">
-        <img alt="Features monossemânticas">
-        <div class="figfallback"><div class="ph">IMAGEM</div><div class="cap">Features monossemânticas: textos que ativam cada feature, com tokens destacados</div><div class="url">transformer-circuits.pub/2023/monosemantic-features</div></div>
-        <div class="figcap">Features monossemânticas — <a href="https://transformer-circuits.pub/2023/monosemantic-features">Bricken et al. (2023)</a></div>
-      </div>
-    </div>
-    <div class="source">Fonte: Bricken et al. (2023), “Towards Monosemanticity”, Anthropic.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     24 — golden gate
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
-    <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">32</div>
-    <h2 class="title sm">Escalando: a feature da Golden Gate</h2>
-    <div class="cols w6040">
-      <div class="body">
-        <p>Em 2024, <strong>“Scaling Monosemanticity”</strong> (Templeton et al.) provou que a técnica funciona num modelo de produção real — o <strong>Claude 3 Sonnet</strong>. Extraíram milhões de features.</p>
-        <p>O exemplo famoso: a <strong>feature da Golden Gate Bridge</strong>. Ao <em>amplificá-la</em> artificialmente, o modelo passou a mencionar a ponte obsessivamente — achava que <em>era</em> a ponte.</p>
-        <p><strong>Além de divertido, prova algo sério: a feature é causal, não apenas correlacional.</strong> Mexer nela muda o comportamento.</p>
-      </div>
-      <div class="figbox" data-img="images/img06.jpg"
-           data-cap="“Golden Gate Claude”: respostas com a feature amplificada"
-           data-url="anthropic.com/news/golden-gate-claude">
-        <img alt="Golden Gate Claude">
-        <div class="figfallback"><div class="ph">IMAGEM</div><div class="cap">“Golden Gate Claude”: respostas do modelo com a feature amplificada</div><div class="url">anthropic.com/news/golden-gate-claude</div></div>
-        <div class="figcap">Golden Gate Claude — <a href="https://www.anthropic.com/news/golden-gate-claude">Anthropic (2024)</a></div>
-      </div>
-    </div>
-    <div class="source">Fonte: Templeton et al. (2024), “Scaling Monosemanticity”, Anthropic.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     25 — gemma scope
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3 · Sparse Autoencoders</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">33</div>
-    <h2 class="title sm">Gemma Scope e a democratização</h2>
-    <div class="cols w6040">
-      <div class="body">
-        <p>Um obstáculo prático: treinar SAEs de qualidade é caro e difícil.</p>
-        <p>Em 2024, a DeepMind lançou o <strong>Gemma Scope</strong> (Lieberum et al.) — um conjunto <strong>aberto</strong> de SAEs pré-treinados para toda a família Gemma-2.</p>
-        <p>Qualquer pesquisador passou a poder estudar as features internas <strong>sem treinar os SAEs do zero</strong>.</p>
-        <p><strong>Divisor de águas para a acessibilidade:</strong> transformou a interpretabilidade de algo que só grandes laboratórios faziam em algo que um mestrando pode explorar.</p>
-      </div>
-      <div class="figbox" data-img="images/img07.jpg"
-           data-cap="Neuronpedia: navegação interativa das features do Gemma Scope"
-           data-url="neuronpedia.org">
-        <img alt="Neuronpedia">
-        <div class="figfallback"><div class="ph">IMAGEM</div><div class="cap">Neuronpedia: navegação interativa das features do Gemma Scope, “ao vivo”</div><div class="url">neuronpedia.org</div></div>
-        <div class="figcap">Neuronpedia — <a href="https://neuronpedia.org">features do Gemma Scope</a></div>
-      </div>
-    </div>
-    <div class="source">Fonte: Lieberum et al. (2024), “Gemma Scope”, Google DeepMind.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     CHECKPOINT — recap do Bloco 3 (SAEs)
-     ============================================================ -->
-<section>
-  <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center;height:100%">
-    <div class="eyebrow" style="color:#059669">✓ Checkpoint · fim do Bloco 3</div>
-    <div class="slide-num">34</div>
-    <h2 class="title sm" style="margin-bottom:20px">O que já temos até aqui</h2>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
-      <div class="card center" style="border-left:4px solid #6B21A8"><div class="bignum" style="font-size:22px;color:#6B21A8">Circuitos</div><p class="body small" style="margin-top:6px">features são <strong>direções</strong>; circuitos as conectam em computações.</p></div>
-      <div class="card center" style="border-left:4px solid #0891B2"><div class="bignum" style="font-size:22px;color:#0891B2">Superposição</div><p class="body small" style="margin-top:6px">o modelo <strong>comprime</strong> mais features que neurônios — daí a polissemanticidade.</p></div>
-      <div class="card center" style="border-left:4px solid #059669"><div class="bignum" style="font-size:22px;color:#059669">SAEs</div><p class="body small" style="margin-top:6px">aprendem a <strong>desembaralhar</strong> essas features em conceitos limpos.</p></div>
-    </div>
-    <p class="anchor" style="font-size:20px;margin-top:24px">Sabemos <em>ver</em> as features. Falta <strong>testar causalmente</strong> quais importam — as técnicas do próximo bloco.</p>
-    <div class="source">Recapitulação · transição para a caixa de ferramentas metodológica.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     NOVO BLOCO — TÉCNICAS (T1..T6)
-     ============================================================ -->
-
-<!-- T1 — abertura do bloco de técnicas -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">35</div>
-    <h2 class="title sm">Como se descobre um circuito?</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>Até aqui vimos <em>o que</em> existe no modelo — features, superposição, dicionários. Falta o <strong>como</strong>: a metodologia que transforma observação em <strong>evidência causal</strong>.</p>
-        <p>Há uma distinção central que organiza todas as técnicas:</p>
-        <div class="card" style="margin:10px 0"><p class="body small" style="margin:0"><strong style="color:#1D4ED8">Observar</strong> (correlação) — logit lens, probing, padrões de atenção. Mostram <em>o que</em> está codificado.</p></div>
-        <div class="card blue" style="margin:10px 0"><p class="body small" style="margin:0"><strong style="color:#6B21A8">Intervir</strong> (causa) — patching, ablation. Mostram o que o modelo <em>de fato usa</em>.</p></div>
-        <p class="anchor" style="font-size:19px">Correlação diz onde olhar; intervenção prova o que importa.</p>
-      </div>
-      <div class="center">
-        <div style="font-size:15px;color:#71717A;margin-bottom:8px">o arsenal, do observacional ao causal</div>
-        <div style="display:flex;flex-direction:column;gap:8px;font-size:15px;text-align:left">
-          <div class="card plain" style="padding:8px 14px">Logit lens · Probing · Atenção <span style="color:#1D4ED8;font-weight:700">(observar)</span></div>
-          <div style="text-align:center;color:#9CA3AF">↓</div>
-          <div class="card plain" style="padding:8px 14px">Activation patching · Ablation <span style="color:#6B21A8;font-weight:700">(intervir)</span></div>
-          <div style="text-align:center;color:#9CA3AF">↓</div>
-          <div class="card plain" style="padding:8px 14px">Attribution patching · ACDC <span style="color:#059669;font-weight:700">(escalar)</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="source">Framework: Heimersheim &amp; Nanda (2024), “How to use and interpret activation patching”.</div>
-  </div>
-</section>
-
-<!-- T2 — logit lens + probing (observacional) -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">36</div>
-    <h2 class="title sm">Ferramenta observacional: logit lens</h2>
-    <div class="cols w6040" style="align-items:center;gap:28px">
-      <div class="body">
-        <p>A ideia mais simples: pegar a ativação de uma camada intermediária e projetá-la <strong>direto na saída</strong>, como se o modelo parasse ali. Revela a previsão “em construção”. <em>Passe o mouse em cada termo.</em></p>
-        <div class="formula" id="ft2a" style="margin:12px 0;font-size:26px"></div>
-        <div class="termlab termsync" data-term="xL" data-viz="viz27" style="margin:7px 0"><span class="chip" style="background:#6B21A8"></span><span><b>x<sub>ℓ</sub></b> — a ativação (residual stream) na camada ℓ que queremos “espiar”.</span></div>
-        <div class="termlab termsync" data-term="LN" data-viz="viz27" style="margin:7px 0"><span class="chip" style="background:#0891B2"></span><span><b>LN</b> — o LayerNorm final, aplicado antes de projetar (como o modelo faria no fim).</span></div>
-        <div class="termlab termsync" data-term="WU" data-viz="viz27" style="margin:7px 0"><span class="chip" style="background:#DB2777"></span><span><b>W<sub>U</sub></b> — a matriz de <em>unembedding</em>: transforma o vetor na distribuição de vocabulário.</span></div>
-      </div>
-      <div class="center"><div id="viz27"></div></div>
-    </div>
-    <p class="anchor" style="font-size:18px;margin-top:10px"><strong>Prima do probing:</strong> um classificador linear <span style="font-family:monospace;font-size:15px">ŷ = σ(wᵀa + b)</span> testa se a informação é <em>decodável</em>. Mas cuidado: <strong>decodável ≠ usado</strong> — é o que motiva as técnicas causais a seguir.</p>
-    <div class="source">Fontes: nostalgebraist (2020, logit lens); Alain &amp; Bengio (2017, probing); Belinkov (2022).</div>
-  </div>
-</section>
-
-<!-- T3 — activation patching: o método central + matemática -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">37</div>
-    <h2 class="title sm">Activation patching: o coração do método</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p><strong>A ideia:</strong> montar um contrafactual entre dois inputs quase idênticos e <strong>transplantar</strong> uma ativação de um para o outro.</p>
-        <div style="font-size:16px;line-height:1.7;margin:8px 0">
-          <div><b style="color:#6B21A8">1.</b> Rode o input <b>limpo</b> (“…Paris”) e guarde as ativações.</div>
-          <div><b style="color:#DC2626">2.</b> Rode o <b>corrompido</b> (“…Roma”) — resposta errada.</div>
-          <div><b style="color:#059669">3.</b> <b>Substitua</b> uma ativação do corrompido pela do limpo.</div>
-        </div>
-        <p class="body small">Se aquela única ativação <strong>restaura</strong> a resposta certa, ela é <em>suficiente</em> para o comportamento — evidência causal forte, não correlação.</p>
-        <div class="interact-hint" style="margin-top:6px">clique para transplantar a ativação</div>
-      </div>
-      <div class="center">
-        <div id="vizPatch" class="cc-click" style="cursor:pointer"></div>
-        <div class="center" style="margin-top:4px;font-size:16px"><b id="patchLabel" style="color:#DC2626">sem patch — resposta corrompida</b></div>
-      </div>
-    </div>
-    <div class="source">Fontes: Meng et al. (2022, causal tracing/ROME); Vig et al. (2020, causal mediation).</div>
-  </div>
-</section>
-
-<!-- T4 — a matemática do patching: IE + direções -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">38</div>
-    <h2 class="title sm">A matemática: quanto um componente importa</h2>
-    <div class="cols w6040" style="align-items:center;gap:28px">
-      <div class="body">
-        <p>Medimos o efeito com a <strong>diferença de logits</strong> (LD) entre a resposta certa e a errada, e normalizamos numa escala de 0 a 1. O resultado é o <strong>IE — <em>Indirect Effect</em></strong> (efeito indireto): <em>o quanto aquele componente importa</em>. <em>Passe o mouse em cada termo.</em></p>
-        <div class="formula" id="ft4" style="margin:12px 0;font-size:28px"></div>
-        <div class="termlab termsync" data-term="patched" data-viz="viz29ie" style="margin:7px 0"><span class="chip" style="background:#059669"></span><span><b>LD<sub>patched</sub></b> — a diferença de logits <em>depois</em> de transplantar a ativação.</span></div>
-        <div class="termlab termsync" data-term="corr" data-viz="viz29ie" style="margin:7px 0"><span class="chip" style="background:#DC2626"></span><span><b>LD<sub>corr</sub></b> — o piso: o run corrompido, sem intervenção (referência do “0”).</span></div>
-        <div class="termlab termsync" data-term="clean" data-viz="viz29ie" style="margin:7px 0"><span class="chip" style="background:#6B21A8"></span><span><b>LD<sub>clean</sub></b> — o teto: o run limpo, comportamento ideal (referência do “1”).</span></div>
-      </div>
-      <div class="center">
-        <div id="viz29ie"></div>
-        <p class="body small muted center" style="margin-top:2px">o patch move a resposta do piso (corr.) rumo ao teto (limpo)</p>
-      </div>
-    </div>
-    <p class="anchor" style="font-size:17px;margin-top:8px"><strong>Duas direções:</strong> <span style="color:#1D4ED8">denoising</span> (corromp.→limpo) mede <em>suficiência</em> — lógica OR; <span style="color:#B45309">noising</span> (limpo→corromp.) mede <em>necessidade</em> — lógica AND.</p>
-    <div class="source">Fórmula (IE): Wang et al. (2023) — circuito <strong>IOI</strong> (<em>Indirect Object Identification</em>, tarefa-padrão de teste); Heimersheim &amp; Nanda (2024). Direções: Bereska &amp; Gavves (2024).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     SOB O CAPÔ 4a — métrica de indirect effect (fórmula)
-     ============================================================ -->
-<section class="hood">
-  <div class="slide-pad">
-    <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">39</div>
-    <h2 class="title sm">A métrica causal: lendo a fórmula do IE</h2>
-    <div class="hood-flow">
-      <p class="hquestion">Como virar “restaurou a resposta” num número entre 0 e 1?</p>
-      <p class="body small" style="margin:2px 0 8px;color:#3B4C7A"><strong>IE = <em>Indirect Effect</em></strong> (efeito indireto): a medida de quanto um componente contribui causalmente para a resposta.</p>
-      <div class="fragment" data-frag="1">
-        <div class="mathbox accent" style="text-align:center;padding:16px">
-          <div class="formula" id="hie" style="margin:0;font-size:22px"></div>
-        </div>
-      </div>
-      <p class="body small fragment" data-frag="2" style="margin:10px 0 2px;color:#71717A">Cada peça é uma <strong>diferença de logits</strong> (LD = logit certo − logit errado), medida numa condição:</p>
-      <div class="hstep fragment" data-frag="3">
-        <div class="dot" style="background:#059669;font-size:11px">patch</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>$\text{LD}_{\text{patched}}$ = depois do transplante.</strong> É o que queremos avaliar: até onde a resposta voltou.</p></div>
-      </div>
-      <div class="hstep fragment" data-frag="4">
-        <div class="dot" style="background:#DC2626;font-size:11px">corr</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>$\text{LD}_{\text{corr}}$ = o piso</strong> (rodada corrompida, sem intervenção). Subtraído em cima <em>e</em> embaixo: é o ponto zero da régua.</p></div>
-      </div>
-      <div class="hstep fragment" data-frag="5">
-        <div class="dot" style="background:#6B21A8;font-size:10px">clean</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>$\text{LD}_{\text{clean}}$ = o teto</strong> (rodada limpa). O denominador é o caminho <em>total</em> a recuperar — por isso o resultado é uma <span class="hl">fração de 0 a 1</span>.</p></div>
-      </div>
-    </div>
-    <div class="source">Fórmula (IE): Wang et al. (2023, IOI); Heimersheim &amp; Nanda (2024).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     SOB O CAPÔ 4b — IE régua interativa
-     ============================================================ -->
-<section class="hood">
-  <div class="slide-pad">
-    <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">40</div>
-    <h2 class="title sm">A régua: o IE é “que fração do caminho o patch recuperou”</h2>
-    <div class="cols w4060" style="align-items:center;gap:26px">
-      <div class="body">
-        <p class="body small" style="margin:0 0 10px">Arraste a posição do <strong style="color:#059669">patch</strong> e veja o IE mudar. Perto do <strong style="color:#DC2626">corrompido</strong> → efeito ~0 (o componente não importa). Perto do <strong style="color:#6B21A8">limpo</strong> → efeito ~1 (o componente sozinho quase restaura tudo).</p>
-        <div class="mathbox compact" style="margin:0 0 12px">
-          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px"><span class="k">LD após o patch</span><span id="ieVal" style="font-weight:700;color:#059669">+4,0</span></div>
-          <input type="range" min="-31" max="62" value="40" step="1" id="ieP" class="vrange" style="width:100%">
-        </div>
-        <div class="bridge" style="margin-top:8px">
-          <div class="btag">Você já viu isso</div>
-          <p class="body small" style="margin:2px 0 0">É <strong>causal mediation analysis</strong> (Pearl): o <em>indirect effect</em> é o efeito que passa por um mediador. Patching é o operador $\text{do}(\cdot)$ numa ativação interna.</p>
-        </div>
-      </div>
-      <div class="center"><div id="vizIE"></div></div>
-    </div>
-    <div class="source">Exemplo no padrão IOI. Duas direções: <span style="color:#1D4ED8">denoising</span> mede suficiência; <span style="color:#B45309">noising</span> mede necessidade.</div>
-  </div>
-</section>
-
-<!-- T5 — ablation -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">41</div>
-    <h2 class="title sm">Ablation: e se este componente sumisse?</h2>
-    <p class="body" style="margin-bottom:12px">Patching troca uma ativação por <em>outra específica</em>. Ablation a <strong>remove</strong> — substituindo por um valor “neutro”. A escolha do neutro define três variantes, do mais brusco ao mais principiado:</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
-      <div class="card" style="padding:14px 16px"><div class="k">Zero ablation</div>
-        <p class="body small" style="margin-top:4px">Zera a ativação. Simples, mas joga o modelo para <strong>fora da distribuição</strong> — pode enganar.</p></div>
-      <div class="card blue" style="padding:14px 16px"><div class="k" style="color:#1D4ED8">Mean ablation</div>
-        <p class="body small" style="margin-top:4px">Troca pela <strong>média</strong> da ativação num dataset. Fica perto da distribuição natural. O padrão mais comum.</p></div>
-      <div class="card" style="padding:14px 16px"><div class="k">Resample ablation</div>
-        <p class="body small" style="margin-top:4px">Reamostra de outro exemplo real. Preserva a <strong>distribuição inteira</strong>; base do <em>causal scrubbing</em>.</p></div>
-    </div>
-    <p class="anchor" style="font-size:18px;margin-top:14px">Redundância engana ablation: se duas cabeças fazem a mesma coisa, remover uma não muda nada — e você conclui, errado, que nenhuma importa.</p>
-    <div class="source">Fontes: Heimersheim &amp; Nanda (2024); Chan et al. (2022, causal scrubbing).</div>
-  </div>
-</section>
-
-<!-- T6 — escalar: attribution patching + ACDC -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">42</div>
-    <h2 class="title sm">Escalar: de um teste por vez a milhares</h2>
-    <p class="body" style="margin-bottom:4px">Patching exige <em>um forward pass por componente</em> — inviável para todos os elos. <strong>Attribution patching (EAP)</strong> aproxima o efeito com um <strong>Taylor de 1ª ordem</strong>. <em>Passe o mouse em cada termo.</em></p>
-    <div class="cols w6040" style="align-items:start;gap:26px;margin-top:8px">
-      <div class="body">
-        <div class="formula" id="ft6" style="margin:2px 0 10px;font-size:23px"></div>
-        <div class="termlab termsync" data-term="delta" data-viz="viz31eap" style="margin:6px 0"><span class="chip" style="background:#DC2626"></span><span><b>z<sup>corr</sup> − z<sup>clean</sup></b> — o quanto a ativação do elo <em>muda</em> entre os runs (eixo x).</span></div>
-        <div class="termlab termsync" data-term="grad" data-viz="viz31eap" style="margin:6px 0"><span class="chip" style="background:#059669"></span><span><b>∇<sub>v</sub>L</b> — o gradiente da perda: a <em>inclinação</em> da curva no ponto limpo.</span></div>
-        <p class="body small" style="margin-top:6px">Inclinação × deslocamento ≈ efeito: “se eu mexer <em>este tanto</em>, quanto muda a perda?” — todos os elos em 2 forward + 1 backward, sem re-rodar.</p>
-      </div>
-      <div class="center">
-        <div id="viz31eap" style="max-width:320px;margin:0 auto"></div>
-        <p class="body small muted center" style="margin-top:0">a tangente estima o efeito sem re-rodar o patch</p>
-      </div>
-    </div>
-    <p class="anchor" style="font-size:16px;margin-top:10px"><strong>O preço da velocidade:</strong> a aproximação linear falha quando o gradiente satura — o <em>QK saturation problem</em> (saturação do produto <em>Query-Key</em> no softmax de atenção). Daí refinamentos como AtP* e EAP-IG (<em>Integrated Gradients</em>).</p>
-    <div class="source">Fontes: Syed et al. (2023, EAP); Kramár et al. (2024, AtP*). ACDC (busca automática): ver quadro-síntese a seguir.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     SOB O CAPÔ 5a — Taylor do EAP (fórmula)
-     ============================================================ -->
-<section class="hood">
-  <div class="slide-pad">
-    <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">43</div>
-    <h2 class="title sm">De onde vem a aproximação: lendo o Taylor de 1ª ordem</h2>
-    <div class="hood-flow">
-      <p class="hquestion">“Inclinação × deslocamento” — de onde sai, símbolo a símbolo?</p>
-      <div class="fragment" data-frag="1">
-        <div class="mathbox accent" style="text-align:center;padding:16px">
-          <div class="formula" id="hf5a" style="margin:0;font-size:17px"></div>
-        </div>
-      </div>
-      <div class="hstep fragment" data-frag="2">
-        <div class="dot" style="background:#3B4C7A;font-size:11px">Δa</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>$(e_{\text{corr}}-e_{\text{clean}})$ = o deslocamento</strong> da ativação entre as duas rodadas. É o “quanto” a gente mexe — o eixo horizontal.</p></div>
-      </div>
-      <div class="hstep fragment" data-frag="3">
-        <div class="dot" style="background:#059669;font-size:12px">∇</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>$\nabla_e\mathcal{L}$ = o gradiente</strong> da métrica na ativação limpa — a <em>inclinação</em> da curva ali. Vem de <strong>1 backward pass</strong>.</p></div>
-      </div>
-      <div class="hstep fragment" data-frag="4">
-        <div class="dot">·</div>
-        <div class="hbody"><p class="body small" style="margin:0"><strong>O produto interno</strong> dos dois é o <span class="hl">attribution score</span>: estima o efeito do patch <em>sem</em> rodar o forward. Custo cai para <strong>2 forwards + 1 backward</strong> para todos os componentes.</p></div>
-      </div>
-    </div>
-    <div class="source">Formulação: Syed et al. (2023), eq. 2; Nanda (2022).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     SOB O CAPÔ 5b — Taylor tangente interativa
-     ============================================================ -->
-<section class="hood">
-  <div class="slide-pad">
-    <span class="hood-badge">SOB O CAPÔ</span>
-    <div class="slide-num">44</div>
-    <h2 class="title sm">Por que ela acerta perto e erra longe</h2>
-    <div class="cols w4060" style="align-items:center;gap:26px">
-      <div class="body">
-        <p class="body small" style="margin:0 0 10px">A <strong style="color:#9333EA">curva roxa</strong> é a métrica real; a <strong style="color:#059669">reta verde</strong> é a aproximação de Taylor (a tangente no ponto limpo). Arraste o deslocamento <strong>Δ</strong> e veja o <strong style="color:#DC2626">erro</strong> entre elas.</p>
-        <div class="mathbox compact" style="margin:0 0 12px">
-          <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:3px"><span class="k">deslocamento Δ</span><span id="ttVal" style="font-weight:700;color:#3B4C7A">+0,40</span></div>
-          <input type="range" min="-60" max="26" value="40" step="2" id="ttD" class="vrange" style="width:100%">
-        </div>
-        <div class="hstep" style="margin:6px 0"><div class="dot" style="background:#059669">✓</div><div class="hbody"><p class="body small" style="margin:0"><strong>Δ pequeno:</strong> reta e curva quase coincidem — a estimativa é fiel.</p></div></div>
-        <div class="hstep" style="margin:6px 0"><div class="dot" style="background:#DC2626">✗</div><div class="hbody"><p class="body small" style="margin:0"><strong>Δ grande:</strong> a reta se descola — é a <em>saturação do Query-Key</em> na atenção que faz o EAP mentir.</p></div></div>
-      </div>
-      <div class="center"><div id="vizTaylor"></div></div>
-    </div>
-    <div class="source">Correções de curvatura (2ª ordem/Hessiano): Kramár et al. (2024, AtP*). Analogia: Input × Gradient / saliency maps.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     TABELA — síntese das técnicas
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 3.5 · A caixa de ferramentas</div>
-    <span class="badge-row"><span class="badge tech">Síntese</span></span>
-    <div class="slide-num">45</div>
-    <h2 class="title sm">A caixa de ferramentas, num quadro</h2>
-    <table class="synth">
-      <thead>
-        <tr><th>Técnica</th><th>O que mede</th><th>Causal?</th><th>Custo</th><th>Quando usar</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><b>Logit lens</b></td><td>previsão “em construção” por camada</td><td class="no">observa</td><td>1 pass</td><td>ver <em>onde</em> a resposta se forma</td></tr>
-        <tr><td><b>Probing</b></td><td>se a informação é linearmente decodável</td><td class="no">observa</td><td>treina probe</td><td>testar presença de um atributo</td></tr>
-        <tr><td><b>Activation patching</b></td><td>efeito causal de um componente</td><td class="yes">intervém</td><td>1 pass/comp.</td><td>isolar o que <em>importa</em> (padrão-ouro)</td></tr>
-        <tr><td><b>Ablation</b></td><td>o que quebra ao remover um componente</td><td class="yes">intervém</td><td>1 pass/comp.</td><td>testar necessidade; cuidado c/ redundância</td></tr>
-        <tr><td><b>Attribution (EAP)</b></td><td>efeito aproximado via gradiente</td><td class="yes">intervém*</td><td>2 fwd + 1 bwd</td><td>escalar para <em>todos</em> os elos</td></tr>
-        <tr><td><b>ACDC</b></td><td>o circuito inteiro, por poda automática</td><td class="yes">intervém</td><td>quadrático</td><td>descoberta automática de circuito</td></tr>
-      </tbody>
-    </table>
-    <p class="anchor" style="font-size:17px;margin-top:12px">Regra prática: <strong>observe</strong> para gerar hipóteses, <strong>intervenha</strong> para confirmá-las, <strong>aproxime</strong> (EAP) para escalar. <span style="color:#71717A">*aproximação linear.</span></p>
-    <div class="source">Síntese a partir de: Heimersheim &amp; Nanda (2024); Conmy et al. (2023); Syed et al. (2023).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     26 — o elo perdido
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 4 · Attribution Graphs (2025)</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">46</div>
-    <h2 class="title">O elo perdido</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>Até aqui, tínhamos <strong>duas metades separadas</strong>:</p>
-        <ul>
-          <li><strong>Features</strong> — via SAEs (Bloco 3).</li>
-          <li><strong>Circuitos</strong> — mapeamento manual de conexões (Bloco 1).</li>
-        </ul>
-        <p>Faltava unir: identificar as features <em>e</em> rastrear como se conectam para produzir uma resposta.</p>
-        <p>Em março de 2025, a Anthropic publicou o par que fez essa união: <strong>“Circuit Tracing”</strong> (método) e <strong>“On the Biology of a Large Language Model”</strong> (estudos de caso).</p>
-        <p class="lead">Estado da arte — e a parte visualmente mais impressionante.</p>
-      </div>
-      <div class="center">
-        <svg viewBox="0 0 300 260" class="viz">
-          <rect x="40" y="40" width="90" height="70" rx="10" fill="#F3E8FC"/>
-          <text x="85" y="80" text-anchor="middle" font-size="15" fill="#6B21A8" font-weight="700">features</text>
-          <rect x="170" y="40" width="90" height="70" rx="10" fill="#DBEAFE"/>
-          <text x="215" y="80" text-anchor="middle" font-size="15" fill="#1D4ED8" font-weight="700">circuitos</text>
-          <path d="M110 115 L150 155 L190 115" fill="none" stroke="#B8B8C0" stroke-width="2.5"/>
-          <rect x="95" y="155" width="110" height="66" rx="12" fill="#6B21A8"/>
-          <text x="150" y="185" text-anchor="middle" font-size="15" fill="#fff" font-weight="700">attribution</text>
-          <text x="150" y="205" text-anchor="middle" font-size="15" fill="#fff" font-weight="700">graph</text>
-        </svg>
-      </div>
-    </div>
-    <div class="source">Fonte: Ameisen et al. (2025); “On the Biology of a Large Language Model”, Anthropic.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     27 — cross-layer transcoders (VISUAL)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 4 · Attribution Graphs</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">47</div>
-    <h2 class="title sm">Cross-Layer Transcoders</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p><strong>A inovação técnica que tornou tudo possível.</strong></p>
-        <p>O problema dos SAEs comuns: analisam uma camada de cada vez, mas a computação real <em>atravessa</em> muitas camadas.</p>
-        <p>Os <strong>Cross-Layer Transcoders (CLTs)</strong> substituem as MLPs “opacas” por features interpretáveis que <strong>leem de uma camada e escrevem em várias seguintes</strong> — acompanhando o fluxo real da computação.</p>
-        <p>As features deixam de ser fotos isoladas e viram os <strong>nós de um circuito</strong> que percorre o modelo inteiro.</p>
-      </div>
-      <div class="center"><div id="vizCLT"></div>
-        <p class="body small muted center" style="margin-top:4px">a feature rosa lê e escreve em várias camadas</p>
-      </div>
-    </div>
-    <div class="source">Fonte: Ameisen et al. (2025), “Circuit Tracing”, Anthropic (diagrama simplificado).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     28 — o que é attribution graph
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 4 · Attribution Graphs</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">48</div>
-    <h2 class="title sm">O que é um attribution graph</h2>
-    <div class="cols w6040">
-      <div class="body">
-        <p class="lead">Um mapa causal de uma decisão específica do modelo.</p>
-        <p>Cada <strong>nó</strong> é uma feature que se ativou. Cada <strong>seta</strong> mostra qual feature empurrou qual outra, do texto de entrada até a palavra final.</p>
-        <p>É, na prática, uma <strong>árvore genealógica da resposta</strong>: dá para ler, passo a passo, quais conceitos levaram a quais.</p>
-        <p><strong>Pela primeira vez, temos algo próximo de “ver o raciocínio” do modelo desenhado.</strong></p>
-      </div>
-      <div class="figbox" data-img="images/img08.jpg"
-           data-cap="Um attribution graph: nós = features, setas = influências causais"
-           data-url="transformer-circuits.pub/2025/attribution-graphs/biology.html">
-        <img alt="Attribution graph">
-        <div class="figfallback"><div class="ph">IMAGEM</div><div class="cap">Um attribution graph: nós = features, setas = influências causais entrada → saída</div><div class="url">transformer-circuits.pub/2025/attribution-graphs/biology.html</div></div>
-        <div class="figcap">Attribution graph — <a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html">On the Biology… (2025)</a></div>
-      </div>
-    </div>
-    <div class="source">Fonte: “On the Biology of a Large Language Model” (2025), Anthropic.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     PERGUNTA 2 — raciocina ou memoriza?
-     ============================================================ -->
-<section data-background-color="#1A1A1A">
-  <div class="slide-pad dark" style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center">
-    <p style="font-size:22px;color:#9333EA;font-weight:700;letter-spacing:.08em;margin-bottom:18px">ANTES DE VER O GRAFO…</p>
-    <p style="font-size:26px;color:#C9C9CF;font-family:'Playfair Display',serif;margin-bottom:6px">Pergunta: “a capital do estado que contém Dallas é…”</p>
-    <h1 style="font-size:40px;color:#fff;margin:6px 0 24px 0;max-width:22em;line-height:1.3">O modelo <span style="color:#9333EA">raciocina em passos</span> — ou só <span style="color:#DB2777">memorizou</span> a resposta?</h1>
-    <p class="fragment" style="font-size:23px;color:#C9C9CF;max-width:28em">Os attribution graphs deixam essa pergunta <strong style="color:#fff">testável</strong> — não é mais especulação.</p>
-    <p class="fragment" style="font-size:22px;color:#9333EA;font-style:italic;margin-top:10px">Vamos abrir o modelo e olhar.</p>
-  </div>
-</section>
-
-<!-- ============================================================
-     29 — Dallas → Austin (VISUAL INCREMENTAL)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 4 · Demonstração 1</div>
-    <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">49</div>
-    <h2 class="title sm">Raciocínio multi-passo: Dallas → Austin</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>Prompt ao Claude 3.5 Haiku: <em>“a capital do estado que contém Dallas é...”</em>. Resposta: Austin. O modelo <strong>raciocina</strong> ou apenas <strong>memorizou</strong>?</p>
-        <p>O attribution graph mostrou <strong>raciocínio genuíno em dois passos</strong>: ativa “Dallas está no Texas”, depois combina “Texas” + “capital” → “Austin”. Ele não pula direto — passa por um estado intermediário <strong>“Texas”</strong>.</p>
-        <p><strong style="color:#6B21A8">A prova definitiva — intervenção:</strong> trocaram “Texas” por “Califórnia” e a resposta virou <strong>“Sacramento”</strong>. O passo intermediário é <em>causal</em>.</p>
-      </div>
-      <div class="center"><div id="viz29"></div></div>
-    </div>
-    <div class="source">Fonte: “On the Biology…” (2025); versão didática em anthropic.com/research/tracing-thoughts-language-model.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     30 — planeja poesia
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 4 · Demonstração 2</div>
-    <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">50</div>
-    <h2 class="title sm">O modelo planeja poesia</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>A descoberta mais surpreendente. A intuição comum: o modelo gera palavra por palavra, “improvisando”, sem planejar. O grafo mostrou que isso está <strong>errado</strong> para poesia com rima.</p>
-        <p><strong style="color:#6B21A8">Antes de escrever o verso, o modelo já seleciona a palavra que vai rimar no final</strong> e constrói a frase de trás para frente, para chegar nela.</p>
-        <p>Ele planeja o destino antes do primeiro passo. Isso contraria o “só prevê o próximo token” e mostra <strong>planejamento real com vários tokens de antecedência</strong>.</p>
-      </div>
-      <div class="center">
-        <svg viewBox="0 0 360 260" class="viz">
-          <text x="20" y="40" font-size="17" fill="#3F3F46">verso 1: “…the carrot”</text>
-          <rect x="20" y="70" width="230" height="52" rx="12" fill="#F5EEFC"/>
-          <text x="135" y="102" text-anchor="middle" font-size="17" fill="#6B21A8" font-weight="700">planeja rima: “rabbit”</text>
-          <line x1="135" y1="122" x2="135" y2="158" stroke="#9333EA" stroke-width="2.5" marker-end="url(#a30)"/>
-          <text x="20" y="185" font-size="17" fill="#3F3F46">verso 2: “…like a rabbit”</text>
-          <text x="20" y="220" font-size="14" fill="#71717A" font-style="italic">(constrói o verso para chegar na palavra escolhida)</text>
-          <defs><marker id="a30" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#9333EA"/></marker></defs>
-        </svg>
-      </div>
-    </div>
-    <div class="source">Fonte: “On the Biology of a Large Language Model” (2025) — seção Planning in Poems.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     31 — intervenção causal
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 4 · Attribution Graphs</div>
-    <span class="badge-row"><span class="badge demo">Demonstração</span></span>
-    <div class="slide-num">51</div>
-    <h2 class="title sm">A chave: intervenção causal</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p><strong>O que separa este trabalho de simples correlação é a capacidade de intervir.</strong> Um attribution graph não só descreve — ele permite <em>testar</em>.</p>
-        <p>Podemos suprimir uma feature, amplificar outra, ou trocar um conceito, e observar a resposta mudar de forma previsível.</p>
-        <p>É a diferença entre “estas regiões se acendem juntas” e “se eu apagar <em>esta</em> feature, a resposta muda <em>assim</em>”.</p>
-        <p class="lead">Isso aproxima a interpretabilidade de uma ciência experimental — com hipóteses causais testáveis.</p>
-      </div>
-      <div class="center">
-        <svg viewBox="0 0 340 250" class="viz">
-          <rect x="20" y="20" width="300" height="64" rx="12" fill="#F5EEFC"/>
-          <text x="170" y="58" text-anchor="middle" font-size="18" fill="#3F3F46"><tspan fill="#6B21A8" font-weight="700">Texas</tspan> aceso → <tspan font-weight="700">“Austin”</tspan></text>
-          <text x="185" y="120" text-anchor="middle" font-size="14" fill="#B45309" font-style="italic">intervenção ↓</text>
-          <rect x="20" y="140" width="300" height="64" rx="12" fill="#DBEAFE"/>
-          <text x="170" y="178" text-anchor="middle" font-size="18" fill="#3F3F46"><tspan fill="#1D4ED8" font-weight="700">Califórnia</tspan> → <tspan font-weight="700">“Sacramento”</tspan></text>
-        </svg>
-      </div>
-    </div>
-    <div class="source">Exemplos de intervenção de Ameisen et al. (2025) e “On the Biology…” (2025).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     32 — código aberto
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 4 · Attribution Graphs</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">52</div>
-    <h2 class="title sm">Código aberto e replicação</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p><strong>Um sinal de maturidade científica:</strong> em maio de 2025 a Anthropic abriu o código (biblioteca <strong>Circuit Tracer</strong>, com interface no Neuronpedia).</p>
-        <p>Grupos independentes — <strong>EleutherAI, DeepMind, Goodfire</strong> — replicaram e estenderam os resultados.</p>
-        <p>A interpretabilidade deixou de ser um punhado de resultados “artesanais” de um único laboratório e virou uma <strong>ciência replicável</strong>, com ferramentas compartilhadas.</p>
-        <p class="lead">Esse é o marco que fecha “onde estamos”.</p>
-      </div>
-      <div class="center">
-        <svg viewBox="0 0 260 200" class="viz">
-          <text x="130" y="110" text-anchor="middle" font-size="86" fill="#6B21A8" font-family="Inter">&lt;/&gt;</text>
-          <text x="130" y="160" text-anchor="middle" font-size="16" fill="#71717A">Circuit Tracer + Neuronpedia</text>
-        </svg>
-      </div>
-    </div>
-    <div class="source">Fonte: Anthropic (2025), Circuit Tracer (open-source). Replicações: EleutherAI, DeepMind, Goodfire.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     CHECKPOINT — recap do Bloco 4 (attribution graphs)
-     ============================================================ -->
-<section>
-  <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center;height:100%">
-    <div class="eyebrow" style="color:#059669">✓ Checkpoint · fim do Bloco 4</div>
-    <div class="slide-num">53</div>
-    <h2 class="title sm" style="margin-bottom:20px">A jornada completa, num olhar</h2>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
-      <div class="card center" style="padding:14px 10px"><div class="body small muted">ver features</div><div class="bignum" style="font-size:19px;color:#6B21A8;margin-top:4px">SAEs</div></div>
-      <div class="card center" style="padding:14px 10px"><div class="body small muted">testar o que importa</div><div class="bignum" style="font-size:19px;color:#0891B2;margin-top:4px">Técnicas</div></div>
-      <div class="card center" style="padding:14px 10px"><div class="body small muted">conectar em circuitos</div><div class="bignum" style="font-size:19px;color:#DB2777;margin-top:4px">CLTs</div></div>
-      <div class="card center" style="padding:14px 10px"><div class="body small muted">ler o raciocínio</div><div class="bignum" style="font-size:19px;color:#059669;margin-top:4px">Attrib. graphs</div></div>
-    </div>
-    <p class="anchor" style="font-size:20px;margin-top:24px">Saímos de “features soltas” para <strong>“ver o modelo pensar”</strong> — Dallas→Texas→Austin, o planejamento da rima.</p>
-    <p class="body center" style="font-style:italic;margin-top:10px;color:#71717A">Agora, a parte mais honesta: o que <em>ainda não</em> sabemos.</p>
-    <div class="source">Recapitulação · transição para os desafios abertos.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     33 — honestidade científica
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 5 · Fronteira e desafios</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">54</div>
-    <h2 class="title">A honestidade científica</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p>Depois de uma sequência de vitórias, é essencial recalibrar: <strong>nada disso está resolvido.</strong></p>
-        <p>O risco central do campo é confundir uma <strong style="color:#DB2777">explicação convincente</strong> com uma <strong style="color:#6B21A8">explicação verdadeira</strong>. Um circuito bonito, uma feature com nome intuitivo — nada disso garante que é <em>assim</em> que o modelo funciona.</p>
-        <p>É a diferença entre o <strong>mapa</strong> e o <strong>território</strong>: nossas explicações são mapas úteis, mas parciais — sempre há regiões que escapam.</p>
-        <p><em>É exatamente aí, nas lacunas do mapa, que mora a pesquisa.</em></p>
-      </div>
-      <div class="center">
-        <div id="viz39mt"></div>
-      </div>
-    </div>
-    <div class="source">Referência: Sharkey et al. (2025), “Open Problems in Mechanistic Interpretability”.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     34 — definir feature
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 5 · Desafios</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">55</div>
-    <h2 class="title sm">Ainda não sabemos definir “feature”</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p class="lead">O conceito mais fundamental do campo ainda não tem definição rigorosa e consensual.</p>
-        <p>Usamos o termo o tempo todo, mas quando tentamos precisá-lo (É uma direção? Um ponto? Algo não-linear?), o consenso se desfaz.</p>
-        <p><strong>Pior:</strong> alguns resultados sugerem que certas perguntas de interpretabilidade são <strong>computacionalmente intratáveis</strong> — não há atalho eficiente em geral. Isso impõe limites teóricos ao que qualquer método pode alcançar.</p>
-        <p><em>Ainda falta base conceitual sob a prática.</em></p>
-      </div>
-      <div class="center">
-        <svg viewBox="0 0 240 200" class="viz">
-          <circle cx="120" cy="90" r="52" fill="#6B21A8"/>
-          <text x="120" y="108" text-anchor="middle" font-size="52" fill="#fff" font-family="Playfair Display,serif">?</text>
-          <text x="120" y="172" text-anchor="middle" font-size="20" fill="#6B21A8" font-weight="700" font-family="Playfair Display,serif">“feature” = ?</text>
-          <text x="120" y="193" text-anchor="middle" font-size="13" fill="#71717A" font-style="italic">direção? ponto? não-linear?</text>
-        </svg>
-      </div>
-    </div>
-    <div class="source">Fonte: Sharkey et al. (2025).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     35 — SAEs têm falhas (VISUAL)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 5 · Desafios</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">56</div>
-    <h2 class="title sm">Os SAEs têm falhas sérias</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <ul>
-          <li><strong>Feature splitting:</strong> um conceito se fragmenta artificialmente em várias features, dependendo do tamanho do dicionário.</li>
-          <li><strong>Feature absorption:</strong> uma feature “engole” parte de outra, criando representações enganosas.</li>
-          <li><strong>Instabilidade do L1:</strong> o termo de esparsidade (slide 22) encolhe todas as ativações e distorce features. Gated / JumpReLU SAEs (2024) surgiram para mitigar.</li>
-          <li><strong>Nem sempre valem a pena:</strong> em tarefas de segurança, SAEs sem supervisão às vezes perdem para baselines simples.</li>
-        </ul>
-        <p><strong>Tendência 2025–26:</strong> SAEs específicos de domínio superam os genéricos — questionando o “quanto maior e mais geral, melhor”.</p>
-      </div>
-      <div class="center">
-        <svg viewBox="0 0 240 220" class="viz">
-          <circle cx="120" cy="45" r="24" fill="#6B21A8"/>
-          <text x="120" y="88" text-anchor="middle" font-size="13" fill="#71717A">1 conceito</text>
-          <line x1="120" y1="70" x2="60" y2="140" stroke="#C9B8DD" stroke-width="1.5" marker-end="url(#a35)"/>
-          <line x1="120" y1="70" x2="120" y2="140" stroke="#C9B8DD" stroke-width="1.5" marker-end="url(#a35)"/>
-          <line x1="120" y1="70" x2="180" y2="140" stroke="#C9B8DD" stroke-width="1.5" marker-end="url(#a35)"/>
-          <circle cx="60" cy="155" r="15" fill="#F5EEFC" stroke="#6B21A8" stroke-width="1.5"/>
-          <circle cx="120" cy="155" r="15" fill="#F5EEFC" stroke="#6B21A8" stroke-width="1.5"/>
-          <circle cx="180" cy="155" r="15" fill="#F5EEFC" stroke="#6B21A8" stroke-width="1.5"/>
-          <text x="120" y="195" text-anchor="middle" font-size="13" fill="#71717A" font-style="italic">fragmenta em várias</text>
-          <defs><marker id="a35" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#C9B8DD"/></marker></defs>
-        </svg>
-      </div>
-    </div>
-    <div class="source">Fontes: Chanin et al. (2024); Rajamanoharan et al. (2024); lit. de SAEs de domínio (2025–26).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     36 — fidelidade (VISUAL)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 5 · Desafios</div>
-    <span class="badge-row"><span class="badge tech">Técnico</span></span>
-    <div class="slide-num">57</div>
-    <h2 class="title sm">O problema da fidelidade</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p class="lead">O desafio mais profundo. SAEs e transcoders são modelos-proxy: aproximações treinadas sobre o modelo original, não o modelo em si.</p>
-        <p>Será que as features que encontramos refletem fielmente o que o modelo <em>de fato</em> faz — ou são artefatos do nosso método?</p>
-        <p>Os próprios autores do “Circuit Tracing” reconhecem: os grafos são construídos sobre uma <strong>substituição</strong> do modelo (os CLTs), que não captura tudo — a atenção fica parcialmente de fora.</p>
-        <p><strong>Mesmo nosso melhor método é uma aproximação cuja fidelidade precisa ser sempre questionada. O calcanhar de Aquiles do campo.</strong></p>
-      </div>
-      <div class="center">
-        <svg viewBox="0 0 300 180" class="viz">
-          <rect x="20" y="55" width="90" height="70" rx="10" fill="#1A1A1A"/>
-          <text x="65" y="88" text-anchor="middle" font-size="15" fill="#fff">modelo</text>
-          <text x="65" y="108" text-anchor="middle" font-size="15" fill="#fff">real</text>
-          <text x="150" y="97" text-anchor="middle" font-size="30" fill="#B45309" font-family="Playfair Display,serif">≈?</text>
-          <rect x="190" y="55" width="90" height="70" rx="10" fill="#F5EEFC" stroke="#6B21A8" stroke-width="1.5" stroke-dasharray="5 4"/>
-          <text x="235" y="88" text-anchor="middle" font-size="15" fill="#6B21A8">proxy</text>
-          <text x="235" y="108" text-anchor="middle" font-size="13" fill="#6B21A8">(SAE/CLT)</text>
-          <text x="150" y="150" text-anchor="middle" font-size="16" fill="#B45309" font-style="italic" font-weight="700">é fiel?</text>
-        </svg>
-      </div>
-    </div>
-    <div class="source">Fonte: Ameisen et al. (2025) — ressalvas de fidelidade do próprio paper.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     37 — avaliação e benchmarks
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 5 · Desafios</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">58</div>
-    <h2 class="title sm">Avaliação e benchmarks</h2>
-    <div class="cols w6040" style="align-items:center">
-      <div class="body">
-        <p class="lead">Como saber se um circuito que encontramos é real ou apenas uma coincidência que parece significativa?</p>
-        <p>O campo ainda carece de <strong>métricas padronizadas</strong> (fidelidade, completude, minimalidade) e de <strong>benchmarks com respostas conhecidas</strong>.</p>
-        <p>Estão surgindo esforços — bancos como <strong>InterpBench</strong> e <strong>TinySQL</strong>, com modelos de circuitos conhecidos de antemão, servindo de “gabarito” para testar se os métodos recuperam o que deveriam.</p>
-        <p><em>Consolidar essa cultura fará o campo amadurecer de “histórias convincentes” para “ciência mensurável”.</em></p>
-      </div>
-      <div class="center">
-        <svg viewBox="0 0 260 180" class="viz">
-          <text x="130" y="28" text-anchor="middle" font-size="15" fill="#3F3F46" font-weight="700">circuito recuperado vs. gabarito</text>
-          <circle cx="55" cy="80" r="18" fill="#059669"/><path d="M47 80 l6 6 l11 -13" stroke="#fff" stroke-width="3" fill="none"/>
-          <text x="85" y="85" font-size="15" fill="#3F3F46">recupera o circuito certo</text>
-          <circle cx="55" cy="135" r="18" fill="#DC2626"/><path d="M48 128 l14 14 M62 128 l-14 14" stroke="#fff" stroke-width="3"/>
-          <text x="85" y="140" font-size="15" fill="#3F3F46">recupera artefato espúrio</text>
-        </svg>
-      </div>
-    </div>
-    <div class="source">Fontes: Gupta et al. (2024, InterpBench); Harrasse et al. (2025, TinySQL).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     38 — fronteiras 2026
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 5 · Desafios</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">59</div>
-    <h2 class="title sm">As fronteiras de 2026</h2>
-    <div style="display:flex;flex-direction:column;gap:16px;margin-top:6px">
-      <div class="card"><h3 style="font-size:20px;margin-bottom:4px">Decomposição no espaço de parâmetros</h3>
-        <p class="body small">Em vez de decompor <em>ativações</em>, decompor os próprios <em>pesos</em> do modelo em mecanismos (ex.: <strong>APD</strong> — <em>Attribution-based Parameter Decomposition</em>, Braun et al., 2025). Mudança de perspectiva potencialmente mais fundamental.</p></div>
-      <div class="card plain"><h3 style="font-size:20px;margin-bottom:4px">Steering causal guiado por circuitos</h3>
-        <p class="body small">Usar o entendimento dos circuitos para dirigir o comportamento do modelo de forma controlada e segura.</p></div>
-      <div class="card"><h3 style="font-size:20px;margin-bottom:4px">Agentes de interpretabilidade</h3>
-        <p class="body small">Usar IA para automatizar a própria análise, escalando para modelos grandes demais para análise manual.</p></div>
-    </div>
-    <p class="anchor" style="font-size:20px;margin-top:16px">É aqui que sua pesquisa se conecta — o mapa ainda tem muito território aberto.</p>
-    <div class="source">Fontes: Braun et al. (2025, APD); agenda de pesquisa 2025–2026.</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     39 — BLOCO APLICADO: o que já se faz com isso (aplicações)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 6 · Da teoria à prática</div>
-    <span class="badge-row"><span class="badge intu">Panorama</span></span>
-    <div class="slide-num">60</div>
-    <h2 class="title sm">Para que isso já serve</h2>
-    <p class="body" style="margin-bottom:14px">A interpretabilidade deixou de ser só ciência básica — já alimenta aplicações concretas. Quatro frentes ativas:</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-      <div class="card"><h3 style="font-size:19px;margin-bottom:4px">🛡️ Segurança &amp; alinhamento</h3>
-        <p class="body small">Localizar e ablar direções “perigosas”; identificar as poucas <em>safety heads</em> que sustentam os guardrails; auditar o modelo por dentro em vez de só testar entradas e saídas.</p></div>
-      <div class="card blue"><h3 style="font-size:19px;margin-bottom:4px">🔍 Detecção de alucinação</h3>
-        <p class="body small">Ler estados internos para flagrar quando o modelo “inventa”. Ex.: <strong>RedeEP</strong> detecta alucinação em <strong>RAG</strong> (<em>Retrieval-Augmented Generation</em> — geração com busca) via interpretabilidade mecanística (ICLR 2025).</p></div>
-      <div class="card"><h3 style="font-size:19px;margin-bottom:4px">✏️ Edição de conhecimento</h3>
-        <p class="body small">Localizar onde um fato “mora” e editá-lo cirurgicamente (ROME, AlphaEdit, edição baseada em circuitos), sem re-treinar o modelo inteiro.</p></div>
-      <div class="card plain"><h3 style="font-size:19px;margin-bottom:4px">🎛️ Steering &amp; red-teaming</h3>
-        <p class="body small">Amplificar ou suprimir features para dirigir comportamento (o “Golden Gate Claude”), e sondar vulnerabilidades de forma mecanística.</p></div>
-    </div>
-    <p class="anchor" style="font-size:19px;margin-top:14px">Detecção de alucinação e checagem factual são <strong>portas de entrada naturais</strong> para quem vem de NLP.</p>
-    <div class="source">Fontes: Sun et al. (2025, RedeEP); Bereska &amp; Gavves (2024, <em>Mechanistic Interpretability</em> for AI Safety); Templeton et al. (2024); Meng et al. (ROME).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     40 — BLOCO APLICADO: ferramentas do ecossistema
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 6 · Da teoria à prática</div>
-    <span class="badge-row"><span class="badge tech">Ferramentas</span></span>
-    <div class="slide-num">61</div>
-    <h2 class="title sm">O ecossistema: por onde começar a mexer</h2>
-    <p class="body" style="margin-bottom:12px">O campo tem um fluxo de trabalho estável — <strong>acessar → decompor → explorar</strong> — e ferramentas abertas para cada etapa:</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
-      <div class="card"><div class="k" style="color:#6B21A8">1 · Acessar internos</div>
-        <p class="body small" style="margin-top:6px"><strong>TransformerLens</strong> — hooks e cache, o padrão didático.<br><strong>nnsight / nnterp</strong> — funciona sobre HuggingFace, escala e roda remoto.<br><strong>pyvene</strong> — intervenções causais declarativas.</p></div>
-      <div class="card blue"><div class="k" style="color:#1D4ED8">2 · Decompor em features</div>
-        <p class="body small" style="margin-top:6px"><strong>SAELens</strong> — treina e carrega SAEs.<br><strong>Gemma Scope</strong> — SAEs abertos para toda camada do Gemma 2.<br><strong>Sparsify</strong> (EleutherAI) — SAEs Top-K.</p></div>
-      <div class="card"><div class="k" style="color:#6B21A8">3 · Explorar &amp; avaliar</div>
-        <p class="body small" style="margin-top:6px"><strong>Neuronpedia</strong> — “microscópio” web de features e grafos.<br><strong>SAEBench / MIB</strong> — benchmarks para comparar métodos.<br><strong>ARENA</strong> — tutoriais práticos guiados.</p></div>
-    </div>
-    <p class="anchor" style="font-size:19px;margin-top:14px">Um projeto típico combina os três: <em>nnsight</em> para o modelo, <em>SAELens</em> para features, <em>Neuronpedia</em> para intuição.</p>
-    <div class="source">Fontes: transformer-circuits.pub (Circuits Updates 2025); learnmechinterp.com; Karvonen et al. (2025, SAEBench).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     41 — BLOCO APLICADO: para onde ir (agenda de pesquisa)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Bloco 6 · Da teoria à prática</div>
-    <span class="badge-row"><span class="badge intu">Agenda</span></span>
-    <div class="slide-num">62</div>
-    <h2 class="title sm">Onde há dissertação para fazer</h2>
-    <p class="body" style="margin-bottom:12px">Os problemas abertos do Bloco 5 não são becos sem saída — são <strong>temas de pesquisa</strong>. Alguns caminhos concretos:</p>
-    <div style="display:flex;flex-direction:column;gap:11px">
-      <div class="card plain"><p class="body small" style="margin:0"><strong>Fidelidade mensurável</strong> — propor métricas e testes que verifiquem se um circuito descoberto realmente corresponde à computação do modelo (o “calcanhar de Aquiles” do Bloco 5). Bancos como <strong>MIB</strong> e <strong>InterpBench</strong> dão gabarito.</p></div>
-      <div class="card plain"><p class="body small" style="margin:0"><strong>SAEs melhores</strong> — mitigar feature splitting/absorption e a instabilidade do L1 (Gated, JumpReLU, Top-K); ou <strong>SAEs de domínio</strong> específicos, que já superam os genéricos.</p></div>
-      <div class="card plain"><p class="body small" style="margin:0"><strong>Interpretabilidade aplicada a tarefas de NLP</strong> — levar circuitos e features para problemas com valor prático: detecção de desinformação, checagem factual, robustez a ataques, viés. Ponte pouco explorada entre a teoria e aplicações de alto impacto.</p></div>
-      <div class="card plain"><p class="body small" style="margin:0"><strong>Além das ativações</strong> — decomposição no espaço de <em>parâmetros</em> (APD) e <strong>agentes de interpretabilidade</strong> que automatizam a análise para escalar a modelos grandes.</p></div>
-    </div>
-    <p class="anchor" style="font-size:20px;margin-top:14px">O campo é jovem: um projeto de fim de semana ainda pode virar contribuição real.</p>
-    <div class="source">Fontes: Sharkey et al. (2025, Open Problems); Mueller et al. (2025, MIB); Gupta et al. (2024, InterpBench).</div>
-  </div>
-</section>
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Síntese</div>
-    <span class="badge-row"><span class="badge intu">Intuição</span></span>
-    <div class="slide-num">63</div>
-    <h2 class="title sm">O fio da história</h2>
-    <p class="anchor" style="font-size:22px;margin-bottom:20px">Cada avanço criou o próximo problema.</p>
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px">
-      <div class="card center" style="padding:16px 12px"><div class="bignum" style="font-size:30px">2020</div><h3 style="font-size:18px;margin:6px 0 4px">Circuitos</h3><p class="body small muted">esperança de entender redes</p></div>
-      <div class="card center" style="padding:16px 12px"><div class="bignum" style="font-size:30px">2022</div><h3 style="font-size:18px;margin:6px 0 4px">Superposição</h3><p class="body small muted">mas os conceitos estão amontoados</p></div>
-      <div class="card center" style="padding:16px 12px"><div class="bignum" style="font-size:30px">2023–24</div><h3 style="font-size:18px;margin:6px 0 4px">SAEs</h3><p class="body small muted">aprendemos a desamontoá-los</p></div>
-      <div class="card center" style="padding:16px 12px"><div class="bignum" style="font-size:30px">2025</div><h3 style="font-size:18px;margin:6px 0 4px">Attribution graphs</h3><p class="body small muted">unimos features + circuitos</p></div>
-      <div class="card center" style="padding:16px 12px;background:#FDF0D5"><div class="bignum" style="font-size:30px;color:#B45309">2026</div><h3 style="font-size:18px;margin:6px 0 4px">Fidelidade</h3><p class="body small muted">mas os mapas são proxies não verificados</p></div>
-    </div>
-    <p class="body center mt24" style="font-style:italic;max-width:44em;margin-left:auto;margin-right:auto">A interpretabilidade não é uma linha reta de vitórias: é um diálogo entre descobertas e novos enigmas. E é isso que a torna um campo vivo para pesquisar.</p>
-  </div>
-</section>
-
-<!-- ============================================================
-     FAQ — perguntas difíceis (rede de segurança p/ Q&A)
-     ============================================================ -->
-<section>
-  <div class="slide-pad">
-    <div class="eyebrow">Antecipando o Q&amp;A</div>
-    <span class="badge-row"><span class="badge tech">Perguntas difíceis</span></span>
-    <div class="slide-num">64</div>
-    <h2 class="title sm">As objeções que você vai ouvir</h2>
-    <div style="display:flex;flex-direction:column;gap:12px;margin-top:6px">
-      <div class="card"><p class="body small" style="margin:0"><strong style="color:#DB2777">“Isso não é só ler folhas de chá — achar padrões onde não há?”</strong><br>Por isso a <strong>intervenção causal</strong> importa: não basta observar correlação, testamos se mexer no componente muda a saída. E benchmarks com gabarito (MIB, InterpBench) medem se recuperamos o circuito certo.</p></div>
-      <div class="card blue"><p class="body small" style="margin:0"><strong style="color:#1D4ED8">“Como isso escala para modelos de fronteira (GPT-4, Claude)?”</strong><br>Ainda é o grande desafio aberto. Attribution graphs já rodam em modelos de produção (Claude 3.5 Haiku), mas cobertura completa é cara. Daí a corrida por métodos aproximados (EAP) e agentes de interpretabilidade.</p></div>
-      <div class="card"><p class="body small" style="margin:0"><strong style="color:#6B21A8">“As features dos SAEs são reais ou artefatos do método?”</strong><br>Pergunta honesta e não resolvida (feature splitting/absorption). É por isso que o campo insiste em <strong>fidelidade</strong> e avaliação — uma explicação bonita não é prova.</p></div>
-      <div class="card plain"><p class="body small" style="margin:0"><strong>“Para que serve na prática?”</strong><br>Segurança e alinhamento, detecção de alucinação, edição de conhecimento, steering. E, para pesquisa: um campo jovem com muitos problemas tratáveis.</p></div>
-    </div>
-    <div class="source">Respostas ancoradas em: Sharkey et al. (2025); Ameisen et al. (2025); Mueller et al. (2025, MIB).</div>
-  </div>
-</section>
-
-<!-- ============================================================
-     40 — encerramento (escuro)
-     ============================================================ -->
-<section data-background-color="#1A1A1A">
-  <div class="slide-pad dark">
-    <h1 style="font-size:56px;margin-bottom:10px">Obrigado.</h1>
-    <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:24px;color:#9333EA;margin-bottom:26px">Perguntas &amp; discussão</p>
-    <div class="eyebrow" style="color:#9333EA">Referências-marco</div>
-    <div class="body" style="color:#E4E4E7;font-size:17px;line-height:1.7;margin-top:8px">
-      <p>Olah et al. (2020) · <em style="color:#B9A7D4">Zoom In: An Introduction to Circuits</em></p>
-      <p>Elhage et al. (2021) · <em style="color:#B9A7D4">A Mathematical Framework for Transformer Circuits</em> &nbsp;·&nbsp; Elhage et al. (2022) · <em style="color:#B9A7D4">Toy Models of Superposition</em></p>
-      <p>Bricken et al. (2023) · <em style="color:#B9A7D4">Towards Monosemanticity</em> &nbsp;·&nbsp; Templeton et al. (2024) · <em style="color:#B9A7D4">Scaling Monosemanticity</em></p>
-      <p>Lieberum et al. (2024) · <em style="color:#B9A7D4">Gemma Scope</em> &nbsp;·&nbsp; Ameisen et al. (2025) · <em style="color:#B9A7D4">Circuit Tracing</em> · <em style="color:#B9A7D4">On the Biology of a LLM</em></p>
-      <p>Sharkey et al. (2025) · <em style="color:#B9A7D4">Open Problems in Mechanistic Interpretability</em></p>
-    </div>
+    <div class="source">→ Bloco 3: <strong>SAEs</strong> — projetar a superposição num espaço maior e esparso para recuperar features limpas.</div>
   </div>
 </section>
 
@@ -1818,405 +253,91 @@
 
 <script src="lib/reveal/dist/reveal.js"></script>
 <script src="lib/katex/dist/katex.min.js"></script>
-<script src="lib/katex/dist/contrib/auto-render.min.js"></script>
 <script src="viz.js"></script>
 <script>
 Reveal.initialize({
-  hash:true, transition:"fade", transitionSpeed:"fast",
+  hash:true, transition:"slide", transitionSpeed:"fast",
   width:1280, height:720, margin:0.045, minScale:0.2, maxScale:2.0,
   controls:true, progress:true, slideNumber:false, center:false
 });
 
-function K(id, tex, display=true){
-  const n = document.getElementById(id);
-  if(n) katex.render(tex, n, {throwOnError:false, displayMode:display});
-}
-
-/* auto-render de $...$ inline (usado nos slides "Sob o capô") */
-function renderInlineMath(){
-  if(window.renderMathInElement){
-    renderMathInElement(document.body, {
-      delimiters:[{left:"$",right:"$",display:false}],
-      throwOnError:false
-    });
-  }
-}
-
-/* ---------- mini-roadmap "você está aqui" ---------- */
-(function(){
-  const steps=["Circuitos","Superposição","SAEs","Técnicas","Attribution","Desafios"];
-  // título de abertura de cada bloco → índice do passo atual
-  const openers=[
-    {match:"Onde tudo começou", at:0},
-    {match:"O problema que quebrou", at:1},
-    {match:"O que queremos fazer", at:2},
-    {match:"Como se descobre um circuito", at:3},
-    {match:"O elo perdido", at:4},
-    {match:"A honestidade científica", at:5},
-  ];
-  function buildMap(at){
-    let h='<div class="progress-map">';
-    steps.forEach((s,i)=>{
-      const cls = i<at?"done":(i===at?"now":"");
-      h+=`<span class="step ${cls}">${s}</span>`;
-      if(i<steps.length-1) h+='<span class="sep">›</span>';
-    });
-    return h+'</div>';
-  }
-  document.querySelectorAll('.slides section').forEach(sec=>{
-    const t=sec.querySelector('h1,h2'); if(!t) return;
-    const txt=t.textContent.trim();
-    const op=openers.find(o=>txt.includes(o.match));
-    if(op){
-      // insere logo após a badge-row (ou após o eyebrow)
-      const anchor=sec.querySelector('.badge-row')||sec.querySelector('.eyebrow');
-      if(anchor){ anchor.insertAdjacentHTML('afterend', buildMap(op.at)); }
-    }
-  });
-})();
-
-/* ---------- fórmulas ---------- */
-K("f15", String.raw`\mathbf{\color{#6B21A8}d}_i \cdot \mathbf{\color{#0891B2}d}_j = \|\mathbf{d}_i\|\,\|\mathbf{d}_j\|\,\cos{\color{#B45309}\theta}`);
-K("f21a", String.raw`\mathbf{f}(\mathbf{x}) = \mathrm{ReLU}(W_{\text{enc}}\,\mathbf{x} + \mathbf{b}_{\text{enc}})`);
-K("f21b", String.raw`\hat{\mathbf{x}} = W_{\text{dec}}\,\mathbf{f}(\mathbf{x}) + \mathbf{b}_{\text{dec}}`);
-K("f22", String.raw`\mathcal{L} = {\color{#1D4ED8}\|\mathbf{x}-\hat{\mathbf{x}}\|_2^2} + {\color{#6B21A8}\lambda\,\|\mathbf{f}(\mathbf{x})\|_1}`);
-K("f22a", String.raw`{\color{#1D4ED8}\|\mathbf{x}-\hat{\mathbf{x}}\|_2^2}`);
-K("f22b", String.raw`{\color{#6B21A8}\lambda\,\|\mathbf{f}(\mathbf{x})\|_1}`);
-
-/* fórmulas do bloco de técnicas */
-K("ft2a", String.raw`\text{logit}_\ell = {\color{#DB2777}W_U}\,{\color{#0891B2}\mathrm{LN}}({\color{#6B21A8}\mathbf{x}_\ell})`);
-K("ft4", String.raw`\text{IE} = \dfrac{\text{LD}_{\color{#059669}\text{patched}} - \text{LD}_{\color{#DC2626}\text{corr}}}{\text{LD}_{\color{#6B21A8}\text{clean}} - \text{LD}_{\color{#DC2626}\text{corr}}}`);
-K("ft6", String.raw`\text{EAP}(u,v) = \underbrace{({\color{#DC2626}\mathbf{z}_u^{\text{corr}} - \mathbf{z}_u^{\text{clean}}})}_{\text{Δ ativação}}{}^{\top}\;\underbrace{{\color{#059669}\nabla_{\!v}\,\mathcal{L}}}_{\text{gradiente}}`);
-
-/* ---------- fórmulas dos slides "Sob o capô" ---------- */
-// HOOD1 — Johnson–Lindenstrauss
-K("hf1a", String.raw`{\color{#3B4C7A}N} \;\sim\; \exp\!\left(\dfrac{{\color{#6B21A8}d}\,\cdot\,{\color{#DB2777}\epsilon}^{2}}{4}\right)`);
-// HOOD2 — Linear Representation Hypothesis
-K("hlrh", String.raw`{\color{#1E2A44}a(x)} \;=\; \sum_i {\color{#DB2777}f_i(x)}\,{\color{#6B21A8}\mathbf{d}_i}`);
-K("hlrh2", String.raw`{\color{#6B21A8}\mathbf{d}_{\text{rei}}} - {\color{#DC2626}\mathbf{d}_{\text{homem}}} + {\color{#0891B2}\mathbf{d}_{\text{mulher}}} \approx {\color{#059669}\mathbf{d}_{\text{rainha}}}`);
-// HOOD3 — L1 vs L2 (derivadas)
-K("hl1a", String.raw`\frac{\partial}{\partial f_i}\,\lambda|f_i| \;=\; {\color{#059669}\lambda\cdot\text{sinal}(f_i)}`);
-K("hl1b", String.raw`\frac{\partial}{\partial f_i}\,\lambda f_i^{2} \;=\; {\color{#DC2626}2\lambda f_i}`);
-// HOOD4 — indirect effect
-K("hie", String.raw`\text{IE} \;=\; \dfrac{{\color{#059669}\text{LD}_{\text{patched}}} - {\color{#DC2626}\text{LD}_{\text{corr}}}}{{\color{#6B21A8}\text{LD}_{\text{clean}}} - {\color{#DC2626}\text{LD}_{\text{corr}}}}`);
-// HOOD5 — Taylor de 1ª ordem (EAP)
-K("hf5a", String.raw`\mathcal{L}(x_{\text{clean}}\,|\,\text{do}(e{=}e_{\text{corr}})) \approx \mathcal{L}(x_{\text{clean}}) + \underbrace{{\color{#3B4C7A}(e_{\text{corr}}-e_{\text{clean}})^{\!\top}}\,{\color{#059669}\nabla_{\!e}\,\mathcal{L}}}_{\text{attribution score}}`);
-
-/* renderiza $...$ inline depois de tudo */
-renderInlineMath();
-
-/* ---------- visualizações estáticas ---------- */
+function fx(id, tex, display=true){ const n=document.getElementById(id); if(n) katex.render(tex,n,{throwOnError:false,displayMode:display}); }
 function setViz(id, svg){ const n=document.getElementById(id); if(n) n.innerHTML=svg; }
 
-// T3 — activation patching (clean / corrupted / patched)
-// 30 — activation patching INTERATIVO (clique transplanta)
-(function(){
-  let patched=false;
-  function render(){
-    setViz("vizPatch", VIZ.patchingLive({w:340,h:290,id:"ptl30",patched}));
-    const lbl=document.getElementById("patchLabel");
-    if(lbl){ lbl.textContent = patched ? "patch aplicado — resposta restaurada!" : "sem patch — resposta corrompida";
-             lbl.style.color = patched ? "#059669" : "#DC2626"; }
-    const node=document.querySelector('#vizPatch');
-    if(node) node.onclick=()=>{ patched=!patched; render(); };
-  }
-  render();
-})();
+fx('fx-analogy', '\\mathbf{d}_{rei}\\;-\\;\\mathbf{d}_{homem}\\;+\\;\\mathbf{d}_{mulher}\\;\\approx\\;\\mathbf{d}_{rainha}');
 
-// T2 — logit lens (viz sincronizada com os termos da fórmula)
-setViz("viz27", VIZ.logitLens({w:300,h:280,id:"ll27"}));
-wireTermSync("viz27");
-
-// T4 — indirect effect (régua 0..1 sincronizada com os termos)
-setViz("viz29ie", VIZ.indirectEffect({w:340,h:190,id:"ie29",ie:0.7}));
-wireTermSync("viz29ie");
-
-// T6 — EAP / gradiente (curva da perda + tangente sincronizadas)
-setViz("viz31eap", VIZ.eapViz({w:320,h:250,id:"eap31"}));
-wireTermSync("viz31eap");
-
-// 07 — feature = direção
-setViz("viz07", VIZ.plane2D({ w:400,h:340,id:"pl07",
-  vectors:[{x:0.62,y:0.62,color:"#6B21A8",label:"feature",width:4}],
-  axisLabels:["neurônio 1","neurônio 2"] }));
-
-// 09 — transformer/residual stream
-// 12 — transformer + residual stream como QUADRO (clique revela camadas lendo/escrevendo)
-(function(){
-  let stage=0;
-  function render(){
-    setViz("viz09", VIZ.transformerBoard({w:460,h:360,id:"tb12",nLayers:3,stage}));
-    const node=document.querySelector('#viz09');
-    if(node) node.onclick=()=>{ stage = stage>=3 ? 0 : stage+1; render(); };
-  }
-  render();
-})();
-
-// 10 — induction heads (tokens)
-setViz("viz10", (function(){
-  const toks=[["Maria","#F5EEFC"],["Silva","#E9DEF5"],["…","#fff"],["Maria","#FDF0D5"],["?","#6B21A8"]];
-  let g=""; const x=40,w=150,hh=42,gap=12;
-  toks.forEach((t,i)=>{ const y=20+i*(hh+gap); const isQ=t[0]==="?";
-    const emph = (i===1||i===3);   // Silva (copiado) e 2º Maria (gatilho)
-    g+=`<rect x="${x}" y="${y}" width="${w}" height="${hh}" rx="8" fill="${isQ?'#6B21A8':t[1]}" stroke="${emph?'#9333EA':'#E5E7EB'}" stroke-width="${emph?2:1}"/>`;
-    g+=`<text x="${x+w/2}" y="${y+27}" text-anchor="middle" font-size="18" font-weight="${isQ||emph?700:400}" fill="${isQ?'#fff':'#1A1A1A'}">${t[0]}</text>`;
+/* progress-map "você está aqui" */
+function progressMap(targetId, nowIdx){
+  const steps=["Features","Superposição","SAEs","Circuitos","Intervenção"];
+  let h='<div class="progress-map">';
+  steps.forEach((s,i)=>{
+    const cls = i<nowIdx?"done":(i===nowIdx?"now":"");
+    h+=`<span class="step ${cls}">${s}</span>`;
+    if(i<steps.length-1) h+='<span class="sep">→</span>';
   });
-  // a induction head: ao rever "Maria" (idx3), busca o token que SEGUIU
-  // o primeiro "Maria" — ou seja "Silva" (idx1) — e o copia para a previsão (idx4).
-  const yFrom=20+1*(hh+gap)+hh/2;   // centro de "Silva" (índice 1)
-  const yTo=20+4*(hh+gap)+hh/2;     // centro de "?" (índice 4)
-  g+=`<path d="M${x+w+14} ${yFrom} C ${x+w+78} ${yFrom}, ${x+w+78} ${yTo}, ${x+w+14} ${yTo}" fill="none" stroke="#9333EA" stroke-width="2.5" marker-end="url(#a10)"/>`;
-  g+=`<text x="${x+w+90}" y="${(yFrom+yTo)/2+5}" font-size="14" fill="#9333EA" font-style="italic">copia</text>`;
-  g+=`<defs><marker id="a10" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#9333EA"/></marker></defs>`;
-  return `<svg viewBox="0 0 320 300" class="viz">${g}</svg>`;
-})());
-
-// 14 — quase-ortogonalidade (dois estágios revelados por fragmento)
-setViz("viz14a", `<div class="center" style="width:160px"><div style="font-size:13px;color:#71717A;margin-bottom:4px">2 perpendiculares</div><div style="max-width:160px">${VIZ.plane2D({w:160,h:160,id:"p14a",pad:24,vectors:[{x:0.9,y:0},{x:0,y:0.9}],axisLabels:["",""]})}</div></div>`);
-setViz("viz14b", `<div class="center" style="width:160px"><div style="font-size:13px;color:#71717A;margin-bottom:4px">muitas quase-perp.</div><div style="max-width:160px">${VIZ.fanVectors({w:160,h:160,id:"f14",n:8})}</div></div>`);
-
-// 19 — autoencoder ampulheta
-setViz("viz19", (function(){
-  const cols=[[4,60],[3,120],[1,180],[3,240],[4,300]]; // [n, x]
-  let g=""; const H=300;
-  const pts=cols.map(([n,x])=>{ const gap=(H-40)/(n+1); return Array.from({length:n},(_,k)=>({x,y:20+gap*(k+1)})); });
-  for(let i=0;i<pts.length-1;i++) pts[i].forEach(a=>pts[i+1].forEach(b=>{g+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#EDE7F3" stroke-width="0.8"/>`;}));
-  pts.forEach((col,ci)=>col.forEach(p=>{const bott=cols[ci][0]===1;g+=`<circle cx="${p.x}" cy="${p.y}" r="10" fill="${bott?'#6B21A8':'#E9DEF5'}" stroke="${bott?'#6B21A8':'#9333EA'}" stroke-width="1.5"/>`;}));
-  g+=`<text x="180" y="176" text-anchor="middle" font-size="12" fill="#6B21A8" font-style="italic">gargalo</text>`;
-  g+=`<text x="60" y="14" text-anchor="middle" font-size="12" fill="#71717A">entrada</text>`;
-  g+=`<text x="300" y="14" text-anchor="middle" font-size="12" fill="#71717A">reconstrução</text>`;
-  return `<svg viewBox="0 0 360 320" class="viz">${g}</svg>`;
-})());
-
-// 20 — SAE expande
-setViz("viz20", VIZ.saeDiagram({w:400,h:280,id:"sae20",litSet:[1,4,7],nFeat:10,showRecon:false}));
-
-// 21 — SAE completo
-// 21 — SAE completo (construção incremental por estágio)
-function renderSae21(stage){
-  setViz("viz21", VIZ.saeDiagram({w:440,h:290,id:"sae21",litSet:[1,4,7],nFeat:10,showRecon:true,stage}));
+  h+='</div>';
+  const n=document.getElementById(targetId); if(n) n.innerHTML=h;
 }
-renderSae21(0);   // começa só com a entrada
+progressMap('pmap-1', 0);
 
-// 22 — balança do trade-off (realce sincronizado com os termos)
-function renderBalance22(highlight){
-  const tilt = highlight==="recon" ? -1 : (highlight==="sparse" ? 1 : 0);
-  setViz("viz22", VIZ.lossBalance({w:320,h:225,id:"lb22",tilt,highlight}));
-}
-renderBalance22(null);
-// liga hover dos termos do 22 → inclina a balança e realça o prato
-(function(){
-  document.querySelectorAll('.termsync[data-viz="viz22"]').forEach(t=>{
-    const term=t.getAttribute("data-term");
-    t.setAttribute("tabindex","0");
-    const on=()=>renderBalance22(term), off=()=>renderBalance22(null);
-    t.addEventListener("mouseenter",on); t.addEventListener("mouseleave",off);
-    t.addEventListener("focus",on); t.addEventListener("blur",off);
-  });
-})();
+/* directions in activation space (slide 5) */
+setViz('vizDirs', VIZ.plane2D({w:440,h:360,id:'fd',
+  axisLabels:['dim. 1','dim. 2'],
+  vectors:[
+    {x:0.70,y:0.52,label:'gato',   color:'#6B21A8'},
+    {x:0.78,y:0.28,label:'felino', color:'#0891B2', lx:8, ly:16},
+    {x:0.34,y:0.88,label:'Paris',  color:'#DB2777'},
+    {x:0.16,y:0.54,label:'plural', color:'#059669', lx:-4, ly:-12}
+  ]}));
 
-// 27 — cross-layer transcoder
-setViz("vizCLT", VIZ.transformerStack({w:380,h:340,id:"tr27",nBlocks:4,crossLayer:true}));
+/* crowding (slide 06): count mismatch — many features overflow few dims */
+setViz('vizCrowd', VIZ.featureOverflow({w:420,h:380,id:'crowd',nSlots:4}));
 
-// 39 — mapa vs território (honestidade científica)
-setViz("viz39mt", VIZ.mapTerritory({w:340,h:250,id:"mt39"}));
-
-// PONTE — nuvem embaralhada ↔ organizada (clique)
-(function(){
-  let clean=false;
-  function render(){
-    setViz("vizPonte", VIZ.featureCloud({w:300,h:280,id:"fcP",state:clean?"clean":"tangled",nPer:8}));
-    const lbl=document.getElementById("ponteLabel");
-    if(lbl){ lbl.textContent = clean ? "pós-SAE — cada conceito, sua direção" : "superposição — embaralhado";
-             lbl.style.color = clean ? "#059669" : "#DC2626"; }
-    const node=document.querySelector('#vizPonte');
-    if(node) node.onclick=()=>{ clean=!clean; render(); };
-  }
-  render();
-})();
-
-// 29 — Dallas graph INTERATIVO (intervenção causal por clique)
-(function(){
-  let swapped=false;
-  function render(){
-    setViz("viz29", VIZ.causalChain({w:340,h:380,id:"cc29",swapped}));
-    // religa o clique no nó do meio após cada render
-    const node=document.querySelector('#viz29 .cc-click');
-    if(node) node.addEventListener("click",()=>{ swapped=!swapped; render(); });
-  }
-  render();
-})();
-
-/* ---------- interativo 15: ângulo ---------- */
-(function(){
-  const ang=document.getElementById("angle15"); if(!ang) return;
-  function draw(deg){
-    const rad=deg*Math.PI/180;
-    const v1={x:0.82,y:0.0,color:"#6B21A8",label:"dᵢ",width:4,term:"d"};
-    const v2={x:0.82*Math.cos(rad),y:0.82*Math.sin(rad),color:"#0891B2",label:"dⱼ",width:4,term:"d"};
-    setViz("viz15", VIZ.plane2D({w:380,h:250,id:"pl15",vectors:[v1,v2],
-      showAngle:{term:"theta"}, axisLabels:["",""]}));
-    document.getElementById("angval").textContent=deg+"°";
-    const c=Math.cos(rad);
-    const cv=document.getElementById("cosval");
-    cv.textContent=c.toFixed(2);
-    const col = c<0.2?"#059669":(c<0.6?"#B45309":"#DC2626");
-    cv.style.color = col;
-    // barra de vazamento: largura ∝ |cosθ|, cor acompanha o nível
-    const bar=document.getElementById("leakbar");
-    if(bar){ bar.style.width=(Math.abs(c)*100).toFixed(0)+"%"; bar.style.background=col; }
-  }
-  ang.addEventListener("input",e=>draw(+e.target.value));
-  draw(35);
-  wireTermSync("viz15");   // liga realce termo↔elemento
-})();
-
-/* ---------- realce sincronizado fórmula/legenda ↔ gráfico ----------
-   Elementos .termsync[data-term][data-viz] acendem os elementos
-   .vterm[data-term=…] dentro do SVG #<data-viz>. Reaplicável após
-   re-render do SVG. */
-function litTerm(vizId, term, on){
-  const svg=document.querySelector("#"+vizId+" svg"); if(!svg) return;
-  svg.classList.toggle("dimmed", on);
-  svg.querySelectorAll(".vterm").forEach(elm=>{
-    elm.classList.toggle("lit", on && elm.getAttribute("data-term")===term);
-  });
-}
-function wireTermSync(vizId){
-  document.querySelectorAll('.termsync[data-viz="'+vizId+'"]').forEach(t=>{
-    if(t.dataset.wired) return; t.dataset.wired="1";
-    const term=t.getAttribute("data-term");
-    const on=()=>litTerm(vizId,term,true), off=()=>litTerm(vizId,term,false);
-    t.addEventListener("mouseenter",on); t.addEventListener("mouseleave",off);
-    t.addEventListener("focus",on); t.addEventListener("blur",off);
-    t.setAttribute("tabindex","0");
-  });
-}
-
-/* ---------- interativo 16: esparsidade → polígonos regulares ---------- */
-(function(){
-  const sp=document.getElementById("sparsity16"); if(!sp) return;
-  function draw(v){
-    const s=v/100;
-    const r=VIZ.polygonSuperposition({w:320,h:320,id:"sp16",sparsity:s});
-    setViz("viz16i", r.svg);
-    const lvl = s<0.34?"baixa":(s<0.67?"média":"alta");
-    document.getElementById("sp16val").textContent=lvl;
-    document.getElementById("nfeat16").textContent=r.n;
-    document.getElementById("poly16").textContent=r.polygon;
-  }
-  sp.addEventListener("input",e=>draw(+e.target.value));
-  draw(30);
-})();
-
-/* ---------- interativo 18b: Johnson-Lindenstrauss (d e eps) ---------- */
-(function(){
-  const dS=document.getElementById("jlD"), eS=document.getElementById("jlE");
-  if(!dS||!eS) return;
-  function draw(){
-    const d=+dS.value, eps=(+eS.value)/100;
-    setViz("vizJL", VIZ.jlCurve({w:440,h:290,id:"jlv",d,eps}));
-    document.getElementById("jlDval").textContent=d;
-    document.getElementById("jlEval").textContent=eps.toFixed(2).replace(".",",");
-  }
-  dS.addEventListener("input",draw);
-  eS.addEventListener("input",draw);
-  draw();
-})();
-
-/* ---------- interativo 09b: aritmética de vetores (clique acumula) ---------- */
+/* ANCHOR: vector algebra, click to accumulate steps */
 (function(){
   let step=0;
   function render(){
-    setViz("vizVec", VIZ.vecAlgebra({w:360,h:320,id:"vecA",step}));
+    setViz("vizVec", VIZ.vecAlgebra({w:400,h:340,id:"vecA",step}));
     const node=document.querySelector('#vizVec');
     if(node) node.onclick=()=>{ step = step>=3 ? 1 : step+1; render(); };
   }
   render();
 })();
 
-/* ---------- interativo 27b: bolas L1 vs L2 (toggle) ---------- */
+/* ---- Bloco 2 ---- */
+progressMap('pmap-2', 1);
+fx('fx-dot', '\\mathbf{d}_i \\cdot \\mathbf{d}_j = \\lVert\\mathbf{d}_i\\rVert\\,\\lVert\\mathbf{d}_j\\rVert\\cos\\theta');
+
+/* slide 08 — polígono de features (o achado geométrico, interativo) */
 (function(){
-  let mode="l1";
-  function render(){
-    setViz("vizNorm", VIZ.normBall({w:300,h:300,id:"nbv",mode}));
-    const lbl=document.getElementById("normLabel");
-    if(lbl){ lbl.textContent = mode==="l1" ? "L1 — esparsifica" : "L2 — só encolhe";
-             lbl.style.color = mode==="l1" ? "#059669" : "#DC2626"; }
-    const node=document.querySelector('#vizNorm');
-    if(node) node.onclick=()=>{ mode = mode==="l1"?"l2":"l1"; render(); };
+  const sl=document.getElementById('pf-slider');
+  function upd(){
+    const nn=+sl.value;
+    const r=VIZ.polygonFeatures({w:380,h:380,id:'pf',n:nn});
+    setViz('vizPack', r.svg);
+    const ro=document.getElementById('pf-readout');
+    if(ro) ro.textContent = `${r.n} features → ${r.polygon} · ${r.angleDeg}° entre vizinhas`;
+    const pct=((nn-2)/(8-2))*100; sl.style.setProperty('--fill', pct+'%');
   }
-  render();
+  sl.addEventListener('input', upd); upd();
 })();
 
-/* ---------- interativo 36b: régua do IE ---------- */
+/* slide 09 — interferência (cos θ interativo) */
 (function(){
-  const s=document.getElementById("ieP"); if(!s) return;
-  function draw(){
-    const ld=(+s.value)/10;   // slider em décimos
-    setViz("vizIE", VIZ.ieRuler({w:440,h:170,id:"iev",ldCorr:-3.1,ldClean:6.2,ldPatched:ld}));
-    const v=document.getElementById("ieVal");
-    v.textContent=(ld>=0?"+":"")+ld.toFixed(1).replace(".",",");
+  const sl=document.getElementById('if-slider');
+  function upd(){
+    const d=+sl.value;
+    const r=VIZ.interferencia({w:440,h:340,id:'intf',deg:d});
+    setViz('vizInterf', r.svg);
+    const ro=document.getElementById('if-readout');
+    if(ro) ro.innerHTML = `θ = <b style="color:#1A1A2E">${d}°</b> · cos θ = <b>${r.cos}</b>`;
+    const pct=(d/90)*100; sl.style.setProperty('--fill', pct+'%');
   }
-  s.addEventListener("input",draw);
-  draw();
+  sl.addEventListener('input', upd); upd();
 })();
 
-/* ---------- interativo 39b: tangente de Taylor ---------- */
-(function(){
-  const s=document.getElementById("ttD"); if(!s) return;
-  function draw(){
-    const delta=(+s.value)/100;
-    setViz("vizTaylor", VIZ.taylorTangent({w:440,h:290,id:"ttv",delta}));
-    const v=document.getElementById("ttVal");
-    v.textContent=(delta>=0?"+":"")+delta.toFixed(2).replace(".",",");
-  }
-  s.addEventListener("input",draw);
-  draw();
-})();
-
-/* ---------- construção incremental: fragmentos → estágio do gráfico ----------
-   Fragmentos com data-stage atualizam o diagrama do slide 21. Ao avançar,
-   usa o maior stage já revelado; ao voltar, recalcula pelo fragmento visível. */
-(function(){
-  function currentStage(){
-    const sec=document.querySelector('.slides section.present');
-    if(!sec||!sec.querySelector('#viz21')) return null;   // só age no slide 21
-    let s=0;
-    sec.querySelectorAll('[data-stage]').forEach(f=>{
-      const isFrag=f.classList.contains('fragment');
-      const shown=!isFrag || f.classList.contains('visible');
-      if(shown) s=Math.max(s, +f.getAttribute('data-stage'));
-    });
-    return s;
-  }
-  function sync(){
-    const s=currentStage();
-    if(s!==null && typeof renderSae21==='function') renderSae21(s);
-  }
-  if(window.Reveal){
-    Reveal.on('fragmentshown', sync);
-    Reveal.on('fragmenthidden', sync);
-    Reveal.on('slidechanged', sync);
-    Reveal.on('ready', sync);
-  }
-})();
-
-/* ---------- imagens de paper com fallback ----------
-   Para inserir a imagem real de um slide depois: adicione o atributo
-   data-img="URL_ou_caminho_local" na div.figbox desejada
-   (ex.: data-img="images/img01.jpg"). Sem data-img, mostra o
-   placeholder limpo com legenda + link. Se a imagem falhar ao
-   carregar, cai automaticamente no placeholder. */
-document.querySelectorAll(".figbox").forEach(box=>{
-  const img=box.querySelector("img");
-  const src=box.getAttribute("data-img");
-  if(!img||!src){ box.classList.add("failed"); return; }   // sem URL → placeholder
-  img.addEventListener("error",()=>box.classList.add("failed"));
-  img.addEventListener("load",()=>{ if(!img.naturalWidth) box.classList.add("failed"); });
-  img.src=src;
-  setTimeout(()=>{ if(!img.complete||!img.naturalWidth) box.classList.add("failed"); },6000);
-});
+/* slide 10 — polissemanticidade (neurônio ↔ várias features) */
+setViz('vizPoly', VIZ.featureCloud({w:360,h:340,id:'poly'}));
 </script>
 </body>
 </html>

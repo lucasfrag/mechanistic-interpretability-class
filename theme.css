@@ -145,8 +145,8 @@
 
 /* figura de paper com fallback elegante */
 .figbox{ position:relative; border-radius:14px; overflow:hidden; background:#FAFAFA;
-  border:0.5px dashed var(--purple-md); min-height:300px; 
-  display:flex; align-items:stretch; padding: 10px }
+  border:1.5px dashed var(--purple-md); min-height:210px; max-height:64vh;
+  display:flex; align-items:stretch; }
 .figbox img{ width:100%; height:100%; object-fit:contain; display:block; background:#fff; }
 .figcap{ position:absolute; left:0; right:0; bottom:0; padding:10px 14px;
   background:rgba(255,255,255,.94); font-family:"Inter",sans-serif; font-size:14px; color:var(--ink); }
@@ -223,6 +223,12 @@ input[type=range].vrange::-webkit-slider-thumb{ -webkit-appearance:none; appeara
 .mt8{margin-top:8px} .mt16{margin-top:16px} .mt24{margin-top:24px}
 .center{ text-align:center; } .muted{ color:var(--muted); }
 .hl{ background:linear-gradient(transparent 60%, var(--purple-lt) 60%); }
+/* Título usa serif (Playfair) com métrica diferente — a faixa do highlight
+   precisa subir para ficar ATRÁS do texto, não embaixo. */
+.title .hl{
+  background:linear-gradient(transparent 15%, var(--purple-lt) 15%, var(--purple-lt) 88%, transparent 88%);
+  padding:0 2px;
+}
 
 /* ============ SLIDES "SOB O CAPÔ" (rigor matemático) ============ */
 .hood{ background:#F4F6FB; }
@@ -264,3 +270,22 @@ input[type=range].vrange::-webkit-slider-thumb{ -webkit-appearance:none; appeara
 /* a pergunta de abertura, destacada */
 .hquestion{ font-family:"Playfair Display",serif; font-size:26px; color:#1E2A44;
   font-style:italic; margin:4px 0 2px; }
+
+/* ---- Controles de slider para vizs interativas (Bloco 2+) ---- */
+.slider-wrap { display:flex; flex-direction:column; gap:8px; align-items:flex-start; }
+input[type=range].viz-slider {
+  -webkit-appearance:none; appearance:none; width:88%; height:7px; border-radius:999px;
+  background:linear-gradient(to right,#6B21A8 0%,#6B21A8 var(--fill,50%),#E4E4EE var(--fill,50%),#E4E4EE 100%);
+  outline:none; cursor:pointer;
+}
+input[type=range].viz-slider::-webkit-slider-thumb {
+  -webkit-appearance:none; appearance:none; width:20px; height:20px; border-radius:50%;
+  background:#6B21A8; border:3px solid #fff; box-shadow:0 1px 4px rgba(0,0,0,.25);
+}
+input[type=range].viz-slider::-moz-range-thumb {
+  width:20px; height:20px; border-radius:50%; background:#6B21A8; border:3px solid #fff; cursor:pointer;
+}
+.viz-readout { font-family:'Playfair Display',serif; font-size:22px; color:#1A1A2E; }
+.viz-readout b { color:#DC2626; }
+.result-line { font-size:19px; margin-bottom:7px; color:#4A4A5E; }
+.result-line .tag { font-weight:700; font-family:'Playfair Display',serif; }

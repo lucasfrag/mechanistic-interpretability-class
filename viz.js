@@ -370,6 +370,64 @@ function polygonSuperposition(opts) {
   return { svg: el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g), n, polygon: names[n] || n + "-gono" };
 }
 
+/* ============================================================
+   6b) POLÍGONO DE FEATURES (enriquecido) — o achado do Toy Models:
+       N features em 2D se organizam nos VÉRTICES de um polígono
+       regular, maximizando o ângulo mútuo e minimizando interferência.
+       Mostra: a forma (dígono→180°, triângulo→120°, quadrado→90°,
+       pentágono→72°...), o ÂNGULO entre features vizinhas (arco), e
+       rótulos f1..fn. Retorna { svg, n, polygon, angleDeg }.
+   ============================================================ */
+function polygonFeatures(opts) {
+  const { w = 380, h = 380, id = "pf", n: nIn = 3 } = opts;
+  const cx = w / 2, cy = h / 2 + 6, R = Math.min(w, h) * 0.30;
+  const n = Math.max(2, Math.min(8, nIn));
+  const names = { 2: "dígono (antípodas)", 3: "triângulo", 4: "quadrado", 5: "pentágono", 6: "hexágono", 7: "heptágono", 8: "octógono" };
+  const angleDeg = Math.round(360 / n);
+  let g = "";
+  // círculo-guia
+  g += el("circle", { cx, cy, r: R, fill: "none", stroke: "#ECECF0", "stroke-width": 1.5 });
+  // vértices
+  const pts = [];
+  for (let k = 0; k < n; k++) {
+    const a = -Math.PI / 2 + (2 * Math.PI * k) / n;
+    pts.push([cx + R * Math.cos(a), cy + R * Math.sin(a), a]);
+  }
+  // aresta(s) do polígono
+  if (n === 2) {
+    g += el("line", { x1: pts[0][0], y1: pts[0][1], x2: pts[1][0], y2: pts[1][1],
+      stroke: "#C9B8DD", "stroke-width": 1.5, "stroke-dasharray": "5 4" });
+  } else {
+    const path = "M" + pts.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L") + " Z";
+    g += el("path", { d: path, fill: "#6B21A8", "fill-opacity": 0.05, stroke: "#C9B8DD", "stroke-width": 1.5 });
+  }
+  // arco do ângulo entre as duas primeiras features vizinhas (no centro)
+  const aArc = 30;
+  const a0 = pts[0][2], a1 = pts[1][2];
+  const sweep = n === 2 ? 1 : 0;
+  g += el("path", {
+    d: `M ${cx + aArc * Math.cos(a0)} ${cy + aArc * Math.sin(a0)} A ${aArc} ${aArc} 0 0 ${sweep} ${cx + aArc * Math.cos(a1)} ${cy + aArc * Math.sin(a1)}`,
+    fill: "none", stroke: "#D97706", "stroke-width": 2.5 });
+  const amid = a0 + (a1 - a0) / 2;
+  g += el("text", { x: cx + (aArc + 22) * Math.cos(amid), y: cy + (aArc + 22) * Math.sin(amid) + 4,
+    "text-anchor": "middle", fill: "#D97706", "font-size": 15, "font-weight": 700 }, `${angleDeg}°`);
+  // vetores de feature + rótulos
+  pts.forEach((p, k) => {
+    const col = k % 2 ? "#9333EA" : "#6B21A8";
+    g += el("line", { x1: cx, y1: cy, x2: p[0], y2: p[1], stroke: col, "stroke-width": 3.5,
+      "marker-end": `url(#pfh-${id})`, opacity: 0.92 });
+    // rótulo fk um pouco além da ponta
+    const lx = cx + (R + 20) * Math.cos(p[2]), ly = cy + (R + 20) * Math.sin(p[2]);
+    g += el("text", { x: lx, y: ly + 4, "text-anchor": "middle", fill: col, "font-size": 14, "font-weight": 700,
+      "font-family": "'Playfair Display',serif" }, `f${k + 1}`);
+  });
+  g += el("circle", { cx, cy, r: 4, fill: "#1A1A1A" });
+  const defs = el("marker", { id: `pfh-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3,
+    orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#6B21A8" }));
+  return { svg: el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g),
+           n, polygon: names[n] || n + "-gono", angleDeg };
+}
+
 function attribGraph(opts) {
   const { w = 300, h = 380, id = "ag", nodes = [], swap = null } = opts;
   // nodes: [{label, y(0..1), out?}]
@@ -767,7 +825,7 @@ function mapTerritory(opts) {
 }
 
 if (typeof window !== "undefined") {
-  window.VIZ = { plane2D, fanVectors, miniNet, saeDiagram, transformerStack, attribGraph, superposition, causalChain, lossBalance, patchingDiagram, logitLens, indirectEffect, eapViz, featureCloud, mapTerritory, patchingLive, jlCurve, vecAlgebra, normBall, ieRuler, taylorTangent, transformerBoard, polygonSuperposition };
+  window.VIZ = { plane2D, fanVectors, miniNet, saeDiagram, transformerStack, attribGraph, superposition, causalChain, lossBalance, patchingDiagram, logitLens, indirectEffect, eapViz, featureCloud, mapTerritory, patchingLive, jlCurve, vecAlgebra, normBall, ieRuler, taylorTangent, transformerBoard, polygonSuperposition, interferencia, polygonFeatures, featureOverflow };
 }
 
 /* ============================================================
@@ -867,47 +925,61 @@ function jlCurve(opts) {
 }
 
 /* ============================================================
-   17) VECTOR ALGEBRA — soma/subtração de vetores no plano para a
-       hipótese linear: rei - homem + mulher ≈ rainha. Cada termo
-       é uma seta; o resultado cai perto do alvo.
+   17) VECTOR ALGEBRA — CADEIA INTUITIVA rei − homem + mulher = rainha.
+       Uma JORNADA ponta-a-ponta: parte de "rei", subtrai a direção
+       "homem", soma a direção "mulher", e cai em "rainha".
+       (A frase-ponte no slide costura a coerência direção-vs-ponto:
+        cada palavra é uma posição; os deslocamentos são as features.)
+       step 1: ponto de partida "rei"
+       step 2: − homem  (anda na direção oposta a homem)
+       step 3: + mulher (anda na direção de mulher) → chega em rainha
    ============================================================ */
 function vecAlgebra(opts) {
-  const { w = 360, h = 320, id = "va", step = 3 } = opts;
-  const ox = w / 2, oy = h / 2, S = 46;
-  // vetores conceituais (coordenadas 2D ilustrativas)
-  const rei = [1.3, 1.5], homem = [1.4, -0.2], mulher = [-0.9, 0.1];
-  const rainha = [rei[0] - homem[0] + mulher[0], rei[1] - homem[1] + mulher[1]];
-  const P = (v) => [ox + v[0] * S, oy - v[1] * S];
+  const { w = 440, h = 360, id = "va", step = 3 } = opts;
+  const pad = 46, ox = pad, oy = h - pad;
+  const S = Math.min(w - pad * 2.2, h - pad * 2.2);
+  // posições dos conceitos no espaço (pontos). A cadeia liga rei → p1 → rainha.
+  const rei    = [0.62, 0.16];
+  const homemD = [0.34, 0.10];            // direção "homem" (o que subtraímos)
+  const mulherD= [0.04, 0.66];            // direção "mulher" (o que somamos)
+  const p1     = [rei[0] - homemD[0], rei[1] - homemD[1]];      // rei − homem
+  const rainha = [p1[0] + mulherD[0], p1[1] + mulherD[1]];      // + mulher
+  const X = (v) => ox + v[0] * S;
+  const Y = (v) => oy - v[1] * S;
   let g = "";
-  // grade leve
-  g += el("line", { x1: 20, y1: oy, x2: w - 20, y2: oy, stroke: "#E5E7EB", "stroke-width": 1 });
-  g += el("line", { x1: ox, y1: 20, x2: ox, y2: h - 20, stroke: "#E5E7EB", "stroke-width": 1 });
-  const arrow = (from, to, col, lab, show) => {
-    if (!show) return "";
-    const [x1, y1] = P(from), [x2, y2] = P(to);
-    return el("line", { x1, y1, x2, y2, stroke: col, "stroke-width": 3, "marker-end": `url(#vah-${id})` }) +
-      el("text", { x: (x1 + x2) / 2 + 6, y: (y1 + y2) / 2 - 4, fill: col, "font-size": 13, "font-weight": 700 }, lab);
-  };
-  // construção acumulada: origem→rei, →(−homem), →(+mulher) = rainha
-  const p0 = [0, 0];
-  const p1 = rei;
-  const p2 = [rei[0] - homem[0], rei[1] - homem[1]];
-  const p3 = rainha;
-  g += arrow(p0, p1, "#6B21A8", "rei", step >= 1);
-  g += arrow(p1, p2, "#DC2626", "− homem", step >= 2);
-  g += arrow(p2, p3, "#0891B2", "+ mulher", step >= 3);
-  // alvo "rainha" (real) como estrela/círculo
-  if (step >= 3) {
-    const [qx, qy] = P(rainha);
-    g += el("circle", { cx: qx, cy: qy, r: 10, fill: "none", stroke: "#059669", "stroke-width": 2.5, "stroke-dasharray": "3 2" });
-    g += el("circle", { cx: qx, cy: qy, r: 4, fill: "#059669" });
-    g += el("text", { x: qx + 12, y: qy + 4, fill: "#059669", "font-size": 14, "font-weight": 700 }, "≈ rainha ✓");
+  // eixos leves (só o "espaço de ativação")
+  g += el("line", { class: "axis", x1: ox, y1: oy, x2: ox + S + 24, y2: oy, "marker-end": `url(#vaax-${id})` });
+  g += el("line", { class: "axis", x1: ox, y1: oy, x2: ox, y2: oy - S - 24, "marker-end": `url(#vaax-${id})` });
+  g += el("text", { x: ox + S + 20, y: oy + 18, "text-anchor": "end", fill: "#A1A1AA", "font-size": 12, "font-style": "italic" }, "espaço de ativação");
+
+  const pt = (v, col, txt, dx, dy, anchor) =>
+    el("circle", { cx: X(v), cy: Y(v), r: 6, fill: col }) +
+    el("text", { x: X(v) + (dx ?? 12), y: Y(v) + (dy ?? 5), fill: col, "font-size": 17, "font-weight": 700, "font-family": "'Playfair Display',serif", "text-anchor": anchor || "start" }, txt);
+  // seta de deslocamento (a "feature" aplicada), desenhada de a→b
+  const move = (a, b, col, txt, dx, dy) =>
+    el("line", { x1: X(a), y1: Y(a), x2: X(b), y2: Y(b), stroke: col, "stroke-width": 4, "marker-end": `url(#vahb-${id}-${col.replace('#','')})`, "stroke-linecap": "round" }) +
+    el("text", { x: (X(a)+X(b))/2 + (dx||0), y: (Y(a)+Y(b))/2 + (dy||-12), "text-anchor": "middle", fill: col, "font-size": 14, "font-weight": 700, "font-style": "italic" }, txt);
+
+  // passo 1 — ponto de partida
+  if (step >= 1) {
+    g += pt(rei, "#6B21A8", "rei", 12, -4);
   }
-  // pontos de referência
-  [[rei, "#6B21A8"], [rainha, "#059669"]].forEach(([v, c]) => {
-    const [x, y] = P(v); g += el("circle", { cx: x, cy: y, r: 3, fill: c });
-  });
-  const defs = el("marker", { id: `vah-${id}`, markerWidth: 8, markerHeight: 8, refX: 7, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "context-stroke" }));
+  // passo 2 — subtrai a direção "homem"
+  if (step >= 2) {
+    g += move(rei, p1, "#DC2626", "− homem", 0, -12);
+    g += el("circle", { cx: X(p1), cy: Y(p1), r: 4, fill: "#DC2626" });
+  }
+  // passo 3 — soma a direção "mulher" → chega em rainha
+  if (step >= 3) {
+    g += move(p1, rainha, "#0891B2", "+ mulher", -30, 4);
+    // alvo real "rainha" com halo, coincidindo com o fim da cadeia
+    g += el("circle", { cx: X(rainha), cy: Y(rainha), r: 13, fill: "none", stroke: "#059669", "stroke-width": 3, opacity: 0.6 });
+    g += pt(rainha, "#059669", "rainha ✓", 14, 4);
+  }
+  const mk = (c) => el("marker", { id: `vahb-${id}-${c.replace('#','')}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: c }));
+  const defs =
+    mk("#DC2626") + mk("#0891B2") +
+    el("marker", { id: `vaax-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#B8B8C0" }));
   return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
 }
 
@@ -1047,6 +1119,113 @@ function taylorTangent(opts) {
   g += el("text", { x: ox + pw - 4, y: oy - ph + 6, "text-anchor": "end", fill: "#059669", "font-size": 11, "font-weight": 700 }, "— tangente (Taylor 1ª ordem)");
   g += el("text", { x: ox + pw - 4, y: oy - ph + 22, "text-anchor": "end", fill: "#9333EA", "font-size": 11, "font-weight": 700 }, "— L real");
   const defs = el("marker", { id: `tth-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#3B4C7A" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   25) INTERFERÊNCIA (cos θ) — recria o slide de referência:
+       dois vetores dᵢ (fixo, horizontal) e dⱼ (móvel), ângulo θ
+       ajustável, e o "vazamento" = |cos θ| como produto interno.
+       Retorna { svg, deg, cos, leak } para alimentar o slider.
+       cos 90° = 0 (ideal, ortogonal) · cos 0° = 1 (colisão total).
+   ============================================================ */
+function interferencia(opts) {
+  const { w = 440, h = 340, id = "if", deg = 35 } = opts;
+  const ox = w * 0.14, oy = h * 0.78, L = Math.min(w * 0.62, h * 0.62);
+  const rad = deg * Math.PI / 180;
+  const cos = Math.cos(rad);
+  const leak = Math.abs(cos);
+  let g = "";
+  // eixo leve
+  g += el("line", { class: "axis", x1: ox, y1: oy, x2: ox, y2: oy - L - 24, stroke: "#E4E4EE", "stroke-width": 2, "marker-end": `url(#ifax-${id})`, opacity: 0.5 });
+  // dᵢ fixo horizontal (roxo)
+  g += el("line", { x1: ox, y1: oy, x2: ox + L, y2: oy, stroke: "#6B21A8", "stroke-width": 5, "marker-end": `url(#ifi-${id})` });
+  g += el("text", { x: ox + L + 10, y: oy + 6, fill: "#6B21A8", "font-size": 19, "font-weight": 700 }, "dᵢ");
+  // dⱼ móvel (azul)
+  const ex = ox + L * Math.cos(rad), ey = oy - L * Math.sin(rad);
+  g += el("line", { x1: ox, y1: oy, x2: ex, y2: ey, stroke: "#0891B2", "stroke-width": 5, "marker-end": `url(#ifj-${id})` });
+  g += el("text", { x: ex + 8, y: ey - 6, fill: "#0891B2", "font-size": 19, "font-weight": 700 }, "dⱼ");
+  // arco do ângulo θ
+  const r = 46, large = deg > 180 ? 1 : 0;
+  g += el("path", { d: `M ${ox + r} ${oy} A ${r} ${r} 0 ${large} 0 ${ox + r * Math.cos(rad)} ${oy - r * Math.sin(rad)}`,
+    fill: "none", stroke: "#D97706", "stroke-width": 2.5 });
+  g += el("text", { x: ox + (r + 16) * Math.cos(rad / 2), y: oy - (r + 16) * Math.sin(rad / 2) + 6,
+    fill: "#D97706", "font-size": 17, "font-weight": 700 }, "θ");
+  // projeção (o "vazamento" de dⱼ sobre dᵢ) — linha pontilhada
+  const px = ox + L * cos;
+  g += el("line", { x1: ex, y1: ey, x2: px, y2: oy, stroke: "#DC2626", "stroke-width": 1.5, "stroke-dasharray": "3 3", opacity: 0.7 });
+  const defs =
+    el("marker", { id: `ifi-${id}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#6B21A8" })) +
+    el("marker", { id: `ifj-${id}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#0891B2" })) +
+    el("marker", { id: `ifax-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#C9C9D4" }));
+  return { svg: el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g),
+           deg, cos: cos.toFixed(2), leak };
+}
+
+/* ============================================================
+   26) FEATURE OVERFLOW — o descompasso de contagem.
+       MUITAS features nomeadas (esquerda) tentam entrar em POUCOS
+       slots de dimensão (direita). Os primeiros d encaixam; o
+       excedente transborda (vermelho) — "não cabem ortogonais".
+       Reforça o problema antes de apresentar a superposição.
+   ============================================================ */
+function featureOverflow(opts) {
+  const { w = 420, h = 380, id = "fo", nSlots = 4 } = opts;
+  const feats = ["gato", "Paris", "plural", "ironia", "verbo",
+                 "azul", "medo", "rima", "código", "cidade"];
+  let g = "";
+  // ---- coluna esquerda: pilha de features (muitas) ----
+  const colX = w * 0.06, chipW = w * 0.34, chipH = 26, gap = 6;
+  const topY = 30;
+  g += el("text", { x: colX, y: topY - 10, fill: "#6B21A8", "font-size": 13, "font-weight": 700,
+    "letter-spacing": "0.06em" }, `${feats.length}+ FEATURES`);
+  feats.forEach((f, i) => {
+    const y = topY + i * (chipH + gap);
+    g += el("rect", { x: colX, y, width: chipW, height: chipH, rx: 7,
+      fill: "#F3E8FC", stroke: "#C9B8DD", "stroke-width": 1 });
+    g += el("text", { x: colX + chipW / 2, y: y + 17, "text-anchor": "middle",
+      fill: "#6B21A8", "font-size": 13, "font-weight": 600 }, f);
+  });
+  // ---- coluna direita: poucos slots de dimensão ----
+  const slotX = w * 0.62, slotW = w * 0.32, slotH = 40, sgap = 10;
+  const slotsTop = 44;
+  g += el("text", { x: slotX, y: slotsTop - 14, fill: "#0891B2", "font-size": 13, "font-weight": 700,
+    "letter-spacing": "0.06em" }, `${nSlots} DIMENSÕES`);
+  const slotY = (k) => slotsTop + k * (slotH + sgap);
+  for (let k = 0; k < nSlots; k++) {
+    g += el("rect", { x: slotX, y: slotY(k), width: slotW, height: slotH, rx: 9,
+      fill: "#E3F5FA", stroke: "#0891B2", "stroke-width": 1.5 });
+    g += el("text", { x: slotX + slotW / 2, y: slotY(k) + 25, "text-anchor": "middle",
+      fill: "#0891B2", "font-size": 13, "font-weight": 700, "font-style": "italic" }, `dim ${k + 1}`);
+  }
+  // ---- setas: as primeiras nSlots encaixam (verde/ok), o resto transborda (vermelho) ----
+  const chipMidY = (i) => topY + i * (chipH + gap) + chipH / 2;
+  const slotMidY = (k) => slotY(k) + slotH / 2;
+  feats.forEach((f, i) => {
+    const fits = i < nSlots;
+    const x1 = colX + chipW + 4, y1 = chipMidY(i);
+    if (fits) {
+      const x2 = slotX - 4, y2 = slotMidY(i);
+      g += el("line", { x1, y1, x2, y2, stroke: "#059669", "stroke-width": 2, opacity: 0.7,
+        "marker-end": `url(#fook-${id})` });
+    } else {
+      // transborda: seta curta que "bate" numa parede e vira vermelha
+      const x2 = slotX - 30, y2 = y1;
+      g += el("line", { x1, y1, x2, y2, stroke: "#DC2626", "stroke-width": 2, opacity: 0.8,
+        "stroke-dasharray": "4 3", "marker-end": `url(#fobad-${id})` });
+    }
+  });
+  // parede de "não cabe" + selo
+  const wallX = slotX - 26;
+  g += el("line", { x1: wallX, y1: slotsTop + nSlots * (slotH + sgap) - sgap + 6, x2: wallX, y2: chipMidY(nSlots) - 8,
+    stroke: "#DC2626", "stroke-width": 2, "stroke-dasharray": "3 3", opacity: 0.5 });
+  const overflow = feats.length - nSlots;
+  g += el("rect", { x: slotX - 6, y: h - 46, width: slotW + 12, height: 30, rx: 15, fill: "#FEE2E2" });
+  g += el("text", { x: slotX + slotW / 2, y: h - 26, "text-anchor": "middle", fill: "#DC2626",
+    "font-size": 13, "font-weight": 700 }, `${overflow} sem espaço!`);
+  const defs =
+    el("marker", { id: `fook-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#059669" })) +
+    el("marker", { id: `fobad-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#DC2626" }));
   return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
 }
 
