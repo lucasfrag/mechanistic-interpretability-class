@@ -84,20 +84,24 @@
     <h1 class="title">O significado está na <span class="hl">direção</span></h1>
     <div class="cols w6040">
       <div class="body">
-        <p>Uma ativação é um <strong>vetor</strong>. Um número isolado — um neurônio — quase nunca
-        corresponde a um conceito limpo.</p>
+        <p>O espaço de ativação tem <span class="hl-azul">d dimensões</span> — os eixos, os neurônios.
+        Uma <strong>feature</strong> não é um eixo: é uma <span class="hl">direção</span> qualquer,
+        combinando várias dimensões.</p>
         <div class="card plain mt8">
-          <p style="margin:0 0 6px"><strong>Feature</strong> = uma direção interpretável no espaço de ativação.</p>
-          <p class="small muted" style="margin:0">Andar nessa direção = ativar mais aquele conceito.</p>
+          <p style="margin:0 0 6px"><strong>dimensão</strong> = capacidade do espaço · <strong>direção</strong> = como a feature se aloja nele.</p>
+          <p class="small muted" style="margin:0">Por isso um neurônio isolado quase nunca é um conceito limpo.</p>
         </div>
-        <p class="mt16">Se conceitos são direções, então <strong>combinar conceitos</strong> vira
-        aritmética de vetores. É o que veremos a seguir.</p>
+        <p class="mt16">E se conceitos são direções, <strong>combinar conceitos</strong> vira aritmética de vetores.</p>
       </div>
       <div class="body" style="align-self:center">
         <div class="center"><div id="vizDirs"></div></div>
       </div>
     </div>
-    <div class="source">A hipótese da representação linear — a base de quase tudo que vem depois.</div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">ativações são vetores de números</span></div>
+      <div class="seg found"><span class="lab">a descoberta</span><span class="txt">conceitos vivem em <b>direções lineares</b> do espaço</span><span class="paper">Mikolov et al. 2013 · Elhage et al. 2022</span></div>
+      <div class="seg next"><span class="lab">novo desafio</span><span class="txt">e se há mais conceitos que dimensões?</span></div>
+    </div>
   </div>
 </section>
 
@@ -145,7 +149,11 @@
         <div class="center"><div id="vizCrowd"></div></div>
       </div>
     </div>
-    <div class="source">→ Bloco 2: <strong>superposição</strong> — a saída geométrica que a rede encontra.</div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">features são direções no espaço de ativação</span></div>
+      <div class="seg found"><span class="lab">o problema</span><span class="txt">há <b>muito mais</b> conceitos do que dimensões</span></div>
+      <div class="seg next"><span class="lab">próximo</span><span class="txt">→ superposição: a saída geométrica da rede</span></div>
+    </div>
   </div>
 </section>
 
@@ -190,7 +198,11 @@
         <div class="center"><div id="vizPack"></div></div>
       </div>
     </div>
-    <div class="source">Elhage et al. (2022), <em>Toy Models of Superposition</em> — features formam polígonos/politopos regulares.</div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">não cabem features ortogonais além de d</span></div>
+      <div class="seg found"><span class="lab">a descoberta</span><span class="txt">features se organizam em <b>polígonos regulares</b></span><span class="paper">Elhage et al. 2022 · Toy Models of Superposition</span></div>
+      <div class="seg next"><span class="lab">novo desafio</span><span class="txt">quase-ortogonal ainda deixa vazamento</span></div>
+    </div>
   </div>
 </section>
 
@@ -219,7 +231,11 @@
         <div class="center"><div id="vizInterf"></div></div>
       </div>
     </div>
-    <div class="source">A superposição empacota features em ângulos próximos de 90°. Fonte: Elhage et al. (2022).</div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">features empacotam quase-ortogonais</span></div>
+      <div class="seg found"><span class="lab">o custo</span><span class="txt">o produto interno mede a <b>interferência</b></span><span class="paper">Elhage et al. 2022</span></div>
+      <div class="seg next"><span class="lab">consequência</span><span class="txt">→ neurônios ficam polissemânticos</span></div>
+    </div>
   </div>
 </section>
 
@@ -245,7 +261,230 @@
         <div class="center"><div id="vizPoly"></div></div>
       </div>
     </div>
-    <div class="source">→ Bloco 3: <strong>SAEs</strong> — projetar a superposição num espaço maior e esparso para recuperar features limpas.</div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">superposição gera interferência</span></div>
+      <div class="seg found"><span class="lab">a consequência</span><span class="txt">um neurônio mistura features — <b>polissemanticidade</b></span><span class="paper">Elhage et al. 2022</span></div>
+      <div class="seg next"><span class="lab">novo desafio</span><span class="txt">→ como desembaralhar? SAEs</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     11 — SEÇÃO: Bloco 3 (transição com progress-map)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center">
+    <div id="pmap-3"></div>
+    <div class="eyebrow" style="margin-top:18px">Bloco 3</div>
+    <h1 style="font-size:54px;max-width:16em">SAEs: desembaralhar<br>a superposição</h1>
+    <p class="body" style="max-width:32em;font-size:22px">Um <strong>autoencoder esparso</strong> reprojeta a ativação num espaço
+    muito maior, onde cada feature reconquista a sua <strong>própria direção limpa</strong>.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     12 — a ideia do SAE (encoder → features esparsas → decoder)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">12</div>
+    <div class="badge-row"><span class="badge demo">interativo</span></div>
+    <div class="eyebrow">Bloco 3 · a ideia</div>
+    <h1 class="title">Abrir o emaranhado num <span class="hl">espaço maior</span></h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p>O SAE aprende a <strong>reconstruir</strong> a ativação passando por um gargalo
+        muito mais largo — e <em>esparso</em>.</p>
+        <div class="formula" style="font-size:20px;margin:10px 0" id="fx-sae"></div>
+        <ul class="bullets">
+          <li><strong>encoder</strong>: comprime x nas features f(x)</li>
+          <li class="b-azul"><strong>decoder</strong>: reconstrói x̂ a partir delas</li>
+        </ul>
+        <div class="interact-hint">clique para percorrer encoder → features → decoder</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizSae" style="cursor:pointer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">features vivem sobrepostas e emaranhadas</span></div>
+      <div class="seg found"><span class="lab">a ideia</span><span class="txt">um <b>autoencoder esparso</b> as separa de volta</span><span class="paper">Cunningham et al. 2023 · Bricken et al. 2023</span></div>
+      <div class="seg next"><span class="lab">a chave</span><span class="txt">o que força a separação? a esparsidade</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     13 — a esparsidade (poucas features acesas por vez)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">13</div>
+    <div class="badge-row"><span class="badge demo">interativo</span></div>
+    <div class="eyebrow">Bloco 3 · o ingrediente-chave</div>
+    <h1 class="title">Poucas acesas por vez = <span class="hl">monossemânticas</span></h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p>A penalidade de <strong>esparsidade</strong> (L1) obriga o SAE a explicar cada ativação
+        com <em>pouquíssimas</em> features acesas.</p>
+        <div class="card plain mt8">
+          <p style="margin:0"><span id="sp-readout2" class="hl" style="font-weight:700">—</span></p>
+        </div>
+        <p class="mt8">Com poucas ativas, cada uma precisa significar <strong>uma coisa só</strong> — e vira interpretável.</p>
+        <div class="slider-wrap mt16">
+          <input type="range" id="sae-slider" min="1" max="10" value="3" class="viz-slider">
+          <div class="interact-hint">arraste para mudar quantas features acendem</div>
+        </div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizSparse"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">o SAE reprojeta num espaço largo</span></div>
+      <div class="seg found"><span class="lab">a descoberta</span><span class="txt">a <b>esparsidade</b> torna as features monossemânticas</span><span class="paper">Bricken et al. 2023 · Towards Monosemanticity</span></div>
+      <div class="seg next"><span class="lab">o resultado</span><span class="txt">features de fato interpretáveis</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     14 — resultado real + limitações + gancho circuitos
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">14</div>
+    <div class="eyebrow">Bloco 3 · o que ganhamos (e o que falta)</div>
+    <h1 class="title">Features que a gente <span class="hl">lê</span></h1>
+    <div class="cols w5050">
+      <div class="body">
+        <p>Depois de treinar o SAE, olhamos <strong>o que faz cada feature disparar</strong>: quais
+        trechos de texto a acendem. Cada uma acaba correspondendo a <strong>um conceito reconhecível</strong>.</p>
+        <p>Ex.: uma feature só acende quando o texto fala da <span class="hl">ponte Golden Gate</span>;
+        outra, só em <span class="hl-azul">código Python</span>. Viram <strong>detectores de conceito</strong>
+        que a gente lê e nomeia — um por um.</p>
+        <ul class="bullets">
+          <li class="b-verde"><strong>Em escala:</strong> milhões deles num LLM de produção.</li>
+          <li class="b-vermelho"><strong>Mas com ressalvas:</strong> muitas features nunca disparam (aprendidas à toa);
+          o x̂ reconstruído nunca é idêntico ao original; e dizer se uma feature é <em>mesmo</em> "um conceito só"
+          ainda depende de um humano olhando exemplos.</li>
+        </ul>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizFeatEx"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">esparsidade dá features interpretáveis</span></div>
+      <div class="seg found"><span class="lab">a demonstração</span><span class="txt">features nítidas em escala real (ex.: <b>Golden Gate</b>)</span><span class="paper">Templeton et al. 2024 · Scaling Monosemanticity</span></div>
+      <div class="seg next"><span class="lab">novo desafio</span><span class="txt">→ features soltas não explicam o cálculo. Circuitos</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     15 — SEÇÃO: Bloco 4 (transição com progress-map)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center">
+    <div id="pmap-4"></div>
+    <div class="eyebrow" style="margin-top:18px">Bloco 4</div>
+    <h1 style="font-size:54px;max-width:16em">Circuitos: features<br>que computam juntas</h1>
+    <p class="body" style="max-width:32em;font-size:22px">Uma feature sozinha é um substantivo. O <strong>verbo</strong> aparece quando várias
+    se conectam entre camadas para executar um <strong>algoritmo</strong>.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     16 — o que é um circuito
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">16</div>
+    <div class="eyebrow">Bloco 4 · a ideia</div>
+    <h1 class="title">Um <span class="hl">caminho de cálculo</span></h1>
+    <div class="cols w6040">
+      <div class="body">
+        <p>Componentes do modelo — cabeças de atenção, neurônios de MLP — <strong>lêem</strong> features
+        de camadas anteriores e <strong>escrevem</strong> novas adiante.</p>
+        <div class="card plain mt8">
+          <p style="margin:0">Um <strong>circuito</strong> é o subconjunto desses componentes que, juntos,
+          implementam <em>uma tarefa específica</em> — ligados numa cadeia de causa e efeito.</p>
+        </div>
+        <p class="mt16">Achar o circuito = achar <strong>quais peças</strong> importam para aquela tarefa,
+        e <strong>como</strong> a informação flui entre elas.</p>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizCircuit"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">features são os "substantivos" do modelo</span></div>
+      <div class="seg found"><span class="lab">a ideia</span><span class="txt">conectadas, formam <b>circuitos</b> que rodam algoritmos</span><span class="paper">Olah et al. 2020 · Zoom In</span></div>
+      <div class="seg next"><span class="lab">exemplo</span><span class="txt">o circuito de indução, passo a passo</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     17 — VIZ-ÂNCORA: circuito de indução (Harry...Harry→Potter)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">17</div>
+    <div class="badge-row"><span class="badge demo">interativo</span><span class="badge tech">exemplo canônico</span></div>
+    <div class="eyebrow">Bloco 4 · o circuito de indução</div>
+    <h1 class="title">“Já vi isso antes — <span class="hl">copio o que veio depois</span>”</h1>
+    <div class="cols" style="grid-template-columns:0.7fr 1.3fr;gap:36px">
+      <div class="body">
+        <p>Ao ver <em>“Harry”</em> pela 2ª vez, o modelo prevê <em>“Potter”</em> — porque foi o que
+        seguiu o 1º <em>“Harry”</em>.</p>
+        <p>Duas cabeças em sequência bastam:</p>
+        <ul class="bullets">
+          <li class="b-azul"><strong>previous-token:</strong> marca quem veio antes de cada token.</li>
+          <li><strong>induction:</strong> volta à ocorrência anterior e copia o próximo.</li>
+        </ul>
+        <div class="interact-hint">clique para montar o circuito passo a passo</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizInduction" style="cursor:pointer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">circuitos ligam componentes numa cadeia</span></div>
+      <div class="seg found"><span class="lab">o achado</span><span class="txt">a <b>induction head</b> implementa cópia de padrões</span><span class="paper">Elhage et al. 2021 · Olsson et al. 2022</span></div>
+      <div class="seg next"><span class="lab">a dúvida</span><span class="txt">como provar que é ESSE circuito?</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     18 — como se descobre um circuito + gancho intervenção
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">18</div>
+    <div class="eyebrow">Bloco 4 · da observação à prova</div>
+    <h1 class="title">Observar não é <span style="color:#DC2626">provar</span></h1>
+    <div class="cols w6040">
+      <div class="body">
+        <p>Ver duas cabeças "acenderem juntas" é <strong>correlação</strong>. Elas realmente
+        <em>causam</em> a previsão — ou só acompanham?</p>
+        <div class="card plain mt8">
+          <p style="margin:0">A prova de verdade: <strong>mexer</strong> no circuito e ver a saída mudar.
+          Se desligo a induction head e a previsão quebra, ela era causal.</p>
+        </div>
+        <p class="mt16">É aí que a interpretabilidade deixa de <em>descrever</em> e passa a <strong>testar</strong>.</p>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizObsProof"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">traçamos o circuito de indução</span></div>
+      <div class="seg found"><span class="lab">o limite</span><span class="txt">correlação ≠ causa — observar não basta</span></div>
+      <div class="seg next"><span class="lab">o clímax</span><span class="txt">→ intervir no modelo: patching, steering, ablação</span></div>
+    </div>
   </div>
 </section>
 
@@ -280,15 +519,8 @@ function progressMap(targetId, nowIdx){
 }
 progressMap('pmap-1', 0);
 
-/* directions in activation space (slide 5) */
-setViz('vizDirs', VIZ.plane2D({w:440,h:360,id:'fd',
-  axisLabels:['dim. 1','dim. 2'],
-  vectors:[
-    {x:0.70,y:0.52,label:'gato',   color:'#6B21A8'},
-    {x:0.78,y:0.28,label:'felino', color:'#0891B2', lx:8, ly:16},
-    {x:0.34,y:0.88,label:'Paris',  color:'#DB2777'},
-    {x:0.16,y:0.54,label:'plural', color:'#059669', lx:-4, ly:-12}
-  ]}));
+/* direction vs dimension (slide 05): axes = dimensions, feature = arbitrary direction */
+setViz('vizDirs', VIZ.dirVsDim({w:440,h:360,id:'dd'}));
 
 /* crowding (slide 06): count mismatch — many features overflow few dims */
 setViz('vizCrowd', VIZ.featureOverflow({w:420,h:380,id:'crowd',nSlots:4}));
@@ -330,7 +562,7 @@ fx('fx-dot', '\\mathbf{d}_i \\cdot \\mathbf{d}_j = \\lVert\\mathbf{d}_i\\rVert\\
     const r=VIZ.interferencia({w:440,h:340,id:'intf',deg:d});
     setViz('vizInterf', r.svg);
     const ro=document.getElementById('if-readout');
-    if(ro) ro.innerHTML = `θ = <b style="color:#1A1A2E">${d}°</b> · cos θ = <b>${r.cos}</b>`;
+    if(ro) ro.innerHTML = `θ = <b style="color:#1A1A2E">${d}°</b> · cos θ = <b style="color:${r.zoneColor}">${r.cos}</b> <span style="color:${r.zoneColor};font-size:16px">● ${r.zoneLabel}</span>`;
     const pct=(d/90)*100; sl.style.setProperty('--fill', pct+'%');
   }
   sl.addEventListener('input', upd); upd();
@@ -338,6 +570,78 @@ fx('fx-dot', '\\mathbf{d}_i \\cdot \\mathbf{d}_j = \\lVert\\mathbf{d}_i\\rVert\\
 
 /* slide 10 — polissemanticidade (neurônio ↔ várias features) */
 setViz('vizPoly', VIZ.featureCloud({w:360,h:340,id:'poly'}));
+
+/* ---- Bloco 3 ---- */
+progressMap('pmap-3', 2);
+fx('fx-sae', 'f(x)=\\text{ReLU}(W_{enc}x+b)\\;\\;;\\;\\;\\hat{x}=W_{dec}f(x)');
+
+/* slide 12 — SAE encoder/decoder, click to reveal stages */
+(function(){
+  let stage=0;
+  function render(){
+    setViz('vizSae', VIZ.saeDiagram({w:460,h:320,id:'saeA',stage,nFeat:10,litSet:[1,4,7],showRecon:true}));
+    const node=document.querySelector('#vizSae');
+    if(node) node.onclick=()=>{ stage = stage>=2 ? 0 : stage+1; render(); };
+  }
+  render();
+})();
+
+/* slide 13 — sparsity: how many features light up */
+(function(){
+  const sl=document.getElementById('sae-slider');
+  function pickLit(k){ // escolhe k features acesas de 10, espalhadas
+    const all=[0,3,6,9,1,7,4,2,8,5]; return all.slice(0,k).sort((a,b)=>a-b);
+  }
+  function upd(){
+    const k=+sl.value;
+    setViz('vizSparse', VIZ.saeDiagram({w:460,h:340,id:'sparseA',stage:1,nFeat:10,litSet:pickLit(k),showRecon:false}));
+    const ro=document.getElementById('sp-readout2');
+    if(ro){
+      const tag = k<=3 ? '<span style="color:#059669">esparso → interpretável</span>'
+               : k<=6 ? '<span style="color:#D97706">denso demais</span>'
+               : '<span style="color:#DC2626">volta a emaranhar</span>';
+      ro.innerHTML = `${k} de 10 features acesas · ${tag}`;
+    }
+    const pct=((k-1)/9)*100; sl.style.setProperty('--fill', pct+'%');
+  }
+  sl.addEventListener('input', upd); upd();
+})();
+
+/* slide 14 — real, readable SAE features */
+setViz('vizFeatEx', VIZ.featureCards({w:400,h:392,id:'fk'}));
+
+/* ---- Bloco 4 ---- */
+progressMap('pmap-4', 3);
+
+/* slide 16 — o que é um circuito (cadeia de componentes) */
+setViz('vizCircuit', VIZ.attribGraph({w:300,h:300,id:'cir',nodes:[
+  {label:'token de entrada', y:0},
+  {label:'previous-token head', y:0.34},
+  {label:'induction head', y:0.66},
+  {label:'previsão', y:1, out:true}
+]}));
+
+/* slide 17 — VIZ-ÂNCORA: circuito de indução, click to build stages */
+(function(){
+  let stage=1;
+  function render(){
+    setViz('vizInduction', VIZ.inductionCircuit({w:520,h:340,id:'indA',stage}));
+    const node=document.querySelector('#vizInduction');
+    if(node) node.onclick=()=>{ stage = stage>=3 ? 1 : stage+1; render(); };
+  }
+  render();
+})();
+
+/* slide 18 — observar vs provar: ablação quebra a previsão (clique alterna) */
+(function(){
+  let abl=false;
+  function render(){
+    setViz('vizObsProof', VIZ.inductionCircuit({w:520,h:340,id:'ablA',stage:3,ablated:abl}));
+    const node=document.querySelector('#vizObsProof');
+    if(node) node.onclick=()=>{ abl=!abl; render(); };
+  }
+  render();
+})();
 </script>
 </body>
 </html>

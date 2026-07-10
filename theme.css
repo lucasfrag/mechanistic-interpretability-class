@@ -87,6 +87,7 @@
 .cols{ display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start; }
 .cols.w6040{ grid-template-columns:1.35fr 1fr; }
 .cols.w4060{ grid-template-columns:1fr 1.35fr; }
+.cols.w5050{ grid-template-columns:1fr 1fr; }
 
 /* corpo de texto denso */
 .body{ font-size:20px; color:var(--ink-soft); }
@@ -110,6 +111,21 @@
 /* fonte/crédito */
 .source{ position:absolute; left:66px; bottom:26px; right:66px;
   font-family:"Inter",sans-serif; font-size:14px; font-style:italic; color:var(--muted); }
+
+/* Rodapé estruturado: sabíamos X → paper Y descobriu Z → novo desafio */
+.discovery{ position:absolute; left:66px; right:66px; bottom:22px;
+  display:flex; align-items:stretch; gap:0; font-family:"Inter",sans-serif;
+  border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#FCFBFE; }
+.discovery .seg{ flex:1; padding:9px 16px; display:flex; flex-direction:column; gap:1px; }
+.discovery .seg + .seg{ border-left:1px solid var(--line); }
+.discovery .lab{ font-size:10px; font-weight:800; letter-spacing:0.09em; text-transform:uppercase; }
+.discovery .txt{ font-size:13px; color:var(--ink-soft); line-height:1.28; }
+.discovery .seg.knew .lab{ color:var(--muted); }
+.discovery .seg.found .lab{ color:var(--purple); }
+.discovery .seg.found .txt{ color:var(--ink); }
+.discovery .seg.found .txt b{ color:var(--purple); }
+.discovery .seg.next .lab{ color:#DC2626; }
+.discovery .paper{ font-style:italic; color:var(--muted); font-size:11.5px; margin-top:1px; }
 
 /* frase-âncora centralizada */
 .anchor{ text-align:center; font-family:"Playfair Display",serif; font-style:italic;
@@ -223,12 +239,8 @@ input[type=range].vrange::-webkit-slider-thumb{ -webkit-appearance:none; appeara
 .mt8{margin-top:8px} .mt16{margin-top:16px} .mt24{margin-top:24px}
 .center{ text-align:center; } .muted{ color:var(--muted); }
 .hl{ background:linear-gradient(transparent 60%, var(--purple-lt) 60%); }
-/* Título usa serif (Playfair) com métrica diferente — a faixa do highlight
-   precisa subir para ficar ATRÁS do texto, não embaixo. */
-.title .hl{
-  background:linear-gradient(transparent 15%, var(--purple-lt) 15%, var(--purple-lt) 88%, transparent 88%);
-  padding:0 2px;
-}
+/* Nos títulos (serif), sem marca-texto: só a cor roxa no texto. */
+.title .hl{ background:none; color:var(--purple); }
 
 /* ============ SLIDES "SOB O CAPÔ" (rigor matemático) ============ */
 .hood{ background:#F4F6FB; }

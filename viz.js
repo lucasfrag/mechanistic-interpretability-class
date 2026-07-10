@@ -825,7 +825,7 @@ function mapTerritory(opts) {
 }
 
 if (typeof window !== "undefined") {
-  window.VIZ = { plane2D, fanVectors, miniNet, saeDiagram, transformerStack, attribGraph, superposition, causalChain, lossBalance, patchingDiagram, logitLens, indirectEffect, eapViz, featureCloud, mapTerritory, patchingLive, jlCurve, vecAlgebra, normBall, ieRuler, taylorTangent, transformerBoard, polygonSuperposition, interferencia, polygonFeatures, featureOverflow };
+  window.VIZ = { plane2D, fanVectors, miniNet, saeDiagram, transformerStack, attribGraph, superposition, causalChain, lossBalance, patchingDiagram, logitLens, indirectEffect, eapViz, featureCloud, mapTerritory, patchingLive, jlCurve, vecAlgebra, normBall, ieRuler, taylorTangent, transformerBoard, polygonSuperposition, interferencia, polygonFeatures, featureOverflow, dirVsDim, featureCards, inductionCircuit };
 }
 
 /* ============================================================
@@ -1135,31 +1135,42 @@ function interferencia(opts) {
   const rad = deg * Math.PI / 180;
   const cos = Math.cos(rad);
   const leak = Math.abs(cos);
+  // zona de saúde por interferência (|cos θ|): baixa=verde, média=laranja, alta=vermelho
+  let zoneColor, zoneLabel;
+  if (leak < 0.30)      { zoneColor = "#059669"; zoneLabel = "saudável"; }
+  else if (leak < 0.65) { zoneColor = "#D97706"; zoneLabel = "tolerável"; }
+  else                  { zoneColor = "#DC2626"; zoneLabel = "interferência alta"; }
   let g = "";
   // eixo leve
   g += el("line", { class: "axis", x1: ox, y1: oy, x2: ox, y2: oy - L - 24, stroke: "#E4E4EE", "stroke-width": 2, "marker-end": `url(#ifax-${id})`, opacity: 0.5 });
-  // dᵢ fixo horizontal (roxo)
+  // dᵢ fixo horizontal (roxo, referência)
   g += el("line", { x1: ox, y1: oy, x2: ox + L, y2: oy, stroke: "#6B21A8", "stroke-width": 5, "marker-end": `url(#ifi-${id})` });
   g += el("text", { x: ox + L + 10, y: oy + 6, fill: "#6B21A8", "font-size": 19, "font-weight": 700 }, "dᵢ");
-  // dⱼ móvel (azul)
+  // dⱼ móvel — COR reflete a zona de interferência
   const ex = ox + L * Math.cos(rad), ey = oy - L * Math.sin(rad);
-  g += el("line", { x1: ox, y1: oy, x2: ex, y2: ey, stroke: "#0891B2", "stroke-width": 5, "marker-end": `url(#ifj-${id})` });
-  g += el("text", { x: ex + 8, y: ey - 6, fill: "#0891B2", "font-size": 19, "font-weight": 700 }, "dⱼ");
-  // arco do ângulo θ
+  g += el("line", { x1: ox, y1: oy, x2: ex, y2: ey, stroke: zoneColor, "stroke-width": 5, "marker-end": `url(#ifj-${id})` });
+  g += el("text", { x: ex + 8, y: ey - 6, fill: zoneColor, "font-size": 19, "font-weight": 700 }, "dⱼ");
+  // arco do ângulo θ — também na cor da zona
   const r = 46, large = deg > 180 ? 1 : 0;
   g += el("path", { d: `M ${ox + r} ${oy} A ${r} ${r} 0 ${large} 0 ${ox + r * Math.cos(rad)} ${oy - r * Math.sin(rad)}`,
-    fill: "none", stroke: "#D97706", "stroke-width": 2.5 });
+    fill: "none", stroke: zoneColor, "stroke-width": 2.5 });
   g += el("text", { x: ox + (r + 16) * Math.cos(rad / 2), y: oy - (r + 16) * Math.sin(rad / 2) + 6,
-    fill: "#D97706", "font-size": 17, "font-weight": 700 }, "θ");
-  // projeção (o "vazamento" de dⱼ sobre dᵢ) — linha pontilhada
+    fill: zoneColor, "font-size": 17, "font-weight": 700 }, "θ");
+  // projeção (o "vazamento" de dⱼ sobre dᵢ) — barra grossa na cor da zona + tracejado
   const px = ox + L * cos;
-  g += el("line", { x1: ex, y1: ey, x2: px, y2: oy, stroke: "#DC2626", "stroke-width": 1.5, "stroke-dasharray": "3 3", opacity: 0.7 });
+  g += el("line", { x1: ex, y1: ey, x2: px, y2: oy, stroke: zoneColor, "stroke-width": 1.5, "stroke-dasharray": "3 3", opacity: 0.55 });
+  g += el("line", { x1: ox, y1: oy, x2: px, y2: oy, stroke: zoneColor, "stroke-width": 7, opacity: 0.85, "stroke-linecap": "round" });
+  g += el("text", { x: (ox + px) / 2, y: oy + 22, "text-anchor": "middle", fill: zoneColor, "font-size": 12, "font-weight": 700, "font-style": "italic" }, "vazamento");
+  // selo da zona (canto sup. dir. da viz)
+  g += el("rect", { x: w - 150, y: 12, width: 138, height: 26, rx: 13, fill: zoneColor, opacity: 0.12 });
+  g += el("circle", { cx: w - 134, cy: 25, r: 5, fill: zoneColor });
+  g += el("text", { x: w - 122, y: 30, fill: zoneColor, "font-size": 13, "font-weight": 700 }, zoneLabel);
   const defs =
     el("marker", { id: `ifi-${id}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#6B21A8" })) +
-    el("marker", { id: `ifj-${id}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#0891B2" })) +
+    el("marker", { id: `ifj-${id}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: zoneColor })) +
     el("marker", { id: `ifax-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#C9C9D4" }));
   return { svg: el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g),
-           deg, cos: cos.toFixed(2), leak };
+           deg, cos: cos.toFixed(2), leak, zoneColor, zoneLabel };
 }
 
 /* ============================================================
@@ -1229,3 +1240,141 @@ function featureOverflow(opts) {
   return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
 }
 
+
+/* ============================================================
+   27) DIREÇÃO × DIMENSÃO — desfaz a confusão do slide 05.
+       Os EIXOS são as dimensões (neurônios) do espaço de ativação.
+       Uma FEATURE é uma direção ARBITRÁRIA — combinação dos eixos.
+   ============================================================ */
+function dirVsDim(opts) {
+  const { w = 420, h = 360, id = "dd" } = opts;
+  const pad = 54, ox = pad, oy = h - pad;
+  const S = Math.min(w - pad * 1.8, h - pad * 1.8);
+  let g = "";
+  g += el("line", { x1: ox, y1: oy, x2: ox + S + 22, y2: oy, stroke: "#0891B2", "stroke-width": 3, "marker-end": `url(#ddax-${id})` });
+  g += el("line", { x1: ox, y1: oy, x2: ox, y2: oy - S - 22, stroke: "#0891B2", "stroke-width": 3, "marker-end": `url(#ddax-${id})` });
+  g += el("text", { x: ox + S + 8, y: oy + 24, "text-anchor": "end", fill: "#0891B2", "font-size": 14, "font-weight": 700 }, "dim 1 = neurônio");
+  g += el("text", { x: ox - 10, y: oy - S - 8, fill: "#0891B2", "font-size": 14, "font-weight": 700 }, "dim 2");
+  const fx = 0.82, fy = 0.66;
+  const ex = ox + fx * S, ey = oy - fy * S;
+  g += el("line", { x1: ex, y1: ey, x2: ex, y2: oy, stroke: "#9333EA", "stroke-width": 1.5, "stroke-dasharray": "4 3", opacity: 0.55 });
+  g += el("line", { x1: ex, y1: ey, x2: ox, y2: ey, stroke: "#9333EA", "stroke-width": 1.5, "stroke-dasharray": "4 3", opacity: 0.55 });
+  g += el("line", { x1: ox, y1: oy, x2: ex, y2: ey, stroke: "#6B21A8", "stroke-width": 5, "marker-end": `url(#ddf-${id})` });
+  g += el("text", { x: ex + 8, y: ey - 6, fill: "#6B21A8", "font-size": 17, "font-weight": 700, "font-family": "'Playfair Display',serif" }, "\u201Crealeza\u201D");
+  g += el("text", { x: ex + 8, y: ey + 13, fill: "#6B21A8", "font-size": 12, "font-style": "italic", "opacity": 0.8 }, "(uma direção)");
+  g += el("text", { x: ox + S * 0.5, y: oy - S - 2, "text-anchor": "middle", fill: "#71717A", "font-size": 12, "font-style": "italic" }, "uma feature combina várias dimensões");
+  const defs =
+    el("marker", { id: `ddax-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#0891B2" })) +
+    el("marker", { id: `ddf-${id}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#6B21A8" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   28) FEATURE CARDS — features de SAE reais, nomeadas e legíveis.
+       Cada cartão: nome da feature + mini-barra de "ativação".
+       Transmite "features que a gente LÊ" (slide 14).
+   ============================================================ */
+function featureCards(opts) {
+  const { w = 400, h = 380, id = "fk" } = opts;
+  const cards = [
+    { name: "Ponte Golden Gate", act: 0.94, col: "#DB2777" },
+    { name: "código em Python", act: 0.81, col: "#0891B2" },
+    { name: "sequências de DNA", act: 0.72, col: "#059669" },
+    { name: "tom sarcástico", act: 0.63, col: "#6B21A8" },
+    { name: "nomes de cidades", act: 0.55, col: "#D97706" },
+  ];
+  const pad = 8, topH = 22, cw = w - pad * 2, ch = 54, gap = 11;
+  let g = "";
+  // cabeçalho explicativo
+  g += el("text", { x: pad + 2, y: 14, fill: "#71717A", "font-size": 12, "font-weight": 700, "letter-spacing": "0.04em" }, "FEATURE");
+  g += el("text", { x: w - pad - 2, y: 14, "text-anchor": "end", fill: "#71717A", "font-size": 12, "font-weight": 700, "letter-spacing": "0.04em" }, "O QUANTO DISPARA");
+  cards.forEach((c, i) => {
+    const y = topH + pad + i * (ch + gap);
+    g += el("rect", { x: pad, y, width: cw, height: ch, rx: 12, fill: "#FCFBFE", stroke: "#E4E4EE", "stroke-width": 1.5 });
+    // ponto colorido + nome
+    g += el("circle", { cx: pad + 20, cy: y + 21, r: 7, fill: c.col });
+    g += el("text", { x: pad + 36, y: y + 26, fill: "#1A1A2E", "font-size": 16, "font-weight": 700 }, c.name);
+    // mini-barra de ativação
+    const barX = pad + 36, barY = y + 38, barW = cw - 52;
+    g += el("rect", { x: barX, y: barY, width: barW, height: 8, rx: 4, fill: "#EDEDF2" });
+    g += el("rect", { x: barX, y: barY, width: barW * c.act, height: 8, rx: 4, fill: c.col });
+    g += el("text", { x: pad + cw - 8, y: y + 26, "text-anchor": "end", fill: c.col, "font-size": 13, "font-weight": 700 }, `${Math.round(c.act * 100)}%`);
+  });
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   29) CIRCUITO DE INDUÇÃO — o circuito canônico de NLP.
+       Fita de tokens "... Harry Potter ... Harry [?]". Duas cabeças:
+       (1) previous-token head liga cada token ao anterior;
+       (2) induction head volta da 2ª ocorrência de "Harry" para a 1ª
+       e copia o token seguinte → prevê "Potter".
+       stage: 1 = só tokens; 2 = + previous-token; 3 = + induction + previsão
+   ============================================================ */
+function inductionCircuit(opts) {
+  const { w = 460, h = 360, id = "ind", stage = 3, ablated = false } = opts;
+  const toks = ["Harry", "Potter", "leu", "o", "livro", ".", "Harry", "?"];
+  const n = toks.length;
+  const pad = 18, rpad = 30, bw = (w - pad - rpad) / n, by = h * 0.60, bh = 40;
+  const cx = (i) => pad + bw * i + bw / 2;
+  let g = "";
+  // fita de tokens
+  toks.forEach((t, i) => {
+    const isQ = t === "?";
+    const isKey = (i === 0 || i === 6); // os dois "Harry"
+    const x = pad + bw * i + 3;
+    g += el("rect", { x, y: by, width: bw - 6, height: bh, rx: 8,
+      fill: isQ ? "#FFF7ED" : (isKey && stage >= 2 ? "#F3E8FC" : "#F7F7FA"),
+      stroke: isQ ? "#D97706" : (isKey && stage >= 2 ? "#6B21A8" : "#E4E4EE"), "stroke-width": isKey && stage >= 2 ? 2 : 1.2 });
+    g += el("text", { x: cx(i), y: by + 25, "text-anchor": "middle",
+      fill: isQ ? "#D97706" : "#1A1A2E", "font-size": 15, "font-weight": isKey ? 700 : 500,
+      "font-family": "'Inter',sans-serif" }, t);
+    // índice
+    g += el("text", { x: cx(i), y: by + bh + 16, "text-anchor": "middle", fill: "#B8B8C0", "font-size": 11 }, `t${i}`);
+  });
+
+  // (1) previous-token head: arquinhos curtos ligando i → i-1 (acima da fita)
+  if (stage >= 2) {
+    for (let i = 1; i < n - 1; i++) {
+      const x2 = cx(i), x1 = cx(i - 1), yTop = by - 14;
+      g += el("path", { d: `M ${x1} ${by - 2} C ${x1} ${yTop - 18}, ${x2} ${yTop - 18}, ${x2} ${by - 2}`,
+        fill: "none", stroke: "#0891B2", "stroke-width": 1.5, opacity: 0.5 });
+    }
+    g += el("text", { x: pad, y: by - 34, fill: "#0891B2", "font-size": 12, "font-weight": 700 }, "① previous-token head: “de onde eu vim?”");
+  }
+
+  // (2) induction head: arco grande do 2º "Harry" (i=6) de volta ao 1º (i=0)
+  if (stage >= 3) {
+    const xA = cx(6), xB = cx(0), yArc = by - 70;
+    const headCol = ablated ? "#C9C9D4" : "#6B21A8";
+    g += el("path", { d: `M ${xA} ${by - 4} C ${xA} ${yArc}, ${xB} ${yArc}, ${xB} ${by - 4}`,
+      fill: "none", stroke: headCol, "stroke-width": 3, "marker-end": `url(#indh-${id})`,
+      ...(ablated ? { "stroke-dasharray": "4 5", opacity: 0.5 } : {}) });
+    g += el("text", { x: (xA + xB) / 2, y: yArc - 6, "text-anchor": "middle", fill: headCol,
+      "font-size": 13, "font-weight": 700 }, ablated ? "② induction head — DESLIGADA" : "② induction head: “já vi ‘Harry’ — o que veio depois?”");
+    if (ablated) {
+      // X sobre o arco
+      const mxx = (xA + xB) / 2, myy = yArc + 8;
+      g += el("line", { x1: mxx - 12, y1: myy - 12, x2: mxx + 12, y2: myy + 12, stroke: "#DC2626", "stroke-width": 3 });
+      g += el("line", { x1: mxx - 12, y1: myy + 12, x2: mxx + 12, y2: myy - 12, stroke: "#DC2626", "stroke-width": 3 });
+    }
+    if (!ablated) {
+      // copia o token seguinte ao 1º Harry (i=1 = "Potter") para a previsão (i=7)
+      const xP = cx(1), xPred = cx(7);
+      g += el("path", { d: `M ${xP} ${by + bh + 4} C ${xP} ${by + bh + 40}, ${xPred} ${by + bh + 40}, ${xPred} ${by + bh + 4}`,
+        fill: "none", stroke: "#059669", "stroke-width": 2.5, "stroke-dasharray": "6 4", "marker-end": `url(#indg-${id})` });
+      g += el("rect", { x: pad + bw * 7 + 3, y: by, width: bw - 6, height: bh, rx: 8, fill: "#ECFDF5", stroke: "#059669", "stroke-width": 2.5 });
+      g += el("text", { x: cx(7), y: by + 25, "text-anchor": "middle", fill: "#059669", "font-size": 15, "font-weight": 700 }, "Potter");
+      g += el("text", { x: cx(7), y: by + bh + 54, "text-anchor": "end", fill: "#059669", "font-size": 12, "font-weight": 700, "font-style": "italic" }, "copiado → previsão");
+    } else {
+      // previsão quebra
+      g += el("rect", { x: pad + bw * 7 + 3, y: by, width: bw - 6, height: bh, rx: 8, fill: "#FEF2F2", stroke: "#DC2626", "stroke-width": 2.5 });
+      g += el("text", { x: cx(7), y: by + 25, "text-anchor": "middle", fill: "#DC2626", "font-size": 17, "font-weight": 700 }, "???");
+      g += el("text", { x: cx(7), y: by + bh + 54, "text-anchor": "middle", fill: "#DC2626", "font-size": 12, "font-weight": 700, "font-style": "italic" }, "previsão quebra");
+    }
+  }
+  const defs =
+    el("marker", { id: `indh-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#6B21A8" })) +
+    el("marker", { id: `indg-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#059669" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
