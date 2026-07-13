@@ -440,10 +440,11 @@ function attribGraph(opts) {
   nodes.forEach((nd) => {
     const out = nd.out;
     const y = ny(nd.y);
-    g += el("rect", { x: X - 78, y: y - 4, width: 156, height: 46, rx: 12,
+    const bw = 176, fs = nd.label.length > 16 ? 13 : 16;
+    g += el("rect", { x: X - bw / 2, y: y - 4, width: bw, height: 46, rx: 12,
       fill: out ? "#6B21A8" : "#F3E8FC", stroke: out ? "#6B21A8" : "none", "stroke-width": 1 });
-    g += el("text", { x: X, y: y + 24, "text-anchor": "middle",
-      fill: out ? "#fff" : "#6B21A8", "font-size": 18, "font-weight": 700 }, nd.label);
+    g += el("text", { x: X, y: y + 25, "text-anchor": "middle",
+      fill: out ? "#fff" : "#6B21A8", "font-size": fs, "font-weight": 700 }, nd.label);
   });
   const defs = el("marker", { id: `agah-${id}`, markerWidth: 9, markerHeight: 9, refX: 6, refY: 3,
     orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#B8B8C0" }));
@@ -635,44 +636,62 @@ function patchingDiagram(opts) {
    ============================================================ */
 function logitLens(opts) {
   const { w = 300, h = 300, id = "ll", peekLayer = 2, nLayers = 5 } = opts;
-  const streamX = 70, top = 30, bot = h - 30;
+  const streamX = 62, top = 40, bot = h - 44;
   const gap = (bot - top) / (nLayers - 1);
   let g = "";
+  // previsão em formação por camada (rasa → profunda): converge para "Paris"
+  const perLayer = [
+    [["the", 0.22], ["a", 0.18], ["it", 0.12], ["Paris", 0.05]],
+    [["city", 0.24], ["the", 0.16], ["Paris", 0.15], ["France", 0.10]],
+    [["Paris", 0.34], ["France", 0.20], ["city", 0.12], ["Lyon", 0.08]],
+    [["Paris", 0.61], ["France", 0.14], ["Lyon", 0.06], ["city", 0.04]],
+    [["Paris", 0.88], ["Lyon", 0.04], ["France", 0.03], ["Nice", 0.02]],
+  ];
+  const dist = perLayer[Math.min(peekLayer, perLayer.length - 1)];
   // residual stream
   g += el("line", { x1: streamX, y1: top, x2: streamX, y2: bot, stroke: "#D8D8DE", "stroke-width": 3 });
-  // camadas (nós), a espiada destacada como xL
   for (let k = 0; k < nLayers; k++) {
     const y = bot - k * gap;
     const isPeek = k === peekLayer;
     if (isPeek) {
-      g += el("g", { class: "vterm", "data-term": "xL" },
-        el("circle", { cx: streamX, cy: y, r: 13, fill: "#E9DEF5", stroke: "#6B21A8", "stroke-width": 3 }) +
-        el("text", { x: streamX - 22, y: y + 5, "text-anchor": "end", fill: "#6B21A8", "font-size": 15, "font-weight": 700 }, "xₗ"));
+      g += el("circle", { cx: streamX, cy: y, r: 13, fill: "#E9DEF5", stroke: "#6B21A8", "stroke-width": 3 });
+      g += el("text", { x: streamX, y: y + 4, "text-anchor": "middle", fill: "#6B21A8", "font-size": 11, "font-weight": 700 }, "L" + k);
     } else {
-      g += el("circle", { cx: streamX, cy: y, r: 10, fill: "#EDEDF0", stroke: "#C9B8DD", "stroke-width": 1.5 });
+      g += el("circle", { cx: streamX, cy: y, r: 9, fill: "#EDEDF0", stroke: "#C9B8DD", "stroke-width": 1.5 });
+      g += el("text", { x: streamX, y: y + 3.5, "text-anchor": "middle", fill: "#A99BC0", "font-size": 9 }, "L" + k);
     }
   }
-  g += el("text", { x: streamX, y: bot + 18, "text-anchor": "middle", fill: "#71717A", "font-size": 12 }, "camadas");
-  // seta de projeção lateral a partir da camada espiada
+  g += el("text", { x: streamX, y: bot + 20, "text-anchor": "middle", fill: "#71717A", "font-size": 11 }, "camadas");
+  g += el("text", { x: streamX, y: top - 18, "text-anchor": "middle", fill: "#71717A", "font-size": 11, "font-style": "italic" }, "profundas");
   const py = bot - peekLayer * gap;
-  // caixa LN
-  const lnX = streamX + 60;
-  g += el("g", { class: "vterm", "data-term": "LN" },
-    el("line", { x1: streamX + 13, y1: py, x2: lnX - 22, y2: py, stroke: "#0891B2", "stroke-width": 2.5, "marker-end": `url(#llh-${id})` }) +
-    el("rect", { x: lnX - 22, y: py - 16, width: 44, height: 32, rx: 7, fill: "#E0F2FE", stroke: "#0891B2", "stroke-width": 2 }) +
-    el("text", { x: lnX, y: py + 5, "text-anchor": "middle", fill: "#0891B2", "font-size": 13, "font-weight": 700 }, "LN"));
-  // caixa W_U (unembedding)
-  const wuX = lnX + 66;
-  g += el("g", { class: "vterm", "data-term": "WU" },
-    el("line", { x1: lnX + 22, y1: py, x2: wuX - 22, y2: py, stroke: "#DB2777", "stroke-width": 2.5, "marker-end": `url(#llh2-${id})` }) +
-    el("rect", { x: wuX - 22, y: py - 16, width: 44, height: 32, rx: 7, fill: "#FCE7F3", stroke: "#DB2777", "stroke-width": 2 }) +
-    el("text", { x: wuX, y: py + 5, "text-anchor": "middle", fill: "#DB2777", "font-size": 13, "font-weight": 700 }, "Wᵤ"));
-  // distribuição de saída (barras)
-  const dbX = wuX + 30;
-  const bars = [0.5, 0.8, 0.35, 0.62];
-  bars.forEach((b, i) => g += el("rect", { x: dbX, y: py - 24 + i * 13, width: 40 * b, height: 9, rx: 2,
-    fill: i === 1 ? "#6B21A8" : "#D8D8DE" }));
-  g += el("text", { x: dbX + 20, y: py + 40, "text-anchor": "middle", fill: "#71717A", "font-size": 11, "font-style": "italic" }, "previsão");
+  // LN → W_U em sequência
+  const lnX = streamX + 52;
+  g += el("line", { x1: streamX + 13, y1: py, x2: lnX - 18, y2: py, stroke: "#0891B2", "stroke-width": 2.5, "marker-end": `url(#llh-${id})` });
+  g += el("rect", { x: lnX - 18, y: py - 14, width: 36, height: 28, rx: 6, fill: "#E0F2FE", stroke: "#0891B2", "stroke-width": 2 });
+  g += el("text", { x: lnX, y: py + 4, "text-anchor": "middle", fill: "#0891B2", "font-size": 12, "font-weight": 700 }, "LN");
+  const wuX = lnX + 54;
+  g += el("line", { x1: lnX + 18, y1: py, x2: wuX - 18, y2: py, stroke: "#DB2777", "stroke-width": 2.5, "marker-end": `url(#llh2-${id})` });
+  g += el("rect", { x: wuX - 18, y: py - 14, width: 36, height: 28, rx: 6, fill: "#FCE7F3", stroke: "#DB2777", "stroke-width": 2 });
+  g += el("text", { x: wuX, y: py + 4, "text-anchor": "middle", fill: "#DB2777", "font-size": 12, "font-weight": 700 }, "Wᵤ");
+  // --- painel de previsão REAL em formação (barras de tokens, muda por camada) ---
+  const pbX = wuX + 30, pbY = 44, pbW = w - pbX - 16, pbH = h - 88;
+  g += el("rect", { x: pbX, y: pbY, width: pbW, height: pbH, rx: 10, fill: "#FCFBFE", stroke: "#E4E4EE", "stroke-width": 1.5 });
+  g += el("text", { x: pbX + 12, y: pbY + 20, fill: "#71717A", "font-size": 10.5, "font-weight": 800, "letter-spacing": "0.03em" }, "PREVISÃO NA CAMADA L" + peekLayer);
+  const rowY = pbY + 34, rh = 26, maxBar = pbW - 90;
+  dist.forEach((d, i) => {
+    const [tok, p] = d;
+    const y = rowY + i * rh;
+    const isTop = tok === "Paris";
+    const col = isTop ? "#6B21A8" : "#C9C9D4";
+    g += el("text", { x: pbX + 12, y: y + 12, fill: isTop ? "#6B21A8" : "#3A3A48", "font-size": 12, "font-weight": isTop ? 700 : 500 }, tok);
+    g += el("rect", { x: pbX + 58, y: y + 2, width: Math.max(4, maxBar * p), height: 13, rx: 3, fill: col });
+    g += el("text", { x: pbX + 58 + Math.max(4, maxBar * p) + 5, y: y + 13, fill: col, "font-size": 10, "font-weight": 700 }, Math.round(p * 100) + "%");
+  });
+  // legenda do estado
+  const conf = dist[0][0] === "Paris" ? dist[0][1] : 0;
+  const stateTxt = peekLayer <= 1 ? "palpite vago…" : conf >= 0.8 ? "resposta decidida ✓" : "“Paris” emergindo…";
+  const scol = peekLayer <= 1 ? "#D97706" : conf >= 0.8 ? "#059669" : "#6B21A8";
+  g += el("text", { x: pbX + 12, y: pbY + pbH - 12, fill: scol, "font-size": 12, "font-weight": 700 }, stateTxt);
   const defs =
     el("marker", { id: `llh-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#0891B2" })) +
     el("marker", { id: `llh2-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#DB2777" }));
@@ -824,8 +843,301 @@ function mapTerritory(opts) {
   return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
 }
 
+function featureRead(opts) {
+  const { w = 400, h = 392, id = "fr", labeled = false } = opts;
+  let g = "";
+  // 1) a feature crua: só um número
+  g += el("rect", { x: 10, y: 8, width: w - 20, height: 40, rx: 10, fill: "#F3F0F9", stroke: "#9333EA", "stroke-width": 1.5 });
+  g += el("text", { x: 24, y: 25, fill: "#6B21A8", "font-size": 12, "font-weight": 800, "letter-spacing": ".03em" }, "FEATURE #4517");
+  g += el("text", { x: 24, y: 40, fill: "#71717A", "font-size": 11.5 }, "só um vetor — não sabemos o que significa");
+  g += el("text", { x: w - 24, y: 33, "text-anchor": "end", fill: "#9333EA", "font-size": 17, "font-weight": 800 }, "?");
+  // seta
+  g += el("text", { x: w / 2, y: 66, "text-anchor": "middle", fill: "#71717A", "font-size": 12, "font-style": "italic" }, "olhamos os trechos que MAIS a ativam ↓");
+  // 2) top-activating examples (trechos reais, palavra-gatilho destacada)
+  const ex = [
+    { pre: "…vista da ", hot: "ponte Golden Gate", post: " ao pôr do sol", act: 0.97 },
+    { pre: "atravessar a ", hot: "Golden Gate", post: " de bicicleta é…", act: 0.89 },
+    { pre: "…a icônica ", hot: "ponte vermelha de São Francisco", post: "…", act: 0.71 },
+  ];
+  const y0 = 78, rh = 52, rg = 10;
+  ex.forEach((e, i) => {
+    const y = y0 + i * (rh + rg);
+    g += el("rect", { x: 10, y, width: w - 20, height: rh, rx: 9, fill: "#FCFBFE", stroke: "#E4E4EE", "stroke-width": 1.3 });
+    // barra de ativação à esquerda
+    g += el("rect", { x: 10, y, width: 5, height: rh, rx: 2, fill: "#DB2777", opacity: 0.35 + e.act * 0.65 });
+    g += el("text", { x: 24, y: y + 19, fill: "#71717A", "font-size": 10.5, "font-weight": 700 }, "trecho do corpus · ativação " + Math.round(e.act * 100) + "%");
+    // texto com destaque na palavra-gatilho
+    g += el("text", { x: 24, y: y + 39, "font-size": 12.5 },
+      el("tspan", { fill: "#6B6B72" }, e.pre) +
+      el("tspan", { fill: "#DB2777", "font-weight": 700 }, e.hot) +
+      el("tspan", { fill: "#6B6B72" }, e.post));
+  });
+  // 3) o rótulo que emerge
+  const ly = y0 + 3 * (rh + rg) + 4;
+  if (labeled) {
+    g += el("rect", { x: 10, y: ly, width: w - 20, height: 46, rx: 10, fill: "#FCE7F3", stroke: "#DB2777", "stroke-width": 2 });
+    g += el("text", { x: 24, y: ly + 19, fill: "#9D174D", "font-size": 11, "font-weight": 800, "letter-spacing": ".03em" }, "PADRÃO → RÓTULO");
+    g += el("text", { x: 24, y: ly + 37, fill: "#1A1A2E", "font-size": 15, "font-weight": 700 }, "“ponte Golden Gate” 🌉");
+    g += el("text", { x: w - 24, y: ly + 30, "text-anchor": "end", fill: "#DB2777", "font-size": 22 }, "✓");
+  } else {
+    g += el("rect", { x: 10, y: ly, width: w - 20, height: 46, rx: 10, fill: "#FAFAFA", stroke: "#D8D8DE", "stroke-width": 1.5, "stroke-dasharray": "5 4" });
+    g += el("text", { x: w / 2, y: ly + 28, "text-anchor": "middle", fill: "#B8B8C0", "font-size": 13, "font-style": "italic" }, "clique para nomear o padrão");
+  }
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+function acdcCriterion(opts) {
+  const { w = 400, h = 392, id = "acc", edge = 0 } = opts;
+  const tau = 0.05;
+  // arestas de teste referenciam nós reais do grafo (mesma topologia da acdcPrune)
+  const edges = [
+    { from: "h3", to: "saída", a: 3, b: 6, kl: 0.004, keep: false },
+    { from: "h2", to: "h4",    a: 2, b: 4, kl: 0.210, keep: true },
+    { from: "h1", to: "h5",    a: 1, b: 5, kl: 0.012, keep: false },
+  ];
+  const e = edges[edge % edges.length];
+  let g = "";
+  // ===== mini-grafo da rede (topo), com a aresta em teste destacada =====
+  const nodes = [
+    { x: 0.5, y: 0.10, lab: "entrada" },
+    { x: 0.22, y: 0.42, lab: "h1" }, { x: 0.5, y: 0.42, lab: "h2" }, { x: 0.78, y: 0.42, lab: "h3" },
+    { x: 0.32, y: 0.76, lab: "h4" }, { x: 0.68, y: 0.76, lab: "h5" },
+    { x: 0.5, y: 1.0, lab: "saída" },
+  ];
+  const grTop = 8, grH = 150, grW = 150, grX = 8;
+  const X = (n) => grX + n.x * grW;
+  const Y = (n) => grTop + n.y * grH;
+  const allEdges = [[0,1],[0,2],[0,3],[1,4],[2,4],[2,5],[3,5],[4,6],[5,6],[1,5],[3,4]];
+  allEdges.forEach(([a, bIdx]) => {
+    const isTest = (a === e.a && bIdx === e.b);
+    const na = nodes[a], nb = nodes[bIdx];
+    if (isTest) {
+      g += el("line", { x1: X(na), y1: Y(na) + 9, x2: X(nb), y2: Y(nb) - 9,
+        stroke: e.keep ? "#DC2626" : "#059669", "stroke-width": 3.5 });
+    } else {
+      g += el("line", { x1: X(na), y1: Y(na) + 9, x2: X(nb), y2: Y(nb) - 9, stroke: "#D8D8E0", "stroke-width": 1.3, opacity: 0.7 });
+    }
+  });
+  nodes.forEach((n, i) => {
+    const isIO = i === 0 || i === nodes.length - 1;
+    const onTest = (i === e.a || i === e.b);
+    g += el("circle", { cx: X(n), cy: Y(n), r: 11, fill: isIO ? "#6B21A8" : (onTest ? "#F3E8FC" : "#F7F7FA"),
+      stroke: onTest ? (e.keep ? "#DC2626" : "#059669") : "#C9B8DD", "stroke-width": onTest ? 2.5 : 1.5 });
+    g += el("text", { x: X(n), y: Y(n) + 3.5, "text-anchor": "middle", fill: isIO ? "#fff" : "#6B21A8", "font-size": 8.5, "font-weight": 700 }, n.lab);
+  });
+  g += el("text", { x: grX + grW / 2, y: grTop + grH + 16, "text-anchor": "middle", fill: "#6B21A8", "font-size": 11.5, "font-weight": 800 }, "testando  " + e.from + " → " + e.to);
+
+  // ===== teste da aresta (à direita do grafo) =====
+  const rx = grX + grW + 18, rw = w - rx - 12;
+  // duas mini-distribuições empilhadas
+  const boxW = rw, boxH = 60, by = grTop + 4;
+  const drawDist = (y, title, bars, col) => {
+    let s = el("rect", { x: rx, y, width: boxW, height: boxH, rx: 8, fill: "#FCFBFE", stroke: "#E4E4EE", "stroke-width": 1.3 });
+    s += el("text", { x: rx + 8, y: y + 15, fill: "#71717A", "font-size": 10, "font-weight": 700 }, title);
+    const bw = 16, base = y + boxH - 10, maxh = 26, x0 = rx + 14;
+    bars.forEach((v, i) => {
+      const bx = x0 + i * (bw + 12);
+      s += el("rect", { x: bx, y: base - v * maxh, width: bw, height: v * maxh, rx: 3, fill: col });
+      s += el("text", { x: bx + bw / 2, y: base + 8, "text-anchor": "middle", fill: "#A0A0AA", "font-size": 7.5 }, ["Paris", "Roma", "Lyon"][i]);
+    });
+    return s;
+  };
+  g += drawDist(by, "saída COM a aresta", [0.7, 0.2, 0.1], "#6B21A8");
+  const distNo = e.keep ? [0.35, 0.45, 0.2] : [0.68, 0.21, 0.11];
+  g += drawDist(by + boxH + 10, "saída SEM a aresta", distNo, e.keep ? "#DC2626" : "#059669");
+
+  // KL vs τ (abaixo do grafo, largura toda)
+  const my = grTop + grH + 44;
+  g += el("text", { x: 12, y: my, fill: "#3A3A48", "font-size": 12.5 }, "mudança na saída (KL):");
+  g += el("text", { x: 176, y: my, fill: e.keep ? "#DC2626" : "#059669", "font-size": 15, "font-weight": 800 }, e.kl.toFixed(3));
+  g += el("text", { x: 260, y: my, fill: "#71717A", "font-size": 12 }, "τ = " + tau.toFixed(2));
+  // barra visual
+  const gx = 12, gw = w - gx - 12, gy = my + 12, scale = 0.25;
+  g += el("rect", { x: gx, y: gy, width: gw, height: 14, rx: 7, fill: "#EDEDF2" });
+  g += el("rect", { x: gx, y: gy, width: Math.min(gw, gw * (e.kl / scale)), height: 14, rx: 7, fill: e.keep ? "#DC2626" : "#059669" });
+  const tauX = gx + gw * (tau / scale);
+  g += el("line", { x1: tauX, y1: gy - 6, x2: tauX, y2: gy + 20, stroke: "#1A1A2E", "stroke-width": 2, "stroke-dasharray": "3 2" });
+  g += el("text", { x: tauX, y: gy - 9, "text-anchor": "middle", fill: "#1A1A2E", "font-size": 9, "font-weight": 700 }, "τ");
+  // veredito
+  const vy = gy + 30;
+  g += el("rect", { x: 12, y: vy, width: w - 24, height: 38, rx: 9,
+    fill: e.keep ? "#FEF2F2" : "#ECFDF5", stroke: e.keep ? "#DC2626" : "#059669", "stroke-width": 2 });
+  g += el("text", { x: w / 2, y: vy + 24, "text-anchor": "middle", fill: e.keep ? "#DC2626" : "#059669", "font-size": 13.5, "font-weight": 700 },
+    e.keep ? "KL > τ → essencial: MANTÉM ✓" : "KL < τ → irrelevante: CORTA ✂");
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+function saeAnatomy(opts) {
+  const { w = 440, h = 392, id = "san", highlight = 1 } = opts;
+  // encoder: h -> features esparsas; decoder: cada feature tem um vetor (coluna) = direção
+  const feats = [
+    { name: "f1", col: "#B8B8C0", act: 0.0 },
+    { name: "Golden Gate", col: "#DB2777", act: 0.9 },
+    { name: "f3", col: "#B8B8C0", act: 0.0 },
+    { name: "f4", col: "#B8B8C0", act: 0.15 },
+  ];
+  let g = "";
+  const cx = w / 2;
+  // 1) ativação h (entrada)
+  g += el("rect", { x: cx - 40, y: 8, width: 80, height: 26, rx: 7, fill: "#EDE7F6", stroke: "#6B21A8", "stroke-width": 1.5 });
+  g += el("text", { x: cx, y: 25, "text-anchor": "middle", fill: "#6B21A8", "font-size": 13, "font-weight": 700 }, "ativação h");
+  g += el("text", { x: cx, y: 50, "text-anchor": "middle", fill: "#71717A", "font-size": 11, "font-style": "italic" }, "ENCODER: quais features estão ativas?");
+  g += el("path", { d: `M${cx},34 L${cx},40`, stroke: "#B8B8C0", "stroke-width": 1.5, "marker-end": `url(#san-a-${id})` });
+  // 2) vetor esparso de features
+  const fy = 72, rowH = 30, gap = 8, lx = 30, lw = 150;
+  feats.forEach((f, i) => {
+    const y = fy + i * (rowH + gap);
+    const on = f.act > 0.01;
+    const hl = i === highlight;
+    g += el("rect", { x: lx, y, width: lw, height: rowH, rx: 7,
+      fill: hl ? "#FCE7F3" : (on ? "#F5F3FA" : "#FAFAFA"), stroke: hl ? f.col : (on ? "#C4B5DD" : "#E4E4EE"), "stroke-width": hl ? 2.5 : 1.5 });
+    g += el("text", { x: lx + 10, y: y + 20, fill: on ? (hl ? "#9D174D" : "#4A4A55") : "#B8B8C0", "font-size": 12.5, "font-weight": on ? 700 : 400 }, f.name);
+    // barrinha de ativação
+    g += el("rect", { x: lx + 96, y: y + 10, width: 44, height: 9, rx: 4, fill: "#E4E4EE" });
+    if (on) g += el("rect", { x: lx + 96, y: y + 10, width: 44 * f.act, height: 9, rx: 4, fill: f.col });
+  });
+  g += el("text", { x: lx, y: fy + 4 * (rowH + gap) + 8, fill: "#71717A", "font-size": 10.5 }, "vetor esparso: quase tudo 0");
+  // 3) decoder: cada feature ativa tem um VETOR (coluna) = direção
+  const dx = 250, dw = w - dx - 20;
+  g += el("text", { x: dx + 53, y: fy + 10, "text-anchor": "middle", fill: "#71717A", "font-size": 10.5, "font-style": "italic" }, "DECODER");
+  g += el("text", { x: dx + 53, y: fy + 24, "text-anchor": "middle", fill: "#71717A", "font-size": 10, "font-style": "italic" }, "vetor d por feature");
+  // destacar a coluna-decoder da feature em highlight
+  const f = feats[highlight];
+  const colY = fy + 34, colH = 122;
+  g += el("rect", { x: dx + 30, y: colY, width: 46, height: colH, rx: 8, fill: "#FCE7F3", stroke: f.col, "stroke-width": 2.5 });
+  g += el("text", { x: dx + 53, y: colY - 6, "text-anchor": "middle", fill: f.col, "font-size": 11, "font-weight": 800 }, "d");
+  // "números" do vetor
+  const vals = [0.8, -0.3, 0.6, -0.1, 0.4, 0.2];
+  vals.forEach((v, i) => {
+    g += el("text", { x: dx + 53, y: colY + 20 + i * 19, "text-anchor": "middle", fill: "#9D174D", "font-size": 11 }, v.toFixed(1));
+  });
+  // seta ligando a feature destacada -> sua coluna decoder
+  const srcY = fy + highlight * (rowH + gap) + rowH / 2;
+  g += el("path", { d: `M${lx + lw + 4},${srcY} C ${dx - 20},${srcY} ${dx + 10},${colY + colH / 2} ${dx + 28},${colY + colH / 2}`,
+    fill: "none", stroke: f.col, "stroke-width": 2, "stroke-dasharray": "4 3", "marker-end": `url(#san-b-${id})` });
+  // conclusão embaixo
+  const cy2 = colY + colH + 20;
+  g += el("rect", { x: 20, y: cy2, width: w - 40, height: 40, rx: 9, fill: "#F5EEFC", stroke: "#9333EA", "stroke-width": 2 });
+  g += el("text", { x: w / 2, y: cy2 + 17, "text-anchor": "middle", fill: "#6B21A8", "font-size": 12.5, "font-weight": 700 }, "essa coluna do decoder É a direção d");
+  g += el("text", { x: w / 2, y: cy2 + 33, "text-anchor": "middle", fill: "#6B21A8", "font-size": 12.5, "font-weight": 700 }, "que somamos no steering ✓");
+  const defs =
+    el("marker", { id: `san-a-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#B8B8C0" })) +
+    el("marker", { id: `san-b-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: f.col }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
 if (typeof window !== "undefined") {
-  window.VIZ = { plane2D, fanVectors, miniNet, saeDiagram, transformerStack, attribGraph, superposition, causalChain, lossBalance, patchingDiagram, logitLens, indirectEffect, eapViz, featureCloud, mapTerritory, patchingLive, jlCurve, vecAlgebra, normBall, ieRuler, taylorTangent, transformerBoard, polygonSuperposition, interferencia, polygonFeatures, featureOverflow, dirVsDim, featureCards, inductionCircuit };
+  function transformerArch(opts) {
+    // Arquitetura fiel ao "Attention is All You Need" (Vaswani et al., 2017),
+    // com o RESIDUAL STREAM em destaque (a espinha vertical onde as ativações vivem;
+    // os componentes leem e escrevem nela — visão do "A Mathematical Framework").
+    const { w = 400, h = 560, id = "tf" } = opts;
+    let g = "";
+    const cx = w * 0.40, boxW = 150, bx = cx - boxW / 2;
+    const rsX = bx + boxW + 30;   // x do residual stream (faixa vertical à direita da pilha)
+    const block = (y, hgt, label, fill, stroke, tcol, fs, lines) => {
+      let s = el("rect", { x: bx, y, width: boxW, height: hgt, rx: 7, fill, stroke, "stroke-width": 1.5 });
+      if (lines) {
+        lines.forEach((ln, i) => { s += el("text", { x: cx, y: y + hgt / 2 - (lines.length - 1) * 7 + i * 14 + (fs || 12) * 0.35, "text-anchor": "middle", fill: tcol || "#2A2A32", "font-size": fs || 12, "font-weight": 700 }, ln); });
+      } else {
+        s += el("text", { x: cx, y: y + hgt / 2 + (fs || 12) * 0.35, "text-anchor": "middle", fill: tcol || "#2A2A32", "font-size": fs || 12, "font-weight": 600 }, label);
+      }
+      return s;
+    };
+    const conn = (y1, y2) => el("line", { x1: cx, y1, x2: cx, y2, stroke: "#B8B8C0", "stroke-width": 1.5, "marker-end": `url(#tfar-${id})` });
+
+    // ------- geometria vertical (de baixo p/ cima) -------
+    const bottomY = h - 30;
+    const tokY = bottomY - 28;
+    const embY = tokY - 46;
+    const blkBot = embY - 26;
+    const innerBot = blkBot - 12;
+    const mhaY = innerBot - 40;
+    const an1Y = mhaY - 26;
+    const ffY = an1Y - 36;
+    const an2Y = ffY - 26;
+    const blkTop = an2Y - 14, blkH = blkBot - blkTop;   // topo do bloco ABRAÇA os componentes (sem vazio)
+    const linY = blkTop - 30, smY = linY - 26;
+
+    // ======= RESIDUAL STREAM (desenhado primeiro, ao fundo) =======
+    const rsTop = smY + 10, rsBot = embY + 11;
+    g += el("rect", { x: rsX - 9, y: rsTop, width: 18, height: rsBot - rsTop, rx: 9, fill: "#F3E8FC", stroke: "#9333EA", "stroke-width": 2 });
+    // setinhas de fluxo subindo dentro do stream
+    for (let yy = rsBot - 16; yy > rsTop + 10; yy -= 34) {
+      g += el("line", { x1: rsX, y1: yy, x2: rsX, y2: yy - 12, stroke: "#9333EA", "stroke-width": 1.6, "marker-end": `url(#tfrs-${id})`, opacity: 0.55 });
+    }
+    g += el("text", { x: rsX + 16, y: (rsTop + rsBot) / 2 - 6, fill: "#6B21A8", "font-size": 12, "font-weight": 800, transform: `rotate(90 ${rsX + 16} ${(rsTop + rsBot) / 2})` }, "residual stream");
+
+    // helper: componente LÊ do stream (entra) e ESCREVE no stream (volta)
+    const readWrite = (compY, compH) => {
+      const midY = compY + compH / 2;
+      // leitura: stream → componente (entra pela direita do bloco)
+      g += el("path", { d: `M ${rsX - 9} ${midY + 6} L ${bx + boxW} ${midY + 6}`, fill: "none", stroke: "#0891B2", "stroke-width": 1.3, "marker-end": `url(#tfrd-${id})`, opacity: 0.85 });
+      // escrita: componente → stream (volta, "add")
+      g += el("path", { d: `M ${bx + boxW} ${midY - 6} L ${rsX - 9} ${midY - 6}`, fill: "none", stroke: "#D9A441", "stroke-width": 1.3, "marker-end": `url(#tfwr-${id})`, opacity: 0.9 });
+    };
+
+    // ------- entrada -------
+    g += el("text", { x: cx, y: bottomY + 2, "text-anchor": "middle", fill: "#71717A", "font-size": 10.5, "font-style": "italic" }, "“A capital da França é ___”");
+    g += block(tokY, 22, "tokens de entrada", "#F3F3F5", "#D8D8DE", "#3A3A48", 10.5);
+    g += conn(bottomY - 8, tokY + 24);
+    g += block(embY, 22, "Input Embedding", "#EDE7F6", "#9333EA", "#6B21A8", 10.5);
+    g += conn(tokY, embY + 24);
+    g += el("circle", { cx: bx - 18, cy: embY + 11, r: 10, fill: "#FFF", stroke: "#0891B2", "stroke-width": 1.5 });
+    g += el("text", { x: bx - 18, y: embY + 15, "text-anchor": "middle", fill: "#0891B2", "font-size": 13, "font-weight": 700 }, "+");
+    g += el("text", { x: bx - 18, y: embY - 6, "text-anchor": "middle", fill: "#0369A1", "font-size": 7.5 }, "Positional");
+    g += el("text", { x: bx - 18, y: embY + 2, "text-anchor": "middle", fill: "#0369A1", "font-size": 7.5 }, "Encoding");
+    g += el("line", { x1: bx - 8, y1: embY + 11, x2: bx, y2: embY + 11, stroke: "#0891B2", "stroke-width": 1.2 });
+    // embedding "injeta" o vetor inicial no stream
+    g += el("path", { d: `M ${bx + boxW} ${embY + 11} L ${rsX - 9} ${embY + 11}`, fill: "none", stroke: "#9333EA", "stroke-width": 1.6, "marker-end": `url(#tfwr-${id})` });
+
+    // ======= bloco Transformer (N×) =======
+    g += el("rect", { x: bx - 10, y: blkTop, width: (rsX + 12) - (bx - 10), height: blkH, rx: 12, fill: "none", stroke: "#9333EA", "stroke-width": 1.5, "stroke-dasharray": "6 4", opacity: 0.55 });
+    g += el("text", { x: bx - 22, y: blkTop + blkH / 2, "text-anchor": "middle", fill: "#6B21A8", "font-size": 14, "font-weight": 800, transform: `rotate(-90 ${bx - 22} ${blkTop + blkH / 2})` }, "N ×");
+
+    // Multi-Head Attention (lê+escreve no stream)
+    g += block(mhaY, 40, "", "#FCE7F3", "#DB2777", "#9D174D", 10.5, ["Multi-Head", "Attention"]);
+    g += readWrite(mhaY, 40);
+    // Add & Norm 1
+    g += block(an1Y, 18, "Add & Norm", "#FEF3E2", "#D97706", "#B45309", 9.5);
+    // Feed Forward (lê+escreve no stream)
+    g += block(ffY, 28, "Feed Forward", "#E3F5FA", "#0891B2", "#0369A1", 10.5);
+    g += readWrite(ffY, 28);
+    // Add & Norm 2
+    g += block(an2Y, 18, "Add & Norm", "#FEF3E2", "#D97706", "#B45309", 9.5);
+
+    // ======= saída: Linear + Softmax (leem o stream final) =======
+    g += block(linY, 18, "Linear", "#EDE7F6", "#9333EA", "#6B21A8", 10);
+    g += el("path", { d: `M ${rsX - 9} ${linY + 9} L ${bx + boxW} ${linY + 9}`, fill: "none", stroke: "#0891B2", "stroke-width": 1.3, "marker-end": `url(#tfrd-${id})`, opacity: 0.85 });
+    g += block(smY, 18, "Softmax", "#EDE7F6", "#9333EA", "#6B21A8", 10);
+    g += conn(linY, smY + 20);
+    g += el("text", { x: cx, y: smY - 8, "text-anchor": "middle", fill: "#059669", "font-size": 11, "font-weight": 700 }, "→ próximo token: “Paris”");
+
+    // legenda leitura/escrita (canto inferior direito)
+    const lgY = tokY + 4;
+    g += el("line", { x1: rsX - 4, y1: lgY, x2: rsX + 12, y2: lgY, stroke: "#0891B2", "stroke-width": 1.3, "marker-end": `url(#tfrd-${id})` });
+    g += el("text", { x: rsX + 16, y: lgY + 3, fill: "#0369A1", "font-size": 8.5 }, "lê");
+    g += el("line", { x1: rsX + 12, y1: lgY + 13, x2: rsX - 4, y2: lgY + 13, stroke: "#D9A441", "stroke-width": 1.3, "marker-end": `url(#tfwr-${id})` });
+    g += el("text", { x: rsX + 16, y: lgY + 16, fill: "#B45309", "font-size": 8.5 }, "escreve");
+
+    // CALLOUT: o stream é um vetor de ativações ("só números")
+    const calX = rsX + 24;
+    const calY = an1Y - 4;
+    g += el("line", { x1: rsX + 9, y1: calY + 14, x2: calX - 3, y2: calY + 14, stroke: "#111", "stroke-width": 1.2, "stroke-dasharray": "3 2" });
+    g += el("rect", { x: calX, y: calY, width: w - calX - 4, height: 42, rx: 7, fill: "#FCFBFE", stroke: "#111", "stroke-width": 1.3 });
+    g += el("text", { x: calX + 7, y: calY + 15, fill: "#111", "font-size": 9, "font-weight": 700 }, "hₗ (o stream)");
+    g += el("text", { x: calX + 7, y: calY + 27, fill: "#71717A", "font-size": 8 }, "[0.7, −1.2,");
+    g += el("text", { x: calX + 7, y: calY + 37, fill: "#71717A", "font-size": 8 }, "0.3, …]");
+
+    const defs =
+      el("marker", { id: `tfar-${id}`, markerWidth: 8, markerHeight: 8, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#B8B8C0" })) +
+      el("marker", { id: `tfrs-${id}`, markerWidth: 7, markerHeight: 7, refX: 4.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#9333EA" })) +
+      el("marker", { id: `tfrd-${id}`, markerWidth: 7, markerHeight: 7, refX: 4.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#0891B2" })) +
+      el("marker", { id: `tfwr-${id}`, markerWidth: 7, markerHeight: 7, refX: 4.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#D9A441" }));
+    return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+  }
+
+  window.VIZ = { transformerArch, plane2D, fanVectors, miniNet, saeDiagram, transformerStack, attribGraph, superposition, causalChain, lossBalance, patchingDiagram, logitLens, indirectEffect, eapViz, featureCloud, mapTerritory, patchingLive, jlCurve, vecAlgebra, normBall, ieRuler, taylorTangent, transformerBoard, polygonSuperposition, interferencia, polygonFeatures, featureOverflow, dirVsDim, featureCards, inductionCircuit, patchMap, steeringViz, steeringExample, ablationViz, saeSteeringPanel, appsViz, attributionPatching, acdcPrune, causalScrubbing, probingViz, dlaViz, featureRead, acdcCriterion, saeAnatomy, attrPatchSteps };
 }
 
 /* ============================================================
@@ -833,14 +1145,25 @@ if (typeof window !== "undefined") {
    ============================================================ */
 function patchingLive(opts) {
   const { w = 340, h = 300, id = "ptl", patched = false, nLayers = 4, patchLayer = 2 } = opts;
-  const top = 44, botLabel = h - 34;
+  const top = 92, botLabel = h - 30;
   const gap = (botLabel - top - 20) / (nLayers - 1);
-  const lx = w * 0.28, rx = w * 0.72;
+  const lx = w * 0.26, rx = w * 0.74;
   let g = "";
-  g += el("text", { x: lx, y: 20, "text-anchor": "middle", fill: "#6B21A8", "font-size": 13, "font-weight": 700 }, "limpo (doador)");
-  g += el("text", { x: lx, y: 36, "text-anchor": "middle", fill: "#71717A", "font-size": 12 }, "“…Paris”");
-  g += el("text", { x: rx, y: 20, "text-anchor": "middle", fill: patched ? "#059669" : "#DC2626", "font-size": 13, "font-weight": 700 }, "corrompido");
-  g += el("text", { x: rx, y: 36, "text-anchor": "middle", fill: "#71717A", "font-size": 12 }, "“…Roma”");
+  // --- prompts REAIS completos no topo, para o exemplo se explicar sozinho ---
+  // stream esquerdo: prompt limpo
+  g += el("rect", { x: lx - 78, y: 8, width: 156, height: 46, rx: 8, fill: "#F5EEFC", stroke: "#9333EA", "stroke-width": 1.5 });
+  g += el("text", { x: lx, y: 22, "text-anchor": "middle", fill: "#6B21A8", "font-size": 10, "font-weight": 800, "letter-spacing": ".04em" }, "PROMPT LIMPO");
+  g += el("text", { x: lx, y: 37, "text-anchor": "middle", fill: "#3A3A48", "font-size": 11 }, "“A capital da");
+  g += el("text", { x: lx, y: 49, "text-anchor": "middle", fill: "#3A3A48", "font-size": 11 }, "França é ___”");
+  // stream direito: prompt corrompido
+  g += el("rect", { x: rx - 78, y: 8, width: 156, height: 46, rx: 8, fill: "#FDF0F0", stroke: "#DC2626", "stroke-width": 1.5 });
+  g += el("text", { x: rx, y: 22, "text-anchor": "middle", fill: "#DC2626", "font-size": 10, "font-weight": 800, "letter-spacing": ".04em" }, "PROMPT CORROMPIDO");
+  g += el("text", { x: rx, y: 37, "text-anchor": "middle", fill: "#3A3A48", "font-size": 11 }, "“A capital da");
+  g += el("text", { x: rx, y: 49, "text-anchor": "middle", fill: "#3A3A48", "font-size": 11 }, "Itália é ___”");
+  // rótulo das colunas de camadas
+  g += el("text", { x: lx, y: 74, "text-anchor": "middle", fill: "#9333EA", "font-size": 10.5, "font-weight": 700 }, "camadas ↓");
+  g += el("text", { x: rx, y: 74, "text-anchor": "middle", fill: "#9333EA", "font-size": 10.5, "font-weight": 700 }, "camadas ↓");
+  // streams verticais
   [lx, rx].forEach((x) => g += el("line", { x1: x, y1: top, x2: x, y2: top + gap * (nLayers - 1), stroke: "#D8D8DE", "stroke-width": 2 }));
   for (let k = 0; k < nLayers; k++) {
     const y = top + gap * k; const isSrc = k === patchLayer;
@@ -858,17 +1181,22 @@ function patchingLive(opts) {
   }
   const py = top + gap * patchLayer;
   if (patched) {
-    g += el("line", { x1: lx + 13, y1: py, x2: rx - 13, y2: py, stroke: "#059669",
+    g += el("line", { x1: lx + 15, y1: py, x2: rx - 18, y2: py, stroke: "#059669",
       "stroke-width": 3, "marker-end": `url(#ptlh-${id})`, "stroke-dasharray": "5 3" });
-    g += el("text", { x: (lx + rx) / 2, y: py - 8, "text-anchor": "middle", fill: "#059669",
-      "font-size": 12, "font-weight": 700 }, "transplante");
+    g += el("text", { x: (lx + rx) / 2, y: py - 10, "text-anchor": "middle", fill: "#059669",
+      "font-size": 11, "font-weight": 700 }, "copia a ativação");
+    g += el("text", { x: (lx + rx) / 2, y: py + 22, "text-anchor": "middle", fill: "#059669",
+      "font-size": 10, "font-style": "italic" }, "da camada " + patchLayer);
   } else {
-    g += el("text", { x: (lx + rx) / 2, y: py + 5, "text-anchor": "middle", fill: "#B8B8C0", "font-size": 20 }, "→");
+    g += el("text", { x: (lx + rx) / 2, y: py - 8, "text-anchor": "middle", fill: "#B8B8C0", "font-size": 11, "font-style": "italic" }, "clique para");
+    g += el("text", { x: (lx + rx) / 2, y: py + 6, "text-anchor": "middle", fill: "#B8B8C0", "font-size": 22 }, "→");
   }
-  g += el("rect", { x: rx - 44, y: botLabel + 6, width: 88, height: 26, rx: 8,
+  // saída de cada stream
+  g += el("text", { x: lx, y: botLabel + 8, "text-anchor": "middle", fill: "#059669", "font-size": 13, "font-weight": 700 }, "→ Paris ✓");
+  g += el("rect", { x: rx - 46, y: botLabel - 8, width: 92, height: 26, rx: 8,
     fill: patched ? "#D1FAE5" : "#FDE2E2", stroke: patched ? "#059669" : "#DC2626", "stroke-width": 2 });
-  g += el("text", { x: rx, y: botLabel + 24, "text-anchor": "middle",
-    fill: patched ? "#059669" : "#DC2626", "font-size": 15, "font-weight": 700 }, patched ? "Paris ✓" : "Roma ✗");
+  g += el("text", { x: rx, y: botLabel + 10, "text-anchor": "middle",
+    fill: patched ? "#059669" : "#DC2626", "font-size": 14, "font-weight": 700 }, patched ? "→ Paris ✓" : "→ Roma ✗");
   const defs = el("marker", { id: `ptlh-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3,
     orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#059669" }));
   return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
@@ -938,47 +1266,51 @@ function vecAlgebra(opts) {
   const { w = 440, h = 360, id = "va", step = 3 } = opts;
   const pad = 46, ox = pad, oy = h - pad;
   const S = Math.min(w - pad * 2.2, h - pad * 2.2);
-  // posições dos conceitos no espaço (pontos). A cadeia liga rei → p1 → rainha.
+  // conceitos são VETORES (setas da origem). A cadeia: rei − homem + mulher = rainha.
   const rei    = [0.62, 0.16];
-  const homemD = [0.34, 0.10];            // direção "homem" (o que subtraímos)
-  const mulherD= [0.04, 0.66];            // direção "mulher" (o que somamos)
+  const homemD = [0.34, 0.10];            // direção "homem" (subtraída)
+  const mulherD= [0.04, 0.66];            // direção "mulher" (somada)
   const p1     = [rei[0] - homemD[0], rei[1] - homemD[1]];      // rei − homem
   const rainha = [p1[0] + mulherD[0], p1[1] + mulherD[1]];      // + mulher
   const X = (v) => ox + v[0] * S;
   const Y = (v) => oy - v[1] * S;
   let g = "";
-  // eixos leves (só o "espaço de ativação")
+  // eixos leves (o "espaço de ativação")
   g += el("line", { class: "axis", x1: ox, y1: oy, x2: ox + S + 24, y2: oy, "marker-end": `url(#vaax-${id})` });
   g += el("line", { class: "axis", x1: ox, y1: oy, x2: ox, y2: oy - S - 24, "marker-end": `url(#vaax-${id})` });
   g += el("text", { x: ox + S + 20, y: oy + 18, "text-anchor": "end", fill: "#A1A1AA", "font-size": 12, "font-style": "italic" }, "espaço de ativação");
 
-  const pt = (v, col, txt, dx, dy, anchor) =>
-    el("circle", { cx: X(v), cy: Y(v), r: 6, fill: col }) +
-    el("text", { x: X(v) + (dx ?? 12), y: Y(v) + (dy ?? 5), fill: col, "font-size": 17, "font-weight": 700, "font-family": "'Playfair Display',serif", "text-anchor": anchor || "start" }, txt);
-  // seta de deslocamento (a "feature" aplicada), desenhada de a→b
+  // vetor da origem até v (um CONCEITO = uma direção)
+  const vec = (v, col, txt, dx, dy, wgt) =>
+    el("line", { x1: ox, y1: oy, x2: X(v), y2: Y(v), stroke: col, "stroke-width": wgt || 4,
+      "marker-end": `url(#vahb-${id}-${col.replace('#','')})`, "stroke-linecap": "round" }) +
+    el("text", { x: X(v) + (dx ?? 12), y: Y(v) + (dy ?? 5), fill: col, "font-size": 17, "font-weight": 700,
+      "font-family": "'Playfair Display',serif" }, txt);
+  // deslocamento encadeado a→b (a "feature" aplicada), tracejado para distinguir da direção-conceito
   const move = (a, b, col, txt, dx, dy) =>
-    el("line", { x1: X(a), y1: Y(a), x2: X(b), y2: Y(b), stroke: col, "stroke-width": 4, "marker-end": `url(#vahb-${id}-${col.replace('#','')})`, "stroke-linecap": "round" }) +
-    el("text", { x: (X(a)+X(b))/2 + (dx||0), y: (Y(a)+Y(b))/2 + (dy||-12), "text-anchor": "middle", fill: col, "font-size": 14, "font-weight": 700, "font-style": "italic" }, txt);
+    el("line", { x1: X(a), y1: Y(a), x2: X(b), y2: Y(b), stroke: col, "stroke-width": 3, "stroke-dasharray": "6 4",
+      "marker-end": `url(#vahb-${id}-${col.replace('#','')})`, "stroke-linecap": "round" }) +
+    el("text", { x: (X(a)+X(b))/2 + (dx||0), y: (Y(a)+Y(b))/2 + (dy||-12), "text-anchor": "middle", fill: col,
+      "font-size": 14, "font-weight": 700, "font-style": "italic" }, txt);
 
-  // passo 1 — ponto de partida
+  // passo 1 — "rei" como VETOR da origem
   if (step >= 1) {
-    g += pt(rei, "#6B21A8", "rei", 12, -4);
+    g += vec(rei, "#6B21A8", "rei", 12, -4);
   }
-  // passo 2 — subtrai a direção "homem"
+  // passo 2 — subtrai a direção "homem" (deslocamento a partir da ponta de rei)
   if (step >= 2) {
     g += move(rei, p1, "#DC2626", "− homem", 0, -12);
-    g += el("circle", { cx: X(p1), cy: Y(p1), r: 4, fill: "#DC2626" });
   }
-  // passo 3 — soma a direção "mulher" → chega em rainha
+  // passo 3 — soma a direção "mulher" → chega na ponta de "rainha"
   if (step >= 3) {
     g += move(p1, rainha, "#0891B2", "+ mulher", -30, 4);
-    // alvo real "rainha" com halo, coincidindo com o fim da cadeia
-    g += el("circle", { cx: X(rainha), cy: Y(rainha), r: 13, fill: "none", stroke: "#059669", "stroke-width": 3, opacity: 0.6 });
-    g += pt(rainha, "#059669", "rainha ✓", 14, 4);
+    // "rainha" é o VETOR resultante da origem até o fim da cadeia
+    g += vec(rainha, "#059669", "rainha ✓", 14, 4);
+    g += el("circle", { cx: X(rainha), cy: Y(rainha), r: 13, fill: "none", stroke: "#059669", "stroke-width": 2.5, opacity: 0.5 });
   }
   const mk = (c) => el("marker", { id: `vahb-${id}-${c.replace('#','')}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: c }));
   const defs =
-    mk("#DC2626") + mk("#0891B2") +
+    mk("#6B21A8") + mk("#DC2626") + mk("#0891B2") + mk("#059669") +
     el("marker", { id: `vaax-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#B8B8C0" }));
   return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
 }
@@ -1181,62 +1513,45 @@ function interferencia(opts) {
        Reforça o problema antes de apresentar a superposição.
    ============================================================ */
 function featureOverflow(opts) {
-  const { w = 420, h = 380, id = "fo", nSlots = 4 } = opts;
-  const feats = ["gato", "Paris", "plural", "ironia", "verbo",
-                 "azul", "medo", "rima", "código", "cidade"];
+  const { w = 420, h = 380, id = "fo", crammed = true } = opts;
+  // espaço 2D (d=2): só cabem 2 direções PERFEITAMENTE ortogonais.
+  // com muitas features, elas são espremidas em direções QUASE-ortogonais (interferem).
+  const cx = w / 2, cy = h * 0.50, R = Math.min(w, h) * 0.32;
   let g = "";
-  // ---- coluna esquerda: pilha de features (muitas) ----
-  const colX = w * 0.06, chipW = w * 0.34, chipH = 26, gap = 6;
-  const topY = 30;
-  g += el("text", { x: colX, y: topY - 10, fill: "#6B21A8", "font-size": 13, "font-weight": 700,
-    "letter-spacing": "0.06em" }, `${feats.length}+ FEATURES`);
-  feats.forEach((f, i) => {
-    const y = topY + i * (chipH + gap);
-    g += el("rect", { x: colX, y, width: chipW, height: chipH, rx: 7,
-      fill: "#F3E8FC", stroke: "#C9B8DD", "stroke-width": 1 });
-    g += el("text", { x: colX + chipW / 2, y: y + 17, "text-anchor": "middle",
-      fill: "#6B21A8", "font-size": 13, "font-weight": 600 }, f);
-  });
-  // ---- coluna direita: poucos slots de dimensão ----
-  const slotX = w * 0.62, slotW = w * 0.32, slotH = 40, sgap = 10;
-  const slotsTop = 44;
-  g += el("text", { x: slotX, y: slotsTop - 14, fill: "#0891B2", "font-size": 13, "font-weight": 700,
-    "letter-spacing": "0.06em" }, `${nSlots} DIMENSÕES`);
-  const slotY = (k) => slotsTop + k * (slotH + sgap);
-  for (let k = 0; k < nSlots; k++) {
-    g += el("rect", { x: slotX, y: slotY(k), width: slotW, height: slotH, rx: 9,
-      fill: "#E3F5FA", stroke: "#0891B2", "stroke-width": 1.5 });
-    g += el("text", { x: slotX + slotW / 2, y: slotY(k) + 25, "text-anchor": "middle",
-      fill: "#0891B2", "font-size": 13, "font-weight": 700, "font-style": "italic" }, `dim ${k + 1}`);
+  g += el("text", { x: cx, y: 22, "text-anchor": "middle", fill: "#6B21A8", "font-size": 13, "font-weight": 800, "letter-spacing": ".03em" }, "ESPAÇO DE d = 2 DIMENSÕES");
+  // eixos (as 2 dimensões / neurônios)
+  g += el("line", { x1: cx - R - 20, y1: cy, x2: cx + R + 20, y2: cy, stroke: "#D8D8DE", "stroke-width": 1.5 });
+  g += el("line", { x1: cx, y1: cy + R + 20, x2: cx, y2: cy - R - 20, stroke: "#D8D8DE", "stroke-width": 1.5 });
+  const arrow = (ang, col, lab, wgt, dash) => {
+    const x2 = cx + R * Math.cos(ang), y2 = cy - R * Math.sin(ang);
+    let s = el("line", { x1: cx, y1: cy, x2, y2, stroke: col, "stroke-width": wgt || 3.5,
+      "marker-end": `url(#foa-${id}-${col.replace('#','')})`, "stroke-linecap": "round", "stroke-dasharray": dash || "none" });
+    s += el("text", { x: x2 + (Math.cos(ang) >= 0 ? 6 : -6), y: y2 + (Math.sin(ang) >= 0 ? -6 : 14),
+      "text-anchor": Math.cos(ang) >= 0 ? "start" : "end", fill: col, "font-size": 12, "font-weight": 700 }, lab);
+    return s;
+  };
+  // 2 direções ORTOGONAIS (cabem limpas) — verde
+  g += arrow(0, "#059669", "gato", 4);
+  g += arrow(Math.PI / 2, "#059669", "Paris", 4);
+  if (crammed) {
+    // features EXTRAS espremidas em ângulos apertados → quase-ortogonais (interferem)
+    const extras = [
+      { a: 0.30, l: "azul" }, { a: 0.62, l: "plural" },
+      { a: 1.02, l: "ironia" }, { a: 1.30, l: "medo" },
+    ];
+    extras.forEach((e) => g += arrow(e.a, "#DC2626", e.l, 2.5, "5 3"));
+    g += el("path", { d: `M ${cx + 42} ${cy} A 42 42 0 0 0 ${cx + 42 * Math.cos(1.30)} ${cy - 42 * Math.sin(1.30)}`,
+      fill: "none", stroke: "#DC2626", "stroke-width": 1.5, opacity: 0.5, "stroke-dasharray": "2 2" });
+    g += el("text", { x: cx + 50, y: cy - 34, fill: "#DC2626", "font-size": 10, "font-style": "italic" }, "ângulos");
+    g += el("text", { x: cx + 50, y: cy - 22, fill: "#DC2626", "font-size": 10, "font-style": "italic" }, "apertados");
   }
-  // ---- setas: as primeiras nSlots encaixam (verde/ok), o resto transborda (vermelho) ----
-  const chipMidY = (i) => topY + i * (chipH + gap) + chipH / 2;
-  const slotMidY = (k) => slotY(k) + slotH / 2;
-  feats.forEach((f, i) => {
-    const fits = i < nSlots;
-    const x1 = colX + chipW + 4, y1 = chipMidY(i);
-    if (fits) {
-      const x2 = slotX - 4, y2 = slotMidY(i);
-      g += el("line", { x1, y1, x2, y2, stroke: "#059669", "stroke-width": 2, opacity: 0.7,
-        "marker-end": `url(#fook-${id})` });
-    } else {
-      // transborda: seta curta que "bate" numa parede e vira vermelha
-      const x2 = slotX - 30, y2 = y1;
-      g += el("line", { x1, y1, x2, y2, stroke: "#DC2626", "stroke-width": 2, opacity: 0.8,
-        "stroke-dasharray": "4 3", "marker-end": `url(#fobad-${id})` });
-    }
-  });
-  // parede de "não cabe" + selo
-  const wallX = slotX - 26;
-  g += el("line", { x1: wallX, y1: slotsTop + nSlots * (slotH + sgap) - sgap + 6, x2: wallX, y2: chipMidY(nSlots) - 8,
-    stroke: "#DC2626", "stroke-width": 2, "stroke-dasharray": "3 3", opacity: 0.5 });
-  const overflow = feats.length - nSlots;
-  g += el("rect", { x: slotX - 6, y: h - 46, width: slotW + 12, height: 30, rx: 15, fill: "#FEE2E2" });
-  g += el("text", { x: slotX + slotW / 2, y: h - 26, "text-anchor": "middle", fill: "#DC2626",
-    "font-size": 13, "font-weight": 700 }, `${overflow} sem espaço!`);
-  const defs =
-    el("marker", { id: `fook-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#059669" })) +
-    el("marker", { id: `fobad-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#DC2626" }));
+  const ly = h - 40;
+  g += el("circle", { cx: 24, cy: ly, r: 5, fill: "#059669" });
+  g += el("text", { x: 34, y: ly + 4, fill: "#3A3A48", "font-size": 12 }, "d ortogonais (não interferem)");
+  g += el("circle", { cx: 24, cy: ly + 20, r: 5, fill: "#DC2626" });
+  g += el("text", { x: 34, y: ly + 24, fill: "#3A3A48", "font-size": 12 }, "extras: quase-ortogonais (interferem)");
+  const cols = ["#059669", "#DC2626"];
+  const defs = cols.map((c) => el("marker", { id: `foa-${id}-${c.replace('#','')}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: c }))).join("");
   return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
 }
 
@@ -1251,10 +1566,9 @@ function dirVsDim(opts) {
   const pad = 54, ox = pad, oy = h - pad;
   const S = Math.min(w - pad * 1.8, h - pad * 1.8);
   let g = "";
-  g += el("line", { x1: ox, y1: oy, x2: ox + S + 22, y2: oy, stroke: "#0891B2", "stroke-width": 3, "marker-end": `url(#ddax-${id})` });
-  g += el("line", { x1: ox, y1: oy, x2: ox, y2: oy - S - 22, stroke: "#0891B2", "stroke-width": 3, "marker-end": `url(#ddax-${id})` });
-  g += el("text", { x: ox + S + 8, y: oy + 24, "text-anchor": "end", fill: "#0891B2", "font-size": 14, "font-weight": 700 }, "dim 1 = neurônio");
-  g += el("text", { x: ox - 10, y: oy - S - 8, fill: "#0891B2", "font-size": 14, "font-weight": 700 }, "dim 2");
+  g += el("line", { x1: ox, y1: oy, x2: ox + S + 22, y2: oy, stroke: "#C4C4CE", "stroke-width": 2, "marker-end": `url(#ddax-${id})` });
+  g += el("line", { x1: ox, y1: oy, x2: ox, y2: oy - S - 22, stroke: "#C4C4CE", "stroke-width": 2, "marker-end": `url(#ddax-${id})` });
+  g += el("text", { x: ox - 8, y: oy + 22, fill: "#A1A1AA", "font-size": 10, "font-style": "italic" }, "(eixos = dimensões)");
   const fx = 0.82, fy = 0.66;
   const ex = ox + fx * S, ey = oy - fy * S;
   g += el("line", { x1: ex, y1: ey, x2: ex, y2: oy, stroke: "#9333EA", "stroke-width": 1.5, "stroke-dasharray": "4 3", opacity: 0.55 });
@@ -1262,7 +1576,7 @@ function dirVsDim(opts) {
   g += el("line", { x1: ox, y1: oy, x2: ex, y2: ey, stroke: "#6B21A8", "stroke-width": 5, "marker-end": `url(#ddf-${id})` });
   g += el("text", { x: ex + 8, y: ey - 6, fill: "#6B21A8", "font-size": 17, "font-weight": 700, "font-family": "'Playfair Display',serif" }, "\u201Crealeza\u201D");
   g += el("text", { x: ex + 8, y: ey + 13, fill: "#6B21A8", "font-size": 12, "font-style": "italic", "opacity": 0.8 }, "(uma direção)");
-  g += el("text", { x: ox + S * 0.5, y: oy - S - 2, "text-anchor": "middle", fill: "#71717A", "font-size": 12, "font-style": "italic" }, "uma feature combina várias dimensões");
+  g += el("text", { x: ox + S * 0.5, y: oy - S - 2, "text-anchor": "middle", fill: "#71717A", "font-size": 12, "font-style": "italic" }, "a feature é diagonal — combina as dimensões");
   const defs =
     el("marker", { id: `ddax-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#0891B2" })) +
     el("marker", { id: `ddf-${id}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#6B21A8" }));
@@ -1377,4 +1691,813 @@ function inductionCircuit(opts) {
     el("marker", { id: `indh-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#6B21A8" })) +
     el("marker", { id: `indg-${id}`, markerWidth: 8, markerHeight: 8, refX: 6, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#059669" }));
   return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   30) PATCH MAP — nota de recuperação por camada (activation
+       patching camada a camada). Barras horizontais; a camada com
+       o pico é onde a informação mora. Slide 22.
+   ============================================================ */
+function patchMap(opts) {
+  const { w = 380, h = 340, id = "pm" } = opts;
+  // recuperação por camada (0..1) com um pico nítido no meio
+  const rec = [0.05, 0.12, 0.28, 0.91, 0.66, 0.30, 0.14, 0.08];
+  const nL = rec.length;
+  const pad = 16, labW = 62, top = 30, bh = 26, gap = 8;
+  const trackX = pad + labW, trackW = w - trackX - 60;
+  let g = "";
+  g += el("text", { x: pad, y: 16, fill: "#71717A", "font-size": 12, "font-weight": 700, "letter-spacing": "0.04em" }, "CAMADA");
+  g += el("text", { x: w - 8, y: 16, "text-anchor": "end", fill: "#71717A", "font-size": 12, "font-weight": 700, "letter-spacing": "0.04em" }, "RECUPERAÇÃO");
+  const peak = rec.indexOf(Math.max(...rec));
+  rec.forEach((v, k) => {
+    const y = top + k * (bh + gap);
+    const isPeak = k === peak;
+    g += el("text", { x: pad, y: y + 18, fill: isPeak ? "#059669" : "#71717A", "font-size": 13, "font-weight": isPeak ? 700 : 500 }, `L${k}`);
+    // trilho
+    g += el("rect", { x: trackX, y: y + 3, width: trackW, height: bh - 6, rx: 6, fill: "#EDEDF2" });
+    // barra
+    const col = isPeak ? "#059669" : "#C9B8DD";
+    g += el("rect", { x: trackX, y: y + 3, width: trackW * v, height: bh - 6, rx: 6, fill: col });
+    g += el("text", { x: trackX + trackW * v + 8, y: y + 18, fill: col, "font-size": 12, "font-weight": 700 }, `${Math.round(v * 100)}%`);
+    if (isPeak) {
+      g += el("text", { x: trackX + trackW * v + 44, y: y + 18, fill: "#059669", "font-size": 12, "font-weight": 700, "font-style": "italic" }, "← aqui!");
+    }
+  });
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   30) STEERING (activation addition) — em vez de copiar a ativação
+       inteira (patching), SOMA um múltiplo de uma direção de feature
+       ao vetor de ativação, empurrando a saída na direção do conceito.
+       h' = h + α·d_feature.  Slider controla α → readout do efeito.
+       Retorna { svg, alpha, effect } para o slider.
+   ============================================================ */
+function steeringViz(opts) {
+  const { w = 440, h = 360, id = "st", alpha = 1.0 } = opts;
+  // nível de intensidade a partir de alpha
+  const lvl = alpha < 0.5 ? 0 : alpha < 1.5 ? 1 : 2;
+  const zone = [
+    { col: "#71717A", tag: "sem efeito", txt: "“Acho que talvez dê pra ajudar com isso.”" },
+    { col: "#059669", tag: "efeito visível", txt: "“Será um prazer ajudá-lo com esta questão.”" },
+    { col: "#DC2626", tag: "domina a saída", txt: "“Prezado senhor, tenho a honra de vos prestar assistência.”" },
+  ][lvl];
+  let g = "";
+  // --- painel superior: mini-diagrama vetorial (compacto) ---
+  const ox = 40, oy = 150, S = 108;
+  g += el("line", { x1: ox, y1: oy, x2: ox + S + 14, y2: oy, stroke: "#E4E4EE", "stroke-width": 2, opacity: 0.7 });
+  g += el("line", { x1: ox, y1: oy, x2: ox, y2: oy - S - 14, stroke: "#E4E4EE", "stroke-width": 2, opacity: 0.7 });
+  const hx = 0.34, hy = 0.30, hX = ox + hx * S, hY = oy - hy * S;
+  g += el("line", { x1: ox, y1: oy, x2: hX, y2: hY, stroke: "#6B21A8", "stroke-width": 3.5, "marker-end": `url(#sth-${id})` });
+  g += el("text", { x: hX - 4, y: hY + 16, fill: "#6B21A8", "font-size": 13, "font-weight": 700 }, "h");
+  const dfx = 0.62, dfy = 0.44, dn = Math.hypot(dfx, dfy), ux = dfx / dn, uy = dfy / dn;
+  const scale = 0.40;
+  const px = hx + alpha * scale * ux, py = hy + alpha * scale * uy;
+  const pX = ox + px * S, pY = oy - py * S;
+  g += el("line", { x1: hX, y1: hY, x2: pX, y2: pY, stroke: zone.col, "stroke-width": 3, "stroke-dasharray": "5 3", "marker-end": `url(#std-${id})` });
+  g += el("text", { x: (hX + pX) / 2 + 4, y: (hY + pY) / 2 - 8, fill: zone.col, "font-size": 12, "font-weight": 700, "font-style": "italic" }, "α·d");
+  g += el("circle", { cx: pX, cy: pY, r: 4.5, fill: zone.col });
+  g += el("text", { x: pX + 7, y: pY - 3, fill: zone.col, "font-size": 13, "font-weight": 700 }, "h′");
+  g += el("text", { x: ox + 4, y: 20, fill: "#71717A", "font-size": 12, "font-style": "italic" }, "direção “formalidade”");
+  // barra de intensidade α (à direita do diagrama)
+  const barX = ox + S + 60, barTop = 42, barH = 96, barW = 16;
+  g += el("text", { x: barX + barW / 2, y: barTop - 10, "text-anchor": "middle", fill: "#71717A", "font-size": 11, "font-weight": 700 }, "α");
+  g += el("rect", { x: barX, y: barTop, width: barW, height: barH, rx: 8, fill: "#EDEDF2" });
+  const fillH = Math.min(1, alpha / 3) * barH;
+  g += el("rect", { x: barX, y: barTop + barH - fillH, width: barW, height: fillH, rx: 8, fill: zone.col });
+  // --- painel inferior: TEXTO GERADO (o exemplo real, muda com α) ---
+  const py0 = 210, pw = w - 32, ph = h - py0 - 16;
+  g += el("rect", { x: 16, y: py0, width: pw, height: ph, rx: 12, fill: "#FCFBFE", stroke: zone.col, "stroke-width": 2 });
+  g += el("rect", { x: 16, y: py0, width: 6, height: ph, rx: 3, fill: zone.col });
+  g += el("text", { x: 32, y: py0 + 24, fill: zone.col, "font-size": 12, "font-weight": 800, "letter-spacing": "0.04em" }, "SAÍDA DO MODELO");
+  g += el("rect", { x: pw - 76, y: py0 + 12, width: 78, height: 20, rx: 10, fill: zone.col, opacity: 0.14 });
+  g += el("text", { x: pw - 37, y: py0 + 26, "text-anchor": "middle", fill: zone.col, "font-size": 11, "font-weight": 700 }, zone.tag);
+  // texto quebrado em linhas
+  const words = zone.txt.split(" ");
+  let line = "", ly = py0 + 50; const maxc = 34;
+  words.forEach((word) => {
+    if ((line + " " + word).length > maxc) {
+      g += el("text", { x: 32, y: ly, fill: "#2A2A38", "font-size": 15 }, line);
+      line = word; ly += 22;
+    } else line = line ? line + " " + word : word;
+  });
+  if (line) g += el("text", { x: 32, y: ly, fill: "#2A2A38", "font-size": 15 }, line);
+  const defs =
+    el("marker", { id: `sth-${id}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#6B21A8" })) +
+    el("marker", { id: `std-${id}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: zone.col }));
+  return { svg: el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g),
+           alpha, effect: ["sutil", "visível", "domina a saída"][lvl] };
+}
+
+/* ============================================================
+   31) STEERING EXAMPLE — três níveis de intensidade mostrando a
+       saída ficando cada vez mais dominada pelo conceito injetado.
+       Ilustra "botão de conceito" (ex.: Golden Gate) do fraco ao forte.
+   ============================================================ */
+function steeringExample(opts) {
+  const { w = 400, h = 360, id = "se" } = opts;
+  const rows = [
+    { lvl: "α = 0", tag: "original", col: "#71717A", txt: "“Uma boa receita de pão começa com farinha e água…”" },
+    { lvl: "α baixo", tag: "leve", col: "#059669", txt: "“Uma boa receita de pão — como as vendidas perto da Golden Gate — começa com…”" },
+    { lvl: "α alto", tag: "domina", col: "#DC2626", txt: "“A Ponte Golden Gate! A majestosa Ponte Golden Gate de São Francisco…”" },
+  ];
+  const pad = 8, cw = w - pad * 2, rh = 104, gap = 12;
+  let g = "";
+  rows.forEach((r, i) => {
+    const y = pad + i * (rh + gap);
+    g += el("rect", { x: pad, y, width: cw, height: rh, rx: 12, fill: "#FCFBFE", stroke: r.col, "stroke-width": 1.5 });
+    // barra de intensidade lateral
+    g += el("rect", { x: pad, y, width: 6, height: rh, rx: 3, fill: r.col });
+    g += el("text", { x: pad + 18, y: y + 24, fill: r.col, "font-size": 14, "font-weight": 700 }, r.lvl);
+    g += el("rect", { x: pad + 88, y: y + 12, width: 60, height: 18, rx: 9, fill: r.col, opacity: 0.14 });
+    g += el("text", { x: pad + 118, y: y + 25, "text-anchor": "middle", fill: r.col, "font-size": 11, "font-weight": 700 }, r.tag);
+    // texto quebrado em linhas
+    const words = r.txt.split(" ");
+    let line = "", ly = y + 50; const maxc = 40;
+    words.forEach((word) => {
+      if ((line + " " + word).length > maxc) {
+        g += el("text", { x: pad + 18, y: ly, fill: "#3A3A48", "font-size": 13 }, line);
+        line = word; ly += 18;
+      } else line = line ? line + " " + word : word;
+    });
+    if (line) g += el("text", { x: pad + 18, y: ly, fill: "#3A3A48", "font-size": 13 }, line);
+  });
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   32) ABLATION — cadeia de 3 componentes; clicar desliga cada um
+       e mostra o efeito na tarefa (barra de desempenho).
+       componentes necessários derrubam muito o desempenho ao sair.
+   ============================================================ */
+function ablationViz(opts) {
+  const { w = 420, h = 380, id = "ab", off = -1 } = opts;
+  // cada componente = um papel REAL no circuito, com COR e os tokens que ele conecta
+  const comps = [
+    { name: "subject head", col: "#0891B2", role: "lê o país (“França”)", broke: true,
+      short: "subject", carries: "a leitura do sujeito “França”", links: [[2, 2]] },
+    { name: "cabeça-de-fato", col: "#6B21A8", role: "traz o fato do país → capital", broke: true,
+      short: "fato", carries: "a ligação “França → Paris”", links: [[2, 4]] },
+    { name: "cabeça neutra", col: "#94969C", role: "não participa (controle)", broke: false,
+      short: "cabeça neutra", carries: "nada relevante para esta tarefa", links: [] },
+  ];
+  const pad = 16, colW = (w - pad * 2) / 3, top = 46;
+  let g = "";
+  g += el("text", { x: w / 2, y: 16, "text-anchor": "middle", fill: "#6B21A8", "font-size": 13, "font-weight": 700 }, "▸ clique numa head para ligar/desligar");
+  comps.forEach((c, i) => {
+    const cx = pad + colW * i + colW / 2;
+    const isOff = off === i;
+    const boxW = colW - 10, boxH = 62, bx = cx - boxW / 2, by = top;
+    g += `<g class="abl-box" data-abl="${id}" data-i="${i}" style="cursor:pointer">`;
+    g += el("rect", { x: bx, y: by + 3, width: boxW, height: boxH, rx: 11, fill: isOff ? "#E4E4EA" : c.col, opacity: isOff ? 0.5 : 0.2 });
+    g += el("rect", { x: bx, y: by, width: boxW, height: boxH, rx: 11,
+      fill: isOff ? "#F3F3F5" : "#fff", stroke: isOff ? "#C9C9D4" : c.col, "stroke-width": 2.5,
+      ...(isOff ? { "stroke-dasharray": "5 4" } : {}) });
+    // faixa de cor no topo (legenda visual do papel)
+    g += el("rect", { x: bx, y: by, width: boxW, height: 5, rx: 2, fill: isOff ? "#C9C9D4" : c.col });
+    g += el("circle", { cx: bx + 13, cy: by + 18, r: 4.5, fill: isOff ? "#C9C9D4" : "#059669" });
+    g += el("text", { x: bx + 22, y: by + 22, fill: isOff ? "#A1A1AA" : "#059669", "font-size": 9, "font-weight": 700 }, isOff ? "OFF" : "ON");
+    // nome (quebra em 2 linhas se preciso)
+    const nm = c.name.split(" ");
+    if (nm.length > 1 && c.name.length > 14) {
+      g += el("text", { x: cx, y: by + 40, "text-anchor": "middle", fill: isOff ? "#A1A1AA" : c.col, "font-size": 12, "font-weight": 700 }, nm[0]);
+      g += el("text", { x: cx, y: by + 53, "text-anchor": "middle", fill: isOff ? "#A1A1AA" : c.col, "font-size": 12, "font-weight": 700 }, nm.slice(1).join(" "));
+    } else {
+      g += el("text", { x: cx, y: by + 46, "text-anchor": "middle", fill: isOff ? "#A1A1AA" : c.col, "font-size": 12.5, "font-weight": 700 }, c.name);
+    }
+    if (isOff) {
+      g += el("line", { x1: cx - 12, y1: by + 31 - 8, x2: cx + 12, y2: by + 31 + 10, stroke: "#DC2626", "stroke-width": 3 });
+      g += el("line", { x1: cx - 12, y1: by + 31 + 10, x2: cx + 12, y2: by + 31 - 8, stroke: "#DC2626", "stroke-width": 3 });
+    }
+    g += `</g>`;
+  });
+  // --- efeito REAL na frase (dentro da viz), com a cor do papel destacando o que ele faz ---
+  const active = off >= 0 ? comps[off] : null;
+  const broke = active && active.broke;
+  const py0 = top + 92, pw = w - pad * 2, ph = h - py0 - 14;
+  g += el("rect", { x: pad, y: py0, width: pw, height: ph, rx: 12, fill: "#FCFBFE", stroke: "#E4E4EE", "stroke-width": 1.5 });
+  // fita de tokens
+  const toks = ["A", "capital", "da", "França", "é"];
+  const tx0 = pad + 16, ty = py0 + 40, tbw = 50, tbh = 26;
+  const cxTok = (i) => tx0 + i * (tbw + 4) + tbw / 2;
+  // arco colorido do papel ativo (o que ele conecta), desenhado ACIMA da fita
+  if (active && active.links.length) {
+    active.links.forEach(([a, bIdx]) => {
+      const xA = cxTok(a), xB = cxTok(bIdx), yArc = ty - 16;
+      g += el("path", { d: `M ${xA} ${ty - 2} C ${xA} ${yArc - 14}, ${xB} ${yArc - 14}, ${xB} ${ty - 2}`,
+        fill: "none", stroke: broke ? "#C9C9D4" : active.col, "stroke-width": 2.5,
+        "marker-end": `url(#ablh-${id})`, ...(broke ? { "stroke-dasharray": "4 4" } : {}) });
+    });
+  }
+  g += el("text", { x: tx0, y: py0 + 22, fill: "#71717A", "font-size": 11, "font-weight": 700, "letter-spacing": "0.03em" }, "A MESMA FRASE DO CIRCUITO");
+  toks.forEach((t, i) => {
+    const x = tx0 + i * (tbw + 4);
+    // realça os tokens que o papel ativo conecta
+    const inLink = active && active.links.some(([a, bI]) => a === i || bI === i);
+    const tcol = inLink ? (broke ? "#C9C9D4" : active.col) : "#E4E4EE";
+    g += el("rect", { x, y: ty, width: tbw, height: tbh, rx: 6, fill: inLink && !broke ? active.col + "22" : "#F7F7FA", stroke: tcol, "stroke-width": inLink ? 2 : 1 });
+    g += el("text", { x: x + tbw / 2, y: ty + 17, "text-anchor": "middle", fill: "#3A3A48", "font-size": 12, "font-weight": i === 3 ? 700 : 500 }, t);
+  });
+  const arrowX = tx0 + toks.length * (tbw + 4);
+  g += el("text", { x: arrowX + 3, y: ty + 18, fill: "#B8B8C0", "font-size": 15 }, "→");
+  const predCol = broke ? "#DC2626" : "#059669";
+  g += el("rect", { x: arrowX + 20, y: ty, width: 62, height: tbh, rx: 6, fill: broke ? "#FEF2F2" : "#ECFDF5", stroke: predCol, "stroke-width": 2 });
+  g += el("text", { x: arrowX + 51, y: ty + 17, "text-anchor": "middle", fill: predCol, "font-size": 13, "font-weight": 700 }, broke ? "???" : "Paris");
+  // linha explicando o papel ativo (na cor dele)
+  let roleLine = "tudo ligado — o circuito prevê “Paris”";
+  if (active) roleLine = `${active.name}: ${active.role}`;
+  g += el("text", { x: tx0, y: py0 + 84, fill: active ? (broke ? "#DC2626" : "#059669") : "#71717A", "font-size": 12.5, "font-weight": 700 }, active ? "SEM ESSA HEAD:" : "");
+  const info = active ? (broke ? `some “${active.carries}” → previsão QUEBRA` : `${active.carries} → previsão intacta`) : "";
+  const iwords = info.split(" "); let il = "", ily = py0 + 102;
+  iwords.forEach((wd) => { if ((il + " " + wd).length > 52) { g += el("text", { x: tx0, y: ily, fill: "#3A3A48", "font-size": 12 }, il); il = wd; ily += 16; } else il = il ? il + " " + wd : wd; });
+  if (il) g += el("text", { x: tx0, y: ily, fill: "#3A3A48", "font-size": 12 }, il);
+  const defs = el("marker", { id: `ablh-${id}`, markerWidth: 7, markerHeight: 7, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: broke ? "#C9C9D4" : (active ? active.col : "#6B21A8") }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   33) SAE STEERING PANEL — fecha o arco: as features INTERPRETÁVEIS
+       do SAE (Bloco 3) viram os BOTÕES de steering (Bloco 5).
+       Um painel de features nomeadas; a ativa empurra a geração e o
+       texto de saída reflete a feature escolhida. active = índice.
+   ============================================================ */
+function saeSteeringPanel(opts) {
+  const { w = 460, h = 380, id = "sp", active = 0 } = opts;
+  const feats = [
+    { name: "ponte Golden Gate", col: "#DB2777", ang: 38, out: "“…que me lembra a majestosa Golden Gate.”" },
+    { name: "formalidade", col: "#6B21A8", ang: 68, out: "“Prezado senhor, tenho a honra de informar…”" },
+    { name: "tom otimista", col: "#059669", ang: 12, out: "“…e tenho certeza de que vai dar tudo certo!”" },
+    { name: "linguagem técnica", col: "#0891B2", ang: -22, out: "“…conforme o parâmetro instanciado no runtime.”" },
+  ];
+  const pad = 14, rowH = 32, gap = 6, top = 26;
+  const listW = w * 0.48;
+  let g = "";
+  g += el("text", { x: pad, y: 15, fill: "#71717A", "font-size": 10.5, "font-weight": 700, "letter-spacing": "0.03em" }, "FEATURE DO SAE = VETOR d");
+  feats.forEach((f, i) => {
+    const y = top + i * (rowH + gap);
+    const on = i === active;
+    g += `<g class="sae-btn" data-sae="${id}" data-i="${i}" style="cursor:pointer">`;
+    g += el("rect", { x: pad, y, width: listW - pad, height: rowH, rx: 8,
+      fill: on ? f.col : "#F7F7FA", stroke: on ? f.col : "#E4E4EE", "stroke-width": 2, opacity: on ? 0.14 : 1 });
+    if (on) g += el("rect", { x: pad, y, width: listW - pad, height: rowH, rx: 8, fill: "none", stroke: f.col, "stroke-width": 2 });
+    g += el("circle", { cx: pad + 15, cy: y + rowH / 2, r: 6, fill: on ? f.col : "#D4D4DC" });
+    g += el("circle", { cx: pad + 15 + (on ? 4 : -4), cy: y + rowH / 2, r: 4, fill: "#fff" });
+    g += el("text", { x: pad + 30, y: y + rowH / 2 + 4, fill: on ? f.col : "#71717A", "font-size": 11.5, "font-weight": 700 }, f.name);
+    g += `</g>`;
+  });
+  const f = feats[active];
+  const rad = f.ang * Math.PI / 180;
+  // --- MECANISMO: h + α·d = h'  (vetores explícitos) ---
+  const gx = listW + 16, gyTop = top - 4, gw = w - gx - pad, gh = 168;
+  const ocx = gx + 14, ocy = gyTop + gh - 14, R = Math.min(gw - 40, gh - 30);
+  g += el("text", { x: gx, y: gyTop - 6, fill: "#71717A", "font-size": 10, "font-weight": 700, "letter-spacing": "0.03em" }, "A OPERAÇÃO NO ESPAÇO");
+  // eixos
+  g += el("line", { x1: ocx, y1: ocy, x2: ocx + R, y2: ocy, stroke: "#ECECF1", "stroke-width": 1.5 });
+  g += el("line", { x1: ocx, y1: ocy, x2: ocx, y2: ocy - R, stroke: "#ECECF1", "stroke-width": 1.5 });
+  // vetor h (ativação original) — fixo, apontando p/ cima-direita suave
+  const hLen = R * 0.5, hAng = 72 * Math.PI / 180;
+  const hx = ocx + hLen * Math.cos(hAng), hy = ocy - hLen * Math.sin(hAng);
+  g += el("line", { x1: ocx, y1: ocy, x2: hx, y2: hy, stroke: "#1A1A1A", "stroke-width": 2.5, "marker-end": `url(#sph-h-${id})` });
+  g += el("text", { x: hx - 8, y: hy - 4, fill: "#1A1A1A", "font-size": 11, "font-weight": 700 }, "h");
+  // vetor α·d (a direção da feature), partindo da ponta de h
+  const dLen = R * 0.5;
+  const dx = hx + dLen * Math.cos(rad), dy = hy - dLen * Math.sin(rad);
+  g += el("line", { x1: hx, y1: hy, x2: dx, y2: dy, stroke: f.col, "stroke-width": 3, "stroke-dasharray": "5 3", "marker-end": `url(#sph-d-${id})` });
+  g += el("text", { x: (hx + dx) / 2 + 4, y: (hy + dy) / 2 - 4, fill: f.col, "font-size": 11, "font-weight": 700 }, "α·d");
+  // vetor resultante h' = h + α·d
+  g += el("line", { x1: ocx, y1: ocy, x2: dx, y2: dy, stroke: f.col, "stroke-width": 2, opacity: 0.4 });
+  g += el("circle", { cx: dx, cy: dy, r: 4, fill: f.col });
+  g += el("text", { x: dx + 5, y: dy - 4, fill: f.col, "font-size": 11, "font-weight": 800 }, "h′");
+  // origem
+  g += el("circle", { cx: ocx, cy: ocy, r: 3, fill: "#1A1A1A" });
+  // --- painel de saída (reflete a feature ativa) ---
+  const py0 = top + gh + 10, pw = w - pad * 2, ph = h - py0 - 12;
+  g += el("rect", { x: pad, y: py0, width: pw, height: ph, rx: 12, fill: "#FCFBFE", stroke: f.col, "stroke-width": 2 });
+  g += el("rect", { x: pad, y: py0, width: 6, height: ph, rx: 3, fill: f.col });
+  g += el("text", { x: pad + 16, y: py0 + 20, fill: f.col, "font-size": 10.5, "font-weight": 800, "letter-spacing": "0.03em" }, "SAÍDA COM h′ (empurrada pela feature)");
+  const words = f.out.split(" ");
+  let line = "", ly = py0 + 42; const maxc = 46;
+  words.forEach((word) => {
+    if ((line + " " + word).length > maxc) {
+      g += el("text", { x: pad + 16, y: ly, fill: "#2A2A38", "font-size": 13.5 }, line);
+      line = word; ly += 19;
+    } else line = line ? line + " " + word : word;
+  });
+  if (line) g += el("text", { x: pad + 16, y: ly, fill: "#2A2A38", "font-size": 13.5 }, line);
+  const defs =
+    el("marker", { id: `sph-h-${id}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: "#1A1A1A" })) +
+    el("marker", { id: `sph-d-${id}`, markerWidth: 7, markerHeight: 7, refX: 5.5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L7,3 L0,6 Z", fill: f.col }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   34) APPS — três aplicações canônicas como cartões ilustrados.
+       Estático: segurança, detecção de engano, edição de conhecimento.
+   ============================================================ */
+function appsViz(opts) {
+  const { w = 400, h = 380, id = "ap" } = opts;
+  const apps = [
+    { icon: "🛡️", name: "Segurança", col: "#DC2626", desc: "desligar circuitos nocivos" },
+    { icon: "🔍", name: "Detecção de engano", col: "#0891B2", desc: "o modelo “sabe” que mente?" },
+    { icon: "✏️", name: "Edição de conhecimento", col: "#059669", desc: "corrigir um fato sem retreinar" },
+  ];
+  const pad = 10, cw = w - pad * 2, ch = 108, gap = 14;
+  let g = "";
+  apps.forEach((a, i) => {
+    const y = pad + i * (ch + gap);
+    g += el("rect", { x: pad, y, width: cw, height: ch, rx: 14, fill: "#FCFBFE", stroke: a.col, "stroke-width": 1.5 });
+    g += el("rect", { x: pad, y, width: 6, height: ch, rx: 3, fill: a.col });
+    g += el("text", { x: pad + 26, y: y + 46, "font-size": 30 }, a.icon);
+    g += el("text", { x: pad + 68, y: y + 40, fill: a.col, "font-size": 18, "font-weight": 700 }, a.name);
+    g += el("text", { x: pad + 68, y: y + 66, fill: "#3A3A48", "font-size": 14 }, a.desc);
+  });
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   35) ATTRIBUTION PATCHING — aproxima o activation patching via
+       gradientes. Patching EXATO: 1 forward por componente (lento,
+       exato). Attribution: 1 forward + 1 backward → estima TODOS de
+       uma vez (rápido, aproximado). Toggle mode: "exact" vs "attr".
+   ============================================================ */
+function attrPatchSteps(opts) {
+  // Passo a passo do attribution patching, com FLUXO HORIZONTAL (forward → à direita,
+  // backward ← à esquerda) e um EXEMPLO NUMÉRICO REAL do gradiente.
+  const { w = 470, h = 400, id = "aps", step = 0 } = opts;
+  let g = "";
+  const bx = 24, bw = w - 48;
+  // barra de passos no topo
+  const steps = ["1 · forward", "2 · backward", "3 · estimativa"];
+  const sw = 140, sgap = 10, stotal = steps.length * sw + (steps.length - 1) * sgap, sx0 = (w - stotal) / 2;
+  steps.forEach((s, i) => {
+    const x = sx0 + i * (sw + sgap), on = i <= step, cur = i === step;
+    g += el("rect", { x, y: 8, width: sw, height: 28, rx: 8, fill: cur ? "#6B21A8" : on ? "#F3E8FC" : "#F3F3F5", stroke: on ? "#6B21A8" : "#E4E4EE", "stroke-width": 1.5 });
+    g += el("text", { x: x + sw / 2, y: 26, "text-anchor": "middle", fill: cur ? "#fff" : on ? "#6B21A8" : "#A1A1AA", "font-size": 12, "font-weight": 700 }, s);
+  });
+  // ---- a rede desenhada da ESQUERDA para a DIREITA: entrada → camadas → m ----
+  const layTop = 52, rowGap = 34, nRows = 3;
+  const colX = [bx + 40, bx + 150, bx + 260];       // 3 camadas (colunas)
+  const outX = bx + bw - 34;                          // saída m à direita
+  const rowY = (r) => layTop + 18 + r * rowGap;
+  const nodeXY = (c, r) => [colX[c], rowY(r)];
+  // caixa da métrica m à direita (o "placar")
+  const mY = rowY(1);
+  g += el("rect", { x: outX - 30, y: mY - 26, width: 60, height: 52, rx: 9, fill: "#FCF7FF", stroke: "#6B21A8", "stroke-width": 2 });
+  g += el("text", { x: outX, y: mY - 8, "text-anchor": "middle", fill: "#6B21A8", "font-size": 15, "font-weight": 800 }, "m");
+  g += el("text", { x: outX, y: mY + 9, "text-anchor": "middle", fill: "#6B21A8", "font-size": 9 }, "placar");
+  g += el("text", { x: outX, y: mY + 20, "text-anchor": "middle", fill: "#6B21A8", "font-size": 9 }, "de Paris");
+  // arestas entre colunas (e da última coluna → m)
+  for (let c = 0; c < 3; c++) for (let r = 0; r < nRows; r++) {
+    const [x1, y1] = nodeXY(c, r);
+    if (c < 2) {
+      for (let r2 = 0; r2 < nRows; r2++) {
+        const [x2, y2] = nodeXY(c + 1, r2);
+        let col = "#E4E4EE", wd = 1;
+        if (step === 1 && Math.abs(r - r2) <= 1) { col = "#F0B8B8"; wd = 1.4; }
+        g += el("line", { x1, y1, x2, y2, stroke: col, "stroke-width": wd, opacity: 0.7 });
+      }
+    } else {
+      g += el("line", { x1, y1, x2: outX - 30, y2: mY, stroke: step === 1 ? "#F0B8B8" : "#E4E4EE", "stroke-width": 1.2, opacity: 0.7 });
+    }
+  }
+  // nós
+  for (let c = 0; c < 3; c++) for (let r = 0; r < nRows; r++) {
+    const [x, y] = nodeXY(c, r);
+    const eff = Math.max(0, 1 - (Math.abs(r - 1) + Math.abs(c - 1)) / 2.6);
+    let fill = "#F3F3F5", stroke = "#D8D8DE";
+    if (step === 0) { fill = "#EDE7F6"; stroke = "#9333EA"; }
+    else if (step === 1) { fill = "#FBEBEB"; stroke = "#DC2626"; }
+    else { fill = `rgba(5,150,105,${0.12 + eff * 0.72})`; stroke = eff > 0.4 ? "#059669" : "#C9E8D8"; }
+    g += el("circle", { cx: x, cy: y, r: 12, fill, stroke, "stroke-width": 2 });
+  }
+  // rótulo "aₗ" num nó de exemplo (o componente que vamos acompanhar)
+  const exC = 1, exR = 1, [exX, exY] = nodeXY(exC, exR);
+  g += el("circle", { cx: exX, cy: exY, r: 12, fill: "none", stroke: "#111", "stroke-width": 2, "stroke-dasharray": "3 2" });
+  g += el("text", { x: exX, y: exY - 18, "text-anchor": "middle", fill: "#111", "font-size": 11, "font-weight": 700 }, "componente aₗ");
+  // seta de fluxo HORIZONTAL: forward → (esq p/ dir), backward ← (dir p/ esq)
+  const flowY = layTop + 3 * rowGap + 6;
+  if (step === 0) {
+    g += el("line", { x1: bx + 8, y1: flowY, x2: outX, y2: flowY, stroke: "#9333EA", "stroke-width": 3, "marker-end": `url(#aps-fwd-${id})` });
+    g += el("text", { x: (bx + outX) / 2, y: flowY - 6, "text-anchor": "middle", fill: "#6B21A8", "font-size": 11, "font-weight": 700 }, "forward  →  (entrada até o placar m)");
+  } else if (step === 1) {
+    g += el("line", { x1: outX, y1: flowY, x2: bx + 8, y2: flowY, stroke: "#DC2626", "stroke-width": 3, "marker-end": `url(#aps-bwd-${id})` });
+    g += el("text", { x: (bx + outX) / 2, y: flowY - 6, "text-anchor": "middle", fill: "#DC2626", "font-size": 11, "font-weight": 700 }, "backward  ←  (m volta pela rede)");
+  }
+  // ---- painel explicativo embaixo (muda por passo), com EXEMPLO NUMÉRICO ----
+  const py = flowY + 22, pinH = 132;
+  g += el("rect", { x: bx, y: py, width: bw, height: pinH, rx: 10, fill: "#FCFBFE", stroke: "#E4E4EE", "stroke-width": 1.5 });
+  const T = (x, y, t, col, size, wt, style) => el("text", { x, y, fill: col || "#3A3A48", "font-size": size || 12, ...(wt ? { "font-weight": wt } : {}), ...(style ? { "font-style": style } : {}) }, t);
+  if (step === 0) {
+    g += T(bx + 14, py + 24, "Rodo o prompt uma vez e leio o placar m", "#6B21A8", 12.5, 800);
+    g += T(bx + 14, py + 46, "m = quão mais provável o modelo acha “Paris” do que “Roma”.", "#3A3A48", 12);
+    // exemplo numérico do placar
+    g += el("rect", { x: bx + 14, y: py + 60, width: bw - 28, height: 56, rx: 8, fill: "#F7F7FA" });
+    g += T(bx + 28, py + 82, "logit(“Paris”) = 8.2      logit(“Roma”) = 1.5", "#3A3A48", 12, 700);
+    g += T(bx + 28, py + 104, "m = 8.2 − 1.5 = ", "#3A3A48", 12.5, 700);
+    g += T(bx + 136, py + 104, "6.7", "#059669", 13.5, 800);
+    g += T(bx + 170, py + 104, "→ guardo a ativação aₗ de cada peça", "#71717A", 11, null, "italic");
+  } else if (step === 1) {
+    g += T(bx + 14, py + 24, "Um backward pass → daqui saem os gradientes", "#DC2626", 12.5, 800);
+    g += T(bx + 14, py + 48, "o gradiente ∂m/∂aₗ diz: se eu mexer 1 pouquinho em aₗ,", "#3A3A48", 12);
+    g += T(bx + 14, py + 66, "quanto o placar m sobe ou desce? Um número por componente.", "#3A3A48", 12);
+    g += el("rect", { x: bx + 14, y: py + 80, width: bw - 28, height: 40, rx: 8, fill: "#FDF2F2" });
+    g += T(bx + 28, py + 105, "∂m/∂aₗ = ", "#DC2626", 12.5, 700);
+    g += T(bx + 96, py + 105, "+3.0", "#DC2626", 13.5, 800);
+    g += T(bx + 138, py + 105, "(aₗ empurra m para cima) — 1 backward dá p/ TODOS", "#8A2B2B", 10.5, null, "italic");
+  } else {
+    g += T(bx + 14, py + 24, "Multiplico: gradiente × (quanto aₗ mudaria)", "#059669", 12.5, 800);
+    g += T(bx + 14, py + 48, "efeito ≈ ∂m/∂aₗ · (aₗ do corrompido − aₗ do limpo)", "#3A3A48", 12);
+    g += el("rect", { x: bx + 14, y: py + 62, width: bw - 28, height: 56, rx: 8, fill: "#F0FAF5" });
+    g += T(bx + 28, py + 84, "efeito ≈ 3.0 · (0.1 − 0.9)", "#3A3A48", 12.5, 700);
+    g += T(bx + 214, py + 84, "= 3.0 · (−0.8)", "#3A3A48", 12.5, 700);
+    g += T(bx + 28, py + 106, "= ", "#3A3A48", 13, 700);
+    g += T(bx + 44, py + 106, "−2.4", "#059669", 14, 800);
+    g += T(bx + 94, py + 106, "→ patchar essa peça derruba o placar de Paris", "#059669", 10.5, null, "italic");
+  }
+  const defs =
+    el("marker", { id: `aps-fwd-${id}`, markerWidth: 8, markerHeight: 8, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#9333EA" })) +
+    el("marker", { id: `aps-bwd-${id}`, markerWidth: 8, markerHeight: 8, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#DC2626" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+function attributionPatching(opts) {
+  const { w = 460, h = 360, id = "atp", mode = "exact" } = opts;
+  const isAttr = mode === "attr";
+  const cols = 5, rows = 4; // grade de componentes (camada × posição)
+  const gx = 20, gy = 96, cell = 34, gapc = 8;
+  let g = "";
+  // título do modo
+  g += el("text", { x: w / 2, y: 20, "text-anchor": "middle", fill: isAttr ? "#059669" : "#6B21A8", "font-size": 15, "font-weight": 700 },
+    isAttr ? "Attribution patching (aproximado)" : "Activation patching (exato)");
+  // custo — chip
+  g += el("rect", { x: w / 2 - 118, y: 32, width: 236, height: 26, rx: 13, fill: isAttr ? "#ECFDF5" : "#F3E8FC" });
+  g += el("text", { x: w / 2, y: 49, "text-anchor": "middle", fill: isAttr ? "#059669" : "#6B21A8", "font-size": 12.5, "font-weight": 700 },
+    isAttr ? "1 forward + 1 backward → todos de uma vez" : `${cols * rows} forward passes (1 por componente)`);
+  // grade de componentes
+  let idx = 0;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = gx + c * (cell + gapc), y = gy + r * (cell + gapc);
+      // efeito "verdadeiro" de cada componente (heatmap) — um pico no meio
+      const dist = Math.abs(c - 2) + Math.abs(r - 1.5);
+      const effect = Math.max(0, 1 - dist / 4);
+      let fill, stroke = "none";
+      if (isAttr) {
+        // attribution: todos preenchidos de uma vez (heatmap), leve ruído de aproximação
+        const approx = Math.min(1, effect * (0.82 + 0.18 * Math.sin(idx * 2.3)));
+        fill = effect > 0.05 ? `rgba(5,150,105,${0.15 + approx * 0.75})` : "#F3F3F5";
+      } else {
+        // exact: só os já "testados" (os 3 primeiros) estão preenchidos; resto vazio (fila)
+        if (idx < 3) fill = `rgba(107,33,168,${0.2 + effect * 0.75})`;
+        else { fill = "#F7F7FA"; stroke = "#E4E4EE"; }
+      }
+      g += el("rect", { x, y, width: cell, height: cell, rx: 6, fill, stroke, "stroke-width": stroke === "none" ? 0 : 1 });
+      idx++;
+    }
+  }
+  // no modo exact, seta "testando um por um"
+  if (!isAttr) {
+    const ax = gx + 3 * (cell + gapc) - 4, ay = gy + 1 * (cell + gapc) + cell / 2;
+    g += el("text", { x: ax + 2, y: ay + 5, fill: "#6B21A8", "font-size": 18, "font-weight": 700 }, "→");
+    g += el("text", { x: gx, y: gy + rows * (cell + gapc) + 18, fill: "#8B8B96", "font-size": 12, "font-style": "italic" }, "testando o próximo… (a fila continua)");
+  } else {
+    g += el("text", { x: gx, y: gy + rows * (cell + gapc) + 18, fill: "#059669", "font-size": 12, "font-style": "italic" }, "todos estimados de um golpe — mas é aproximação");
+  }
+  // legenda de heatmap
+  const lx = gx + cols * (cell + gapc) + 16, ly = gy + 4;
+  g += el("text", { x: lx, y: ly - 2, fill: "#71717A", "font-size": 10.5, "font-weight": 700 }, "efeito");
+  for (let k = 0; k < 5; k++) {
+    const col = isAttr ? `rgba(5,150,105,${0.2 + k * 0.2})` : `rgba(107,33,168,${0.2 + k * 0.2})`;
+    g += el("rect", { x: lx, y: ly + 6 + k * 16, width: 14, height: 14, rx: 3, fill: col });
+  }
+  g += el("text", { x: lx + 20, y: ly + 18, fill: "#8B8B96", "font-size": 10 }, "alto");
+  g += el("text", { x: lx + 20, y: ly + 6 + 4 * 16 + 11, fill: "#8B8B96", "font-size": 10 }, "baixo");
+  // --- exemplo REAL: qual previsão está sendo medida + o componente de maior efeito ---
+  const taskY = gy + rows * (cell + gapc) + 34;
+  g += el("rect", { x: gx, y: taskY, width: w - gx * 2, height: 46, rx: 9, fill: "#FCFBFE", stroke: "#E4E4EE", "stroke-width": 1.5 });
+  g += el("text", { x: gx + 12, y: taskY + 17, fill: "#71717A", "font-size": 10, "font-weight": 700, "letter-spacing": "0.03em" }, "MEDINDO O EFEITO SOBRE: “capital da França → Paris”");
+  g += el("text", { x: gx + 12, y: taskY + 36, fill: "#3A3A48", "font-size": 12 }, "maior efeito:");
+  const hlCol = isAttr ? "#059669" : "#6B21A8";
+  g += el("rect", { x: gx + 96, y: taskY + 24, width: 128, height: 18, rx: 5, fill: isAttr ? "#ECFDF5" : "#F3E8FC", stroke: hlCol, "stroke-width": 1.5 });
+  g += el("text", { x: gx + 160, y: taskY + 37, "text-anchor": "middle", fill: hlCol, "font-size": 11, "font-weight": 700 }, "head 9.6 (L3)");
+  g += el("text", { x: gx + 234, y: taskY + 37, fill: hlCol, "font-size": 11, "font-weight": 700 }, isAttr ? "≈ +0.58 (estim.)" : "= +0.61 (exato)");
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   36) ACDC — Automated Circuit Discovery. Começa com o grafo
+       computacional COMPLETO (todas as conexões) e vai PODANDO
+       iterativamente as que não importam, até sobrar o circuito.
+       step 0 = grafo cheio; step cresce → poda; step final = circuito.
+   ============================================================ */
+function acdcPrune(opts) {
+  const { w = 460, h = 400, id = "acdc", step = 0 } = opts;
+  // step 0..3 = poda correta; step 4 = CONTRA-EXEMPLO: cortar uma aresta essencial
+  const wrongCut = step >= 4;
+  const graphH = h - 96; // reserva espaço embaixo para a caixa da tarefa
+  // nós em 3 camadas
+  const nodes = [
+    { x: 0.5, y: 0.10, lab: "entrada" },
+    { x: 0.22, y: 0.40, lab: "h1" }, { x: 0.5, y: 0.40, lab: "h2" }, { x: 0.78, y: 0.40, lab: "h3" },
+    { x: 0.30, y: 0.72, lab: "h4" }, { x: 0.70, y: 0.72, lab: "h5" },
+    { x: 0.5, y: 0.96, lab: "saída" },
+  ];
+  // arestas: [de, para, essencial?]  — as essenciais formam o circuito final
+  const edges = [
+    [0,1,false],[0,2,true],[0,3,false],
+    [1,4,false],[2,4,true],[2,5,false],[3,5,false],
+    [4,6,true],[5,6,false],
+    [1,5,false],[3,4,false],[0,4,false],[2,6,false],
+  ];
+  const nonEss = edges.filter(e => !e[2]);
+  const effStep = wrongCut ? 3 : step; // no contra-exemplo, parte do circuito já podado
+  const prunedCount = Math.round((effStep / 3) * nonEss.length);
+  let pruned = 0;
+  const X = (n) => 20 + n.x * (w - 40);
+  const Y = (n) => 16 + n.y * (graphH - 40);
+  // no contra-exemplo, a aresta essencial cortada é a [2,4] (h2→h4)
+  const cutEss = wrongCut ? [2, 4] : null;
+  let g = "";
+  edges.forEach((e) => {
+    const [a, bIdx, ess] = e;
+    let show = true, faded = false;
+    if (!ess) {
+      if (pruned < prunedCount) { show = false; pruned++; }
+      else faded = effStep > 0;
+    }
+    // contra-exemplo: a aresta essencial cortada aparece tracejada vermelha
+    const isCut = cutEss && a === cutEss[0] && bIdx === cutEss[1];
+    if (!show && !isCut) return;
+    const na = nodes[a], nb = nodes[bIdx];
+    if (isCut) {
+      g += el("line", { x1: X(na), y1: Y(na) + 13, x2: X(nb), y2: Y(nb) - 13,
+        stroke: "#DC2626", "stroke-width": 3, "stroke-dasharray": "5 4", opacity: 0.5 });
+      // X vermelho no meio
+      const mx = (X(na) + X(nb)) / 2, my = (Y(na) + Y(nb)) / 2;
+      g += el("line", { x1: mx - 9, y1: my - 9, x2: mx + 9, y2: my + 9, stroke: "#DC2626", "stroke-width": 3 });
+      g += el("line", { x1: mx - 9, y1: my + 9, x2: mx + 9, y2: my - 9, stroke: "#DC2626", "stroke-width": 3 });
+      return;
+    }
+    g += el("line", { x1: X(na), y1: Y(na) + 13, x2: X(nb), y2: Y(nb) - 13,
+      stroke: ess ? "#6B21A8" : "#D8D8E0", "stroke-width": ess ? 3 : 1.5,
+      opacity: ess ? 1 : (faded ? 0.4 : 0.7) });
+  });
+  nodes.forEach((n, i) => {
+    const isIO = i === 0 || i === nodes.length - 1;
+    const inCircuit = [0, 2, 4, 6].includes(i);
+    const dim = (effStep >= 3 && !inCircuit);
+    g += el("circle", { cx: X(n), cy: Y(n), r: 15,
+      fill: isIO ? "#6B21A8" : (dim ? "#F3F3F5" : "#F3E8FC"),
+      stroke: dim ? "#D8D8E0" : "#6B21A8", "stroke-width": 2, opacity: dim ? 0.5 : 1 });
+    g += el("text", { x: X(n), y: Y(n) + 4, "text-anchor": "middle",
+      fill: isIO ? "#fff" : (dim ? "#B8B8C0" : "#6B21A8"), "font-size": 10.5, "font-weight": 700 }, n.lab);
+  });
+  // banda de estado (logo abaixo do grafo, acima da caixa da tarefa)
+  const labels = ["grafo completo — todas as conexões", "podando conexões sem efeito…", "quase lá — restam as que importam", "circuito descoberto ✓"];
+  const stateTxt = wrongCut ? "e se cortássemos uma aresta ESSENCIAL?" : labels[Math.min(step, 3)];
+  const lcol = wrongCut ? "#DC2626" : (step >= 3 ? "#059669" : "#6B21A8");
+  const bandY = graphH + 2;
+  g += el("rect", { x: w / 2 - 165, y: bandY, width: 330, height: 22, rx: 11, fill: wrongCut ? "#FEF2F2" : (step >= 3 ? "#ECFDF5" : "#F3E8FC") });
+  g += el("text", { x: w / 2, y: bandY + 15, "text-anchor": "middle", fill: lcol, "font-size": 12.5, "font-weight": 700 }, stateTxt);
+  // --- exemplo REAL: a tarefa "capital da França → Paris" ---
+  const taskY = h - 52;
+  const broke = wrongCut;
+  const perf = broke ? 0.31 : [1.0, 0.99, 0.98, 0.97][Math.min(step, 3)];
+  const pcol = broke ? "#DC2626" : "#059669";
+  g += el("rect", { x: 20, y: taskY, width: w - 40, height: 44, rx: 9, fill: "#FCFBFE", stroke: broke ? "#F0C9C9" : "#E4E4EE", "stroke-width": 1.5 });
+  g += el("text", { x: 30, y: taskY + 16, fill: "#71717A", "font-size": 10, "font-weight": 700, "letter-spacing": "0.03em" }, "TAREFA: “A capital da França é ___”");
+  g += el("rect", { x: 30, y: taskY + 24, width: 150, height: 12, rx: 6, fill: "#EDEDF2" });
+  g += el("rect", { x: 30, y: taskY + 24, width: 150 * perf, height: 12, rx: 6, fill: pcol });
+  g += el("text", { x: 188, y: taskY + 34, fill: pcol, "font-size": 11, "font-weight": 700 }, `${Math.round(perf * 100)}%`);
+  g += el("text", { x: 232, y: taskY + 28, fill: "#3A3A48", "font-size": 12 }, "prevê");
+  g += el("rect", { x: 274, y: taskY + 17, width: 62, height: 22, rx: 6, fill: broke ? "#FEF2F2" : "#ECFDF5", stroke: pcol, "stroke-width": 1.5 });
+  g += el("text", { x: 305, y: taskY + 32, "text-anchor": "middle", fill: pcol, "font-size": 12, "font-weight": 700 }, broke ? "???" : "Paris ✓");
+  const note = broke ? "QUEBROU — era essencial" : (step >= 3 ? "só o essencial" : step > 0 ? "segue igual" : "");
+  g += el("text", { x: 346, y: taskY + 32, fill: broke ? "#DC2626" : "#8B8B96", "font-size": 10, "font-weight": broke ? 700 : 400, "font-style": "italic" }, note);
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   37) CAUSAL SCRUBBING — testa se a HIPÓTESE de circuito está certa.
+       Se a hipótese diz que só certos caminhos importam, então trocar
+       (resample) as ativações IRRELEVANTES por ativações de OUTROS
+       inputs não deve derrubar o desempenho. Se derrubar, hipótese
+       incompleta. mode: "good" (hipótese certa) vs "bad" (incompleta).
+   ============================================================ */
+function causalScrubbing(opts) {
+  const { w = 460, h = 360, id = "cs", mode = "good" } = opts;
+  const bad = mode === "bad";
+  let g = "";
+  // --- exemplo REAL: a hipótese sobre o circuito de "França → Paris" ---
+  g += el("rect", { x: 20, y: 8, width: w - 40, height: 42, rx: 9, fill: "#F5EEFC", stroke: "#9333EA", "stroke-width": 1.5 });
+  g += el("text", { x: 32, y: 24, fill: "#6B21A8", "font-size": 10.5, "font-weight": 800, "letter-spacing": ".03em" }, "HIPÓTESE (tarefa “capital da França → Paris”)");
+  g += el("text", { x: 32, y: 40, fill: "#3A3A48", "font-size": 12 }, bad
+    ? "“basta a cabeça-de-fato” — e ignora o MLP que guarda o país"
+    : "“a cabeça-de-fato + o MLP do país importam; o resto, não”");
+  // duas colunas de componentes: essenciais (mantidos) e irrelevantes (resampled)
+  const comps = bad
+    ? [ { lab: "cabeça-de-fato (L9)", keep: true },
+        { lab: "MLP do país (troco!)", keep: false },
+        { lab: "resto (resample)", keep: false } ]
+    : [ { lab: "MLP do país (L5)", keep: true },
+        { lab: "cabeça-de-fato (L9)", keep: true },
+        { lab: "resto (resample)", keep: false },
+        { lab: "resto (resample)", keep: false } ];
+  const bx = 30, by = 62, bw = 210, bh = 34, gap = 8;
+  comps.forEach((c, i) => {
+    const y = by + i * (bh + gap);
+    g += el("rect", { x: bx, y, width: bw, height: bh, rx: 8,
+      fill: c.keep ? "#F3E8FC" : "#FFF7ED", stroke: c.keep ? "#6B21A8" : "#D97706", "stroke-width": 2 });
+    g += el("text", { x: bx + 12, y: y + 22, fill: c.keep ? "#6B21A8" : "#D97706", "font-size": 12.5, "font-weight": 700 }, c.lab);
+    if (!c.keep) {
+      g += el("text", { x: bx + bw + 12, y: y + 22, fill: "#D97706", "font-size": 15, "font-weight": 700 }, "⇄");
+      g += el("rect", { x: bx + bw + 30, y: y + 5, width: 96, height: bh - 10, rx: 6, fill: "#FEF3E2", stroke: "#D97706", "stroke-width": 1.5, "stroke-dasharray": "4 3" });
+      g += el("text", { x: bx + bw + 78, y: y + 22, "text-anchor": "middle", fill: "#D97706", "font-size": 10.5, "font-weight": 700 }, "outro texto");
+    } else {
+      g += el("text", { x: bx + bw + 12, y: y + 22, fill: "#059669", "font-size": 12.5, "font-weight": 700 }, "✓ mantém");
+    }
+  });
+  // medidor: a previsão de "Paris" sobrevive ao scrubbing?
+  const perf = bad ? 0.34 : 0.96;
+  const barX = bx, barY = by + comps.length * (bh + gap) + 16, barW = w - bx * 2, barH = 26;
+  g += el("text", { x: barX, y: barY - 8, fill: "#3A3A48", "font-size": 12.5, "font-weight": 700 }, "ainda prevê “Paris”? (após o scrubbing)");
+  g += el("rect", { x: barX, y: barY, width: barW, height: barH, rx: 8, fill: "#EDEDF2" });
+  const pcol = perf > 0.8 ? "#059669" : "#DC2626";
+  g += el("rect", { x: barX, y: barY, width: barW * perf, height: barH, rx: 8, fill: pcol });
+  g += el("text", { x: barX + barW * perf - 8, y: barY + 19, "text-anchor": "end", fill: "#fff", "font-size": 13, "font-weight": 700 }, `${Math.round(perf * 100)}%`);
+  // veredito
+  const verdict = bad
+    ? "caiu → faltava o MLP do país: hipótese INCOMPLETA"
+    : "se manteve → a hipótese do circuito se sustenta ✓";
+  g += el("text", { x: barX, y: barY + barH + 24, fill: pcol, "font-size": 13, "font-weight": 700 }, verdict);
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
+}
+
+/* ============================================================
+   38) PROBING — treina um classificador LINEAR sobre as ativações
+       para testar se uma informação está codificada ali. Mostra
+       pontos de 2 classes no espaço de ativação e um hiperplano que
+       (mode "yes") separa bem ou (mode "no") não separa.
+   ============================================================ */
+function probingViz(opts) {
+  // Passo a passo do MÉTODO de probing (não o resultado): dataset rotulado → passa pelo
+  // modelo (texto vira ativação) → treina o probe → mede acurácia.
+  const { w = 440, h = 340, id = "pr", step = 0 } = opts;
+  let g = "";
+  const pad = 16;
+  // dataset rotulado: frases que EU já sei o rótulo (passado/presente)
+  const rows = [
+    { txt: "Ela viajou a Roma", lab: "passado", col: "#6B21A8" },
+    { txt: "Nós comemos cedo",  lab: "passado", col: "#6B21A8" },
+    { txt: "O trem parte agora", lab: "presente", col: "#D97706" },
+    { txt: "Eu vejo o filme",   lab: "presente", col: "#D97706" },
+  ];
+  // barra de passos no topo
+  const steps = ["1 · dataset", "2 · ativações", "3 · treina probe", "4 · mede"];
+  const sw = (w - pad * 2 - 18) / 4, sy = 8;
+  steps.forEach((s, i) => {
+    const x = pad + i * (sw + 6), on = i <= step, cur = i === step;
+    g += el("rect", { x, y: sy, width: sw, height: 26, rx: 7, fill: cur ? "#6B21A8" : on ? "#F3E8FC" : "#F3F3F5", stroke: on ? "#6B21A8" : "#E4E4EE", "stroke-width": 1.3 });
+    g += el("text", { x: x + sw / 2, y: sy + 17, "text-anchor": "middle", fill: cur ? "#fff" : on ? "#6B21A8" : "#A1A1AA", "font-size": 10.5, "font-weight": 700 }, s);
+  });
+  const bodyY = 46;
+  // ------- PASSO 1: dataset rotulado (texto + rótulo que já conheço) -------
+  if (step === 0) {
+    g += el("text", { x: pad, y: bodyY + 8, fill: "#6B21A8", "font-size": 12, "font-weight": 800 }, "Um dataset cujo rótulo eu JÁ conheço");
+    g += el("text", { x: pad, y: bodyY + 24, fill: "#71717A", "font-size": 11 }, "(o ground truth — eu que rotulei)");
+    rows.forEach((r, i) => {
+      const y = bodyY + 40 + i * 40;
+      g += el("rect", { x: pad, y, width: w - pad * 2 - 96, height: 30, rx: 7, fill: "#F7F7FA", stroke: "#E4E4EE", "stroke-width": 1 });
+      g += el("text", { x: pad + 12, y: y + 19, fill: "#3A3A48", "font-size": 12.5 }, "“" + r.txt + "”");
+      g += el("text", { x: w - pad - 84, y: y + 15, fill: "#B8B8C0", "font-size": 14 }, "→");
+      g += el("rect", { x: w - pad - 66, y: y + 3, width: 66, height: 24, rx: 6, fill: r.col + "1A", stroke: r.col, "stroke-width": 1.3 });
+      g += el("text", { x: w - pad - 33, y: y + 19, "text-anchor": "middle", fill: r.col, "font-size": 11.5, "font-weight": 700 }, r.lab);
+    });
+  }
+  // ------- PASSO 2: cada frase passa pelo modelo → vira ATIVAÇÃO -------
+  else if (step === 1) {
+    g += el("text", { x: pad, y: bodyY + 8, fill: "#6B21A8", "font-size": 12, "font-weight": 800 }, "Passo cada frase pelo modelo");
+    g += el("text", { x: pad, y: bodyY + 24, fill: "#71717A", "font-size": 11 }, "a entrada do probe NÃO é texto — é a ativação da camada");
+    const midY = bodyY + 90;
+    // frase
+    g += el("rect", { x: pad, y: midY - 16, width: 120, height: 32, rx: 7, fill: "#F7F7FA", stroke: "#E4E4EE", "stroke-width": 1 });
+    g += el("text", { x: pad + 60, y: midY + 4, "text-anchor": "middle", fill: "#3A3A48", "font-size": 11.5 }, "“Ela viajou…”");
+    // modelo
+    const mx = pad + 150;
+    g += el("path", { d: `M ${pad + 122} ${midY} L ${mx - 4} ${midY}`, stroke: "#B8B8C0", "stroke-width": 2, "marker-end": `url(#pr-ar-${id})` });
+    g += el("rect", { x: mx, y: midY - 26, width: 92, height: 52, rx: 9, fill: "#EDE7F6", stroke: "#9333EA", "stroke-width": 1.5 });
+    g += el("text", { x: mx + 46, y: midY - 4, "text-anchor": "middle", fill: "#6B21A8", "font-size": 11, "font-weight": 700 }, "modelo");
+    g += el("text", { x: mx + 46, y: midY + 12, "text-anchor": "middle", fill: "#6B21A8", "font-size": 9.5 }, "camada 10");
+    // ativação (vetor de números)
+    const ax = mx + 92 + 30;
+    g += el("path", { d: `M ${mx + 92} ${midY} L ${ax - 4} ${midY}`, stroke: "#B8B8C0", "stroke-width": 2, "marker-end": `url(#pr-ar-${id})` });
+    g += el("rect", { x: ax, y: midY - 30, width: 92, height: 60, rx: 8, fill: "#FCFBFE", stroke: "#6B21A8", "stroke-width": 1.5 });
+    g += el("text", { x: ax + 46, y: midY - 15, "text-anchor": "middle", fill: "#6B21A8", "font-size": 9.5, "font-weight": 700 }, "ativação h");
+    ["0.7", "-1.2", "0.3", "…"].forEach((v, i) => {
+      g += el("text", { x: ax + 46, y: midY - 1 + i * 12, "text-anchor": "middle", fill: "#71717A", "font-size": 9.5 }, v);
+    });
+    g += el("text", { x: pad, y: bodyY + 190, fill: "#3A3A48", "font-size": 11.5, "font-style": "italic" }, "agora o dataset é: (ativação h, rótulo) — repito para todas as frases");
+  }
+  // ------- PASSO 3: treina um classificador linear sobre as ativações -------
+  else if (step === 2) {
+    g += el("text", { x: pad, y: bodyY + 8, fill: "#6B21A8", "font-size": 12, "font-weight": 800 }, "Treino um classificador simples");
+    g += el("text", { x: pad, y: bodyY + 24, fill: "#71717A", "font-size": 11 }, "ativação → probe → palpite; erra, ajusta os pesos, repete" );
+    const midY = bodyY + 92;
+    // h
+    g += el("rect", { x: pad, y: midY - 18, width: 74, height: 36, rx: 7, fill: "#FCFBFE", stroke: "#6B21A8", "stroke-width": 1.5 });
+    g += el("text", { x: pad + 37, y: midY + 5, "text-anchor": "middle", fill: "#6B21A8", "font-size": 12, "font-weight": 700 }, "ativação h");
+    // probe
+    const px = pad + 104;
+    g += el("path", { d: `M ${pad + 76} ${midY} L ${px - 4} ${midY}`, stroke: "#B8B8C0", "stroke-width": 2, "marker-end": `url(#pr-ar-${id})` });
+    g += el("rect", { x: px, y: midY - 22, width: 88, height: 44, rx: 9, fill: "#E3F5FA", stroke: "#0891B2", "stroke-width": 1.5 });
+    g += el("text", { x: px + 44, y: midY - 2, "text-anchor": "middle", fill: "#0369A1", "font-size": 11.5, "font-weight": 700 }, "probe");
+    g += el("text", { x: px + 44, y: midY + 12, "text-anchor": "middle", fill: "#0369A1", "font-size": 9 }, "linear");
+    // palpite vs verdade
+    const gx = px + 88 + 26;
+    g += el("path", { d: `M ${px + 88} ${midY} L ${gx - 4} ${midY}`, stroke: "#B8B8C0", "stroke-width": 2, "marker-end": `url(#pr-ar-${id})` });
+    g += el("rect", { x: gx, y: midY - 20, width: 96, height: 40, rx: 8, fill: "#FEF2F2", stroke: "#DC2626", "stroke-width": 1.5 });
+    g += el("text", { x: gx + 48, y: midY - 4, "text-anchor": "middle", fill: "#DC2626", "font-size": 10.5, "font-weight": 700 }, "diz: presente");
+    g += el("text", { x: gx + 48, y: midY + 11, "text-anchor": "middle", fill: "#6B21A8", "font-size": 10.5 }, "era: passado");
+    // loop de ajuste
+    g += el("path", { d: `M ${px + 44} ${midY + 22} C ${px + 44} ${midY + 54}, ${pad + 37} ${midY + 54}, ${pad + 37} ${midY + 20}`,
+      fill: "none", stroke: "#DC2626", "stroke-width": 1.8, "stroke-dasharray": "4 3", "marker-end": `url(#pr-ar-${id})` });
+    g += el("text", { x: (px + pad) / 2 + 4, y: midY + 66, "text-anchor": "middle", fill: "#DC2626", "font-size": 10.5, "font-style": "italic" }, "erro → ajusta os pesos → repete milhares de vezes");
+  }
+  // ------- PASSO 4: mede a acurácia num conjunto de teste -------
+  else {
+    g += el("text", { x: pad, y: bodyY + 8, fill: "#6B21A8", "font-size": 12, "font-weight": 800 }, "Meço a acurácia em frases novas");
+    g += el("text", { x: pad, y: bodyY + 24, fill: "#71717A", "font-size": 11 }, "predição do probe  vs  rótulo verdadeiro");
+    const acc = 0.94;
+    const bx = pad, byy = bodyY + 52, bw = w - pad * 2, bh = 30;
+    g += el("rect", { x: bx, y: byy, width: bw, height: bh, rx: 8, fill: "#EDEDF2" });
+    g += el("rect", { x: bx, y: byy, width: bw * acc, height: bh, rx: 8, fill: "#059669" });
+    g += el("text", { x: bx + bw * acc - 10, y: byy + 20, "text-anchor": "end", fill: "#fff", "font-size": 14, "font-weight": 800 }, "94%");
+    g += el("text", { x: bx, y: byy + 58, fill: "#059669", "font-size": 13, "font-weight": 800 }, "acurácia alta →");
+    g += el("text", { x: bx, y: byy + 78, fill: "#3A3A48", "font-size": 12.5 }, "a noção de “tempo verbal” ESTÁ codificada nesta camada.");
+    g += el("rect", { x: bx, y: byy + 92, width: bw, height: 40, rx: 8, fill: "#FEF9F0", stroke: "#E5C889", "stroke-width": 1.2 });
+    g += el("text", { x: bx + 12, y: byy + 108, fill: "#B45309", "font-size": 11, "font-weight": 700 }, "cuidado:");
+    g += el("text", { x: bx + 12, y: byy + 124, fill: "#8A5A1B", "font-size": 11 }, "codificado ≠ o modelo realmente USAR essa informação.");
+  }
+  const defs = el("marker", { id: `pr-ar-${id}`, markerWidth: 8, markerHeight: 8, refX: 5, refY: 3, orient: "auto", markerUnits: "strokeWidth" }, el("path", { d: "M0,0 L6,3 L0,6 Z", fill: "#B8B8C0" }));
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, el("defs", {}, defs) + g);
+}
+
+/* ============================================================
+   39) DIRECT LOGIT ATTRIBUTION (DLA) — decompõe o logit final do
+       token correto na contribuição ADITIVA de cada componente.
+       Barras divergentes: quem empurra a favor (verde) e contra
+       (vermelho) a previsão "Paris".
+   ============================================================ */
+function dlaViz(opts) {
+  const { w = 440, h = 340, id = "dla", sel = 0 } = opts;
+  const comps = [
+    { name: "head 9.6 (mover)", v: 0.62 },
+    { name: "head 10.2", v: 0.28 },
+    { name: "MLP 11", v: 0.14 },
+    { name: "head 8.1", v: -0.09 },
+    { name: "head 7.4", v: -0.18 },
+  ];
+  const c = comps[sel];
+  let g = "";
+  // === painel superior: o MÉTODO para o componente selecionado ===
+  const pad = 14;
+  g += el("rect", { x: pad, y: 6, width: w - pad * 2, height: 92, rx: 10, fill: "#FCFBFE", stroke: "#9333EA", "stroke-width": 1.5 });
+  g += el("text", { x: pad + 12, y: 24, fill: "#6B21A8", "font-size": 11, "font-weight": 800, "letter-spacing": ".03em" }, "COMO SE MEDE (para " + c.name + ")");
+  // saída do componente (vetor)
+  g += el("rect", { x: pad + 12, y: 34, width: 96, height: 30, rx: 6, fill: "#EDE7F6", stroke: "#9333EA", "stroke-width": 1.3 });
+  g += el("text", { x: pad + 60, y: 47, "text-anchor": "middle", fill: "#6B21A8", "font-size": 10, "font-weight": 700 }, "saída do");
+  g += el("text", { x: pad + 60, y: 59, "text-anchor": "middle", fill: "#6B21A8", "font-size": 10, "font-weight": 700 }, "componente");
+  g += el("text", { x: pad + 118, y: 53, "text-anchor": "middle", fill: "#3A3A48", "font-size": 15, "font-weight": 700 }, "·");
+  // direção do token Potter (unembedding)
+  g += el("rect", { x: pad + 130, y: 34, width: 104, height: 30, rx: 6, fill: "#FCE7F3", stroke: "#DB2777", "stroke-width": 1.3 });
+  g += el("text", { x: pad + 182, y: 47, "text-anchor": "middle", fill: "#9D174D", "font-size": 10, "font-weight": 700 }, "direção “Paris”");
+  g += el("text", { x: pad + 182, y: 59, "text-anchor": "middle", fill: "#9D174D", "font-size": 10, "font-weight": 700 }, "(unembedding)");
+  g += el("text", { x: pad + 244, y: 53, "text-anchor": "middle", fill: "#3A3A48", "font-size": 15, "font-weight": 700 }, "=");
+  // resultado
+  const rc = c.v >= 0 ? "#059669" : "#DC2626";
+  g += el("rect", { x: pad + 256, y: 34, width: 80, height: 30, rx: 6, fill: c.v >= 0 ? "#ECFDF5" : "#FEF2F2", stroke: rc, "stroke-width": 1.8 });
+  g += el("text", { x: pad + 296, y: 54, "text-anchor": "middle", fill: rc, "font-size": 15, "font-weight": 800 }, (c.v >= 0 ? "+" : "") + c.v.toFixed(2));
+  g += el("text", { x: pad + 12, y: 84, fill: "#71717A", "font-size": 10.5, "font-style": "italic" }, "projeta a saída do componente na direção do token → seu voto no logit");
+  // === gráfico de barras (todos os componentes) — clicável ===
+  const top = 128, rowH = 30, gap = 9, midX = pad + (w - pad * 2) * 0.46, scale = 150;
+  g += el("text", { x: pad, y: top - 14, fill: "#71717A", "font-size": 11, "font-weight": 700, "letter-spacing": "0.03em" }, "VOTO DE CADA COMPONENTE NO LOGIT DE “Paris”");
+  g += el("line", { x1: midX, y1: top - 2, x2: midX, y2: top + comps.length * (rowH + gap) - gap + 2, stroke: "#C9C9D4", "stroke-width": 1.5 });
+  comps.forEach((cc, i) => {
+    const y = top + i * (rowH + gap);
+    const pos = cc.v >= 0, barW = Math.abs(cc.v) * scale, bx = pos ? midX : midX - barW;
+    const isSel = i === sel;
+    const col = pos ? "#059669" : "#DC2626";
+    g += `<g class="dla-row" data-dla="${id}" data-i="${i}" style="cursor:pointer">`;
+    // faixa de seleção
+    g += el("rect", { x: pad, y: y - 3, width: w - pad * 2, height: rowH + 6, rx: 6, fill: isSel ? "#F3E8FC" : "transparent" });
+    g += el("rect", { x: bx, y, width: barW, height: rowH, rx: 6, fill: col, opacity: isSel ? 1 : 0.55, stroke: isSel ? col : "none", "stroke-width": 2 });
+    if (pos) g += el("text", { x: midX - 10, y: y + rowH / 2 + 4, "text-anchor": "end", fill: "#3A3A48", "font-size": 11.5, "font-weight": isSel ? 700 : 600 }, cc.name);
+    else g += el("text", { x: midX + 10, y: y + rowH / 2 + 4, fill: "#3A3A48", "font-size": 11.5, "font-weight": isSel ? 700 : 600 }, cc.name);
+    g += el("text", { x: pos ? bx + barW + 6 : bx - 6, y: y + rowH / 2 + 4, "text-anchor": pos ? "start" : "end", fill: col, "font-size": 11.5, "font-weight": 700 }, (pos ? "+" : "") + cc.v.toFixed(2));
+    g += `</g>`;
+  });
+  const ly = top + comps.length * (rowH + gap) + 6;
+  g += el("text", { x: pad, y: ly + 4, fill: "#059669", "font-size": 11, "font-weight": 700 }, "→ a favor de Paris");
+  g += el("text", { x: w - pad, y: ly + 4, "text-anchor": "end", fill: "#DC2626", "font-size": 11, "font-weight": 700 }, "contra ←");
+  return el("svg", { viewBox: `0 0 ${w} ${h}`, class: "viz", id }, g);
 }

@@ -66,8 +66,8 @@
   margin-bottom:10px;
 }
 .slide-num{
-  position:absolute; top:50px; right:64px;
-  font-family:"Inter",sans-serif; font-size:15px; color:var(--muted); letter-spacing:.05em;
+  position:absolute; bottom:8px; right:64px;
+  font-family:"Inter",sans-serif; font-size:13px; color:var(--muted); letter-spacing:.05em;
 }
 .title{ font-size:46px; margin-bottom:22px; max-width:15em; }
 .title.sm{ font-size:38px; }
@@ -82,6 +82,15 @@
 .badge.tech{ background:var(--amber-lt); color:var(--amber); }
 .badge.demo{ background:var(--blue-lt); color:var(--blue); }
 .badge-row{ position:absolute; top:46px; right:150px; }
+.tecnica-tag{
+  position:absolute; top:44px; right:64px; z-index:5;
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:"Inter",sans-serif; font-size:12px; font-weight:700;
+  letter-spacing:.08em; padding:6px 15px; border-radius:999px;
+  background:var(--purple); color:#fff;
+}
+.tecnica-tag .lab{ font-size:9.5px; font-weight:800; letter-spacing:.14em; opacity:.68; text-transform:uppercase; }
+.tecnica-tag .nm{ text-transform:uppercase; letter-spacing:.06em; }
 
 /* ---------- colunas ---------- */
 .cols{ display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start; }
@@ -101,9 +110,9 @@
 
 /* cards */
 .card{ background:var(--purple-lt); border-radius:16px; padding:22px 24px;
-  box-shadow:0 6px 20px rgba(107,33,168,.07); }
-.card.plain{ background:#F8F8FA; box-shadow:0 6px 20px rgba(0,0,0,.05); }
-.card.blue{ background:var(--blue-lt); box-shadow:0 6px 20px rgba(29,78,216,.08); }
+  box-shadow:0 1px 3px rgba(107,33,168,.08); }
+.card.plain{ background:#F8F8FA; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+.card.blue{ background:var(--blue-lt); box-shadow:0 1px 3px rgba(29,78,216,.08); }
 .card h3{ font-size:22px; margin-bottom:8px; }
 .card .k{ font-family:"Inter",sans-serif; font-size:13px; font-weight:700;
   letter-spacing:.1em; text-transform:uppercase; color:var(--purple); margin-bottom:6px; }
@@ -126,6 +135,27 @@
 .discovery .seg.found .txt b{ color:var(--purple); }
 .discovery .seg.next .lab{ color:#DC2626; }
 .discovery .paper{ font-style:italic; color:var(--muted); font-size:11.5px; margin-top:1px; }
+/* clickable citation links (open in new tab) */
+a.cite-link{ color:#7C3AED; text-decoration:none; border-bottom:1px dotted #B794E6; cursor:pointer; }
+a.cite-link:hover{ color:#5B21B6; border-bottom-style:solid; }
+/* citation line inside cards: keep it compact so long titles don't overflow the footer */
+.card p:last-child:has(a.cite-link){ font-size:12.5px !important; line-height:1.35; }
+/* open-frontiers grid (research challenges slide) */
+.frontiers{ display:grid; grid-template-columns:1fr 1fr; gap:16px 18px; margin-top:6px; }
+.slide-pad:has(.frontiers) > .frontiers{ align-content:center; }
+.slide-pad:has(.frontiers){ display:flex; flex-direction:column; }
+.slide-pad:has(.frontiers) .frontiers{ flex:1 1 auto; align-content:center; }
+.frontier{ background:#F8F8FA; border-radius:13px; padding:13px 16px 14px; box-shadow:0 1px 3px rgba(0,0,0,.05);
+  border-left:3px solid var(--purple); }
+.frontier .fh{ display:flex; align-items:baseline; gap:8px; margin-bottom:3px; }
+.frontier .fn{ font-family:"Inter",sans-serif; font-size:12px; font-weight:800; color:var(--purple);
+  background:var(--purple-lt); border-radius:6px; padding:1px 7px; }
+.frontier .ft{ font-size:16.5px; font-weight:700; color:#1F1F27; }
+.frontier .fd{ font-size:13px; color:#3A3A48; line-height:1.4; margin:2px 0 6px; }
+.frontier .fq{ font-size:12.5px; color:var(--purple); font-style:italic; line-height:1.35; }
+.frontier .fq b{ font-style:normal; font-weight:700; }
+.discovery .paper a.cite-link{ color:var(--muted); border-bottom:1px dotted #C9C9D4; }
+.discovery .paper a.cite-link:hover{ color:#7C3AED; border-bottom-color:#B794E6; }
 
 /* frase-âncora centralizada */
 .anchor{ text-align:center; font-family:"Playfair Display",serif; font-style:italic;
@@ -238,9 +268,9 @@ input[type=range].vrange::-webkit-slider-thumb{ -webkit-appearance:none; appeara
 /* utilidades */
 .mt8{margin-top:8px} .mt16{margin-top:16px} .mt24{margin-top:24px}
 .center{ text-align:center; } .muted{ color:var(--muted); }
-.hl{ background:linear-gradient(transparent 60%, var(--purple-lt) 60%); }
+.hl{ color:var(--purple); font-weight:600; }
 /* Nos títulos (serif), sem marca-texto: só a cor roxa no texto. */
-.title .hl{ background:none; color:var(--purple); }
+.title .hl{ background:none; color:var(--purple); font-weight:inherit; }
 
 /* ============ SLIDES "SOB O CAPÔ" (rigor matemático) ============ */
 .hood{ background:#F4F6FB; }
@@ -301,3 +331,34 @@ input[type=range].viz-slider::-moz-range-thumb {
 .viz-readout b { color:#DC2626; }
 .result-line { font-size:19px; margin-bottom:7px; color:#4A4A5E; }
 .result-line .tag { font-weight:700; font-family:'Playfair Display',serif; }
+
+/* slides de abertura de ONDA (cronologia) */
+.onda-year{
+  font-family:"Inter",sans-serif; font-size:16px; font-weight:800;
+  letter-spacing:.16em; color:var(--purple); text-transform:uppercase;
+}
+.onda-papers{
+  margin-top:22px; font-family:"Inter",sans-serif; font-size:14px;
+  color:var(--muted); letter-spacing:.02em; font-style:italic;
+}
+
+/* tabela-resumo (visão geral, colorida por onda) */
+table.resumo{ width:100%; border-collapse:collapse; font-family:"Inter",sans-serif; margin-top:4px; }
+table.resumo th{ text-align:left; font-size:12px; font-weight:800; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--muted); padding:6px 14px; border-bottom:2px solid #E4E4EE; }
+table.resumo td{ font-size:16px; padding:7px 14px; color:#2A2A32; vertical-align:middle; }
+table.resumo td:first-child{ font-weight:700; }
+table.resumo td em{ color:var(--purple); font-style:italic; }
+table.resumo .ona{ text-align:right; font-size:12px; font-weight:700; white-space:nowrap; }
+/* cores por onda */
+table.resumo tr.w1{ background:rgba(29,78,216,.06); }   /* leitura — azul */
+table.resumo tr.w1 td:first-child, table.resumo tr.w1 .ona{ color:var(--blue); }
+table.resumo tr.w2{ background:rgba(107,33,168,.06); }  /* causal — roxo */
+table.resumo tr.w2 td:first-child, table.resumo tr.w2 .ona{ color:var(--purple); }
+table.resumo tr.w3{ background:rgba(180,83,9,.07); }    /* decompor — âmbar */
+table.resumo tr.w3 td:first-child, table.resumo tr.w3 .ona{ color:var(--amber); }
+table.resumo tr.w4{ background:rgba(5,150,105,.07); }   /* controle — verde */
+table.resumo tr.w4 td:first-child, table.resumo tr.w4 .ona{ color:var(--green); }
+table.resumo tbody tr{ border-bottom:1px solid #F0F0F4; }
+.resumo-nota{ margin-top:16px; font-size:14px; color:var(--muted); line-height:1.5; max-width:60em; }
+.resumo-nota strong{ color:#4A4A55; font-weight:600; }

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interpretabilidade Mecanística para Fact-Checking Iterativo — Proposta de Dissertação</title>
+<link rel="stylesheet" href="lib/reveal/dist/reveal.css">
+<link rel="stylesheet" href="lib/katex/dist/katex.min.css">
+<link rel="stylesheet" href="fonts.css">
+<link rel="stylesheet" href="theme.css">
+<style>
+  .title{ max-width:24em!important; margin-bottom:30px!important; font-size:42px!important; }
+
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:10px; }
+  .stat-card{ background:#F8F8FA; border-radius:14px; padding:16px 14px; text-align:center;
+    box-shadow:0 4px 14px rgba(0,0,0,.05); }
+  .stat-card .bignum{ font-size:24px; }
+  .stat-card .lab{ font-family:"Inter",sans-serif; font-size:12.5px; color:var(--muted); margin-top:4px; line-height:1.35; }
+
+  .rq-item{ background:var(--purple-lt); border-radius:14px; padding:14px 20px; margin-bottom:9px; }
+  .rq-item .rtag{ font-family:"Inter",sans-serif; font-weight:800; color:#fff; background:var(--purple);
+    display:inline-block; padding:2px 10px; border-radius:999px; font-size:13px; margin-bottom:6px; }
+  .rq-item p{ margin:0; font-size:16.5px; color:var(--ink-soft); line-height:1.42; }
+
+  .agenda{ display:flex; flex-direction:column; gap:0; margin-top:14px; }
+  .agenda .astep{ display:flex; align-items:center; gap:18px; padding:9px 0; border-bottom:1px solid var(--line); }
+  .agenda .astep:last-child{ border-bottom:none; }
+  .agenda .anum{ font-family:"Playfair Display",serif; font-weight:800; color:var(--purple-md); font-size:20px; width:34px; }
+  .agenda .atxt{ font-family:"Inter",sans-serif; font-size:17px; color:var(--ink-soft); }
+  .agenda .atxt b{ color:var(--ink); }
+
+  .outlier-flag{ display:inline-block; background:#FDE2E2; color:#DC2626; font-family:"Inter",sans-serif;
+    font-weight:700; font-size:12px; padding:2px 9px; border-radius:999px; }
+  .ok-flag{ display:inline-block; background:#D1FAE5; color:#059669; font-family:"Inter",sans-serif;
+    font-weight:700; font-size:12px; padding:2px 9px; border-radius:999px; }
+
+  .verdict-row{ display:flex; gap:9px; margin-top:12px; flex-wrap:wrap; }
+  .verdict-chip{ display:flex; align-items:center; gap:8px; background:#F8F8FA; border-radius:999px;
+    padding:6px 14px 6px 6px; font-family:"Inter",sans-serif; font-size:13px; color:var(--ink-soft); }
+  .verdict-chip .ic{ width:22px; height:22px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; font-size:12px; font-weight:800; color:#fff; flex:none; }
+  .verdict-chip b{ color:var(--ink); }
+
+  .tech-tag{ display:inline-block; font-family:"Inter",sans-serif; font-weight:800; font-size:12.5px;
+    letter-spacing:.04em; color:#fff; background:var(--purple); padding:4px 13px; border-radius:999px; }
+  .rq-link{ display:inline-block; font-family:"Inter",sans-serif; font-weight:700; font-size:12px;
+    letter-spacing:.04em; color:var(--purple); background:var(--purple-lt); padding:3px 11px; border-radius:999px; margin-left:8px; }
+
+  .res-card{ background:#F8F8FA; border-radius:12px; padding:12px 18px; margin-bottom:8px; }
+  .res-card .rline{ font-family:"Inter",sans-serif; font-size:14px; margin:2px 0; }
+  .res-card .rline b{ color:var(--ink); }
+  .res-card .rq-h{ font-family:"Inter",sans-serif; font-weight:800; font-size:14.5px; color:var(--purple); margin-bottom:4px; }
+
+  .cite{ font-family:"Inter",sans-serif; font-size:13.5px; color:var(--ink-soft); }
+  .cite b{ color:var(--ink); }
+
+  .img-wrap{ display:flex; justify-content:center; align-items:center; margin-top:18px; height:500px; }
+  .img-wrap img{ max-width:100%; max-height:500px; border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.10); object-fit:contain; }
+  .img-placeholder{ display:none; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+    width:78%; height:380px; border:2px dashed var(--purple-md); border-radius:14px; background:var(--purple-xlt);
+    font-family:"Inter",sans-serif; color:var(--purple); text-align:center; padding:24px; }
+  .img-placeholder .ph-title{ font-weight:800; font-size:16px; }
+  .img-placeholder .ph-sub{ font-size:12.5px; color:var(--ink-soft); font-weight:400; max-width:26em; }
+  .img-placeholder code{ background:#fff; padding:2px 7px; border-radius:5px; font-size:12px; }
+</style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+
+<!-- 01 — CAPA -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center;height:100%">
+    <div style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:42%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none">
+      <svg viewBox="0 0 400 400" style="width:74%;opacity:.9">
+        <defs><radialGradient id="cap" cx="50%" cy="45%"><stop offset="0%" stop-color="#F5EEFC"/><stop offset="100%" stop-color="#FFFFFF"/></radialGradient></defs>
+        <circle cx="200" cy="185" r="150" fill="url(#cap)"/>
+        <g stroke="#C9B8DD" stroke-width="1.2" fill="none">
+          <line x1="120" y1="120" x2="200" y2="90"/><line x1="120" y1="120" x2="200" y2="185"/>
+          <line x1="120" y1="185" x2="200" y2="90"/><line x1="120" y1="185" x2="200" y2="185"/>
+          <line x1="120" y1="250" x2="200" y2="185"/><line x1="120" y1="250" x2="200" y2="280"/>
+          <line x1="200" y1="90" x2="280" y2="140"/><line x1="200" y1="185" x2="280" y2="140"/>
+          <line x1="200" y1="185" x2="280" y2="230"/><line x1="200" y1="280" x2="280" y2="230"/>
+        </g>
+        <g fill="#6B21A8">
+          <circle cx="120" cy="120" r="9"/><circle cx="120" cy="185" r="9"/><circle cx="120" cy="250" r="9"/>
+          <circle cx="200" cy="90" r="11"/><circle cx="200" cy="185" r="13"/><circle cx="200" cy="280" r="11"/>
+          <circle cx="280" cy="140" r="9"/><circle cx="280" cy="230" r="9"/>
+        </g>
+      </svg>
+    </div>
+    <div style="max-width:60%;position:relative;z-index:2">
+      <div class="eyebrow">Reunião de orientação · proposta de dissertação</div>
+      <h1 style="font-size:44px;line-height:1.12;margin-bottom:18px">Interpretabilidade Mecanística<br>para Fact-Checking Iterativo</h1>
+      <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:20px;color:#6B21A8;margin:0 0 18px">
+        Investigando, nas ativações internas do modelo, a decisão de encerrar a busca por evidências</p>
+      <p class="small muted" style="max-width:30em">Introdução, trabalhos relacionados, perguntas de pesquisa e plano metodológico — a partir de "Less is More: Improved Fact-Checking on AVeriTeC with Iterative Question Generation" (BRACIS).</p>
+    </div>
+  </div>
+</section>
+
+<!-- 02 — gancho (escuro) -->
+<section data-background-color="#1A1A1A">
+  <div class="slide-pad dark" style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center">
+    <p style="font-size:20px;color:#C9C9CF;font-family:'Inter',sans-serif;margin-bottom:8px;max-width:32em">
+      Ao tornar a geração de perguntas iterativa em vez de single-step, a taxa de abstenção (veredito NEI) no
+      AVeriTeC caiu de</p>
+    <p style="font-size:46px;color:#fff;font-weight:800;margin:0 0 4px">42% <span style="color:#9333EA">→</span> 22%</p>
+    <p style="font-size:14px;color:#8A8A93;font-family:'Inter',sans-serif;margin-top:2px">proporção de vereditos NEI, em média nos 6 modelos avaliados</p>
+    <p class="fragment" style="font-size:19px;color:#C9C9CF;max-width:32em;margin-top:24px">
+      Mas 46% das alegações verdadeiramente NEI passaram a ser classificadas como
+      <span style="color:#fff">REFUTED</span> — um viés sistemático, não aleatório.</p>
+    <h1 class="fragment" style="font-size:44px;color:#fff;margin:24px 0 0 0">Qual é o mecanismo <span style="color:#9333EA">por trás</span> disso?</h1>
+  </div>
+</section>
+
+<!-- 03 — agenda -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="eyebrow">Roteiro</div>
+    <h1 class="title">Estrutura da apresentação</h1>
+    <div class="agenda">
+      <div class="astep"><span class="anum">01</span><span class="atxt"><b>Introdução</b> — o trabalho anterior (Less is More, BRACIS) e seus principais achados</span></div>
+      <div class="astep"><span class="anum">02</span><span class="atxt"><b>Trabalhos Relacionados</b> — mapeamento da literatura e a lacuna identificada</span></div>
+      <div class="astep"><span class="anum">03</span><span class="atxt"><b>Perguntas de Pesquisa</b> — o que esta dissertação pretende responder</span></div>
+      <div class="astep"><span class="anum">04</span><span class="atxt"><b>Metodologia</b> — técnicas de interpretabilidade mecanicista e sua aplicação</span></div>
+      <div class="astep"><span class="anum">05</span><span class="atxt"><b>Contribuição</b> — o que este trabalho acrescenta à área</span></div>
+      <div class="astep"><span class="anum">06</span><span class="atxt"><b>Resultados Esperados</b> — métricas e interpretação dos cenários possíveis</span></div>
+      <div class="astep"><span class="anum">07</span><span class="atxt"><b>Escopo e Limitações</b></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 — Introdução: contexto + pipeline -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">01</div>
+    <div class="eyebrow">1. Introdução</div>
+    <h1 class="title">Verificação automática de fatos</h1>
+    <div class="cols w6040">
+      <div class="body">
+        <p>No trabalho anterior do grupo ("Less is More", BRACIS), desenvolvemos um sistema de fact-checking
+        automatizado que recebe uma alegação (claim) — por exemplo, "Sean Connery recusou gravar um comercial para
+        a Apple" — e recupera evidências da web para determinar sua veracidade. Duas estratégias de geração de
+        perguntas de verificação foram comparadas:</p>
+        <ul class="bullets">
+          <li><strong>Single-step:</strong> até 5 perguntas geradas em uma única chamada, sem acesso a evidências recuperadas previamente.</li>
+          <li class="b-azul"><strong>Iterativa:</strong> geração de uma pergunta por vez, condicionada à evidência já recuperada; o modelo decide autonomamente quando encerrar a busca.</li>
+        </ul>
+        <p class="mt8">Avaliação em <strong>6 LLMs (4–8B parâmetros)</strong> — DeepSeek-R1, Gemma3, Gemma4-E4B,
+        Llama3.1, Ministral3, Qwen3 — no dev set do AVeriTeC (500 alegações).</p>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizPipe"></div></div>
+      </div>
+    </div>
+    <div class="verdict-row">
+      <div class="verdict-chip"><span class="ic" style="background:#059669">S</span><b>SUPPORTED</b> · evidência corrobora a alegação</div>
+      <div class="verdict-chip"><span class="ic" style="background:#DC2626">R</span><b>REFUTED</b> · evidência contradiz a alegação</div>
+      <div class="verdict-chip"><span class="ic" style="background:#9333EA">N</span><b>NEI</b> · evidência insuficiente</div>
+      <div class="verdict-chip"><span class="ic" style="background:#2563EB">C</span><b>CONFLICTING</b> · evidências conflitantes</div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 — Introdução: achados centrais -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">02</div>
+    <div class="eyebrow">1. Introdução · principais achados</div>
+    <h1 class="title">Ganhos da geração iterativa</h1>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="bignum">+1,8 a +21,2 p.p.</div><div class="lab">ganho de acurácia, consistente nos 6 modelos avaliados</div></div>
+      <div class="stat-card"><div class="bignum">4,96 → 2,38</div><div class="lab">queries médias por alegação</div></div>
+      <div class="stat-card"><div class="bignum" style="color:#DC2626">0,424 → 0,221</div><div class="lab">taxa de abstenção (veredito NEI)</div></div>
+      <div class="stat-card"><div class="bignum">14,6k → 16,7k</div><div class="lab">tokens médios consumidos por alegação</div></div>
+    </div>
+    <p class="body mt24" style="max-width:48em">Os ganhos concentram-se nas classes <strong>SUPPORTED</strong> e
+    <strong>REFUTED</strong>; o F1 de <strong>NEI</strong> permanece estagnado (0,140 → 0,139). A redução de
+    abstenção é o principal motor do ganho de acurácia — mas o erro condicional em previsões não-NEI também sobe
+    (0,293 → 0,319), evidenciando um trade-off entre decisão e precisão.</p>
+  </div>
+</section>
+
+<!-- 06 — Introdução: imagem/resultados do artigo anterior -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">03</div>
+    <div class="eyebrow">1. Introdução · evidência do artigo anterior</div>
+    <h1 class="title">Resultados do artigo anterior</h1>
+    <div class="img-wrap">
+      <img src="images/less_is_more_resultados.jpg" alt="Tabela de resultados ou matriz de confusão do artigo Less is More"
+        onerror="this.style.display='none'; document.getElementById('imgPh1').style.display='flex';">
+      <div id="imgPh1" class="img-placeholder">
+        <span class="ph-title">Espaço reservado para imagem</span>
+        <span class="ph-sub">Salve o arquivo em <code>images/less_is_more_resultados.jpg</code> — por exemplo, a tabela
+        de resultados (Acc/F1) ou o heatmap de transferência entre datasets do artigo "Less is More".</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 — Introdução: o padrão anômalo -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">04</div>
+    <div class="badge-row"><span class="badge tech">achado motivador</span></div>
+    <div class="eyebrow">1. Introdução · o problema em aberto</div>
+    <h1 class="title">Viés sistemático de classificação</h1>
+    <div class="cols w5050">
+      <div class="body">
+        <p>Na matriz de confusão do modelo de melhor desempenho (DeepSeek-R1:8B), dois padrões emergem sob geração
+        iterativa:</p>
+        <ul class="bullets">
+          <li class="b-vermelho">46% das alegações verdadeiramente <strong>NEI</strong> são reclassificadas como
+          <strong>REFUTED</strong>, sem migração equivalente para SUPPORTED ou CONFLICTING.</li>
+          <li>As previsões de <strong>CONFLICTING EVIDENCE</strong> praticamente desaparecem (3% → 0%).</li>
+        </ul>
+        <p class="mt8 lead" style="color:#6B21A8">Hipótese de trabalho: esse viés pode não ser apenas um efeito do
+        texto gerado, mas ter uma causa mensurável nas ativações internas do modelo.</p>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizNeiBias"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">estabelecido</span><span class="txt">a geração iterativa reduz a abstenção e aumenta a acurácia</span></div>
+      <div class="seg found"><span class="lab">observação</span><span class="txt">o erro migra sistematicamente para REFUTED, não aleatoriamente</span></div>
+      <div class="seg next"><span class="lab">questão em aberto</span><span class="txt">→ esse padrão é identificável nas ativações internas do modelo?</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 08 — Related Work: tabela com citações -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">05</div>
+    <div class="eyebrow">2. Trabalhos Relacionados</div>
+    <h1 class="title">Mapeamento da literatura</h1>
+    <table class="synth" style="font-size:13.5px">
+      <thead><tr><th>Trabalho</th><th>Interpretabilidade mecanicista?</th><th>Processo multi-turn / iterativo?</th><th>Fact-checking com evidência?</th></tr></thead>
+      <tbody>
+        <tr><td class="cite"><b>Sun et al. (2025)</b> — ReDeEP: Detecting Hallucination in RAG via Mechanistic Interpretability. ICLR 2025.</td><td class="yes">sim</td><td class="no">não</td><td class="no">não — QA aberta</td></tr>
+        <tr><td class="cite"><b>Cencerrado et al. (2025)</b> — No Answer Needed: Predicting LLM Answer Accuracy from Question-Only Linear Probes. arXiv:2509.10625.</td><td class="yes">sim</td><td class="no">não</td><td class="no">não</td></tr>
+        <tr><td class="cite"><b>Kirichenko et al. (2025)</b> — AbstentionBench. arXiv:2506.09038. &nbsp;/&nbsp; <b>Park et al. (2025)</b> — Stop-RAG. arXiv:2510.14337.</td><td class="no">não — comportamental</td><td class="yes">sim</td><td class="no">não</td></tr>
+        <tr><td class="cite"><b>Luo et al. (2026)</b> — AgentLens: Interpretable Safety Steering via Mechanistic Subspaces for Multi-Turn Coding Agents. arXiv:2606.22673.</td><td class="yes">sim</td><td class="yes">sim (agentes de código)</td><td class="no">não</td></tr>
+        <tr style="background:var(--purple-xlt)"><td><strong>Esta proposta</strong></td><td class="yes"><strong>sim</strong></td><td class="yes"><strong>sim</strong></td><td class="yes"><strong>sim (AVeriTeC)</strong></td></tr>
+      </tbody>
+    </table>
+    <p class="small muted mt16">Levantamento realizado em jul/2026. Nenhum dos trabalhos identificados combina as três dimensões
+    simultaneamente — essa interseção delimita o espaço de contribuição da dissertação.</p>
+  </div>
+</section>
+
+<!-- 09 — a lacuna: mapa vs território -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">06</div>
+    <div class="eyebrow">2. Trabalhos Relacionados · síntese</div>
+    <h1 class="title">Falta uma explicação mecanicista</h1>
+    <div class="cols w5050">
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizMap"></div></div>
+      </div>
+      <div class="body" style="align-self:center">
+        <p>As métricas reportadas em "Less is More" — acurácia, número de queries, matriz de confusão — descrevem
+        o comportamento observável do sistema. Constituem um mapa útil, mas parcial, do fenômeno.</p>
+        <p>O território não descrito é o funcionamento interno do modelo: nenhum dos trabalhos identificados
+        investiga, por meios mecanicistas, a decisão de interrupção de um processo iterativo de recuperação de
+        evidências em um sistema de fact-checking.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 — Perguntas de pesquisa -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="eyebrow">3. Perguntas de Pesquisa</div>
+    <h1 class="title">O que pretendemos responder</h1>
+    <div class="rq-item"><span class="rtag">RQ1 · localização</span>
+      <p>Onde (em qual camada) e quando (a partir de qual turno) a decisão do modelo de parar ou continuar a busca
+      passa a ser identificável nas suas ativações internas?</p></div>
+    <div class="rq-item"><span class="rtag">RQ2 · causalidade</span>
+      <p>Se trocarmos artificialmente, no ponto localizado pelo RQ1, a ativação de um momento em que o modelo
+      "decide parar" pela ativação de um momento em que ele "decide continuar" (e vice-versa), a decisão do modelo
+      muda de fato — confirmando que esse sinal causa a decisão — ou ela permanece igual, indicando que o sinal é
+      apenas uma correlação que o probing capta, sem que o modelo realmente a utilize?</p></div>
+    <div class="rq-item"><span class="rtag">RQ3 · generalização</span>
+      <p>Essa localização e esse efeito causal se repetem entre os 6 modelos avaliados, ou variam conforme a
+      arquitetura?</p></div>
+  </div>
+</section>
+
+<!-- 11 — Metodologia: visão geral com técnicas rotuladas -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">07</div>
+    <div class="eyebrow">4. Metodologia · visão geral</div>
+    <h1 class="title">Duas técnicas, três perguntas</h1>
+    <div class="hstep">
+      <div class="dot" style="background:var(--purple)">1</div>
+      <div class="hbody"><p class="qlead"><span class="tech-tag">Linear Probing</span> <span class="rq-link">responde RQ1</span></p>
+      <p class="body" style="margin:4px 0 0">Classificador linear (regressão logística) treinado sobre a ativação do último token no ponto de decisão, repetido camada por camada e turno por turno, para localizar onde e quando a decisão se torna identificável.</p></div>
+    </div>
+    <div class="hstep">
+      <div class="dot" style="background:var(--purple)">2</div>
+      <div class="hbody"><p class="qlead"><span class="tech-tag">Activation Patching</span> <span class="rq-link">responde RQ2</span></p>
+      <p class="body" style="margin:4px 0 0">Substituição controlada da ativação no ponto localizado pelo Passo 1, testando se o sinal identificado exerce efeito causal sobre a decisão, ou é apenas correlação.</p></div>
+    </div>
+    <div class="hstep">
+      <div class="dot" style="background:var(--purple)">3</div>
+      <div class="hbody"><p class="qlead"><span class="tech-tag">Replicação Cross-Model</span> <span class="rq-link">responde RQ3</span></p>
+      <p class="body" style="margin:4px 0 0">Repetição dos Passos 1 e 2 nos 6 modelos avaliados em "Less is More", com atenção ao comportamento atípico do Gemma3.</p></div>
+    </div>
+    <p class="small muted mt16">As três etapas reaproveitam os 6 modelos, o dev set do AVeriTeC (500 alegações) e o pipeline single-step/iterativo já validados no trabalho anterior.</p>
+  </div>
+</section>
+
+<!-- 12 — Passo 1 -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">08</div>
+    <div class="badge-row"><span class="tech-tag">Linear Probing</span></div>
+    <div class="eyebrow">4. Metodologia · Passo 1 · responde RQ1</div>
+    <h1 class="title">Onde e quando o sinal aparece</h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p>Em cada turno <em>t</em> do pipeline iterativo, extraímos a ativação do último token no ponto de
+        decisão — o momento em que o modelo decide gerar mais uma pergunta ou encerrar a busca.</p>
+        <ul class="bullets">
+          <li><strong>Classificador:</strong> regressão logística sobre a ativação, seguindo o princípio de
+          difference-of-means (Panickssery et al., 2024; Marks &amp; Tegmark, 2024).</li>
+          <li class="b-azul"><strong>Duas dimensões de busca:</strong> o probe é treinado separadamente em cada
+          camada e em cada turno, gerando uma grade camada × turno de acurácia — é essa grade que localiza onde
+          e quando o sinal aparece.</li>
+          <li><strong>Métrica de sucesso:</strong> AUC-ROC do classificador em cada célula da grade, comparada a
+          um baseline de chance (0,5) e a um baseline lexical simples sobre o texto da pergunta gerada.</li>
+        </ul>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizProbe"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 — Passo 2 -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">09</div>
+    <div class="badge-row"><span class="tech-tag">Activation Patching</span></div>
+    <div class="eyebrow">4. Metodologia · Passo 2 · responde RQ2</div>
+    <h1 class="title">Correlação ou causalidade?</h1>
+    <div class="cols" style="grid-template-columns:1fr 1.5fr;gap:32px">
+      <div class="body">
+        <p>O Passo 1 mostra <em>onde</em> um classificador consegue decodificar a decisão — mas um probe pode
+        decodificar uma informação presente na ativação mesmo que o modelo não a utilize de fato para decidir
+        (Belinkov, 2022; Hewitt &amp; Liang, 2019). Isso é evidência de correlação, não de causalidade.</p>
+        <p class="mt8">Para testar causalidade, aplicamos <em>activation patching</em> exatamente no ponto
+        localizado pelo Passo 1: substituímos a ativação de uma trajetória convergente ("decide parar") pela de
+        uma trajetória ambígua ("decide continuar"), e observamos se a decisão do modelo se altera.</p>
+        <p class="mt8">Reversão sistemática da decisão sob intervenção corrobora RQ2; ausência de efeito, apesar
+        de boa decodificabilidade no Passo 1, indicaria que o sinal é correlacional, não causal.</p>
+      </div>
+      <div class="body" style="align-self:center">
+        <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+          <div><div id="vizPatchA"></div></div>
+          <div><div id="vizPatchB"></div></div>
+          <div><div id="vizPatchC"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 — Passo 3 -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">10</div>
+    <div class="badge-row"><span class="tech-tag">Replicação Cross-Model</span></div>
+    <div class="eyebrow">4. Metodologia · Passo 3 · responde RQ3</div>
+    <h1 class="title">O mecanismo generaliza?</h1>
+    <table class="synth">
+      <thead><tr><th>Modelo</th><th>Família</th><th>Regime de treinamento</th><th>Taxa de abstenção atípica?</th></tr></thead>
+      <tbody>
+        <tr><td>DeepSeek-R1:8B</td><td>DeepSeek</td><td>reasoning-distilled</td><td><span class="ok-flag">não</span></td></tr>
+        <tr><td>Llama3.1:8B</td><td>Llama</td><td>instruction-tuned geral</td><td><span class="ok-flag">não</span></td></tr>
+        <tr><td>Qwen3:8B</td><td>Qwen</td><td>instruction-following</td><td><span class="ok-flag">não</span></td></tr>
+        <tr><td>Ministral3:8B</td><td>Mistral</td><td>geração estruturada</td><td><span class="ok-flag">não</span></td></tr>
+        <tr><td>Gemma4-E4B</td><td>Gemma</td><td>on-device / per-layer embeddings</td><td><span class="ok-flag">não</span></td></tr>
+        <tr style="background:#FEF2F2"><td><strong>Gemma3:4B</strong></td><td>Gemma</td><td>performance-to-size</td><td><span class="outlier-flag">sim — NEI ≈ 0 já no single-step</span></td></tr>
+      </tbody>
+    </table>
+    <p class="body mt16" style="max-width:48em">O Gemma3 já apresentava taxa de NEI atípica antes mesmo da geração
+    iterativa — um caso de particular interesse para este passo. Repetindo os Passos 1 e 2 nos 6 modelos, testamos
+    duas hipóteses concorrentes para esse outlier: (a) o modelo não possui, ou possui de forma pouco separável, a
+    localização encontrada no Passo 1; ou (b) o modelo possui essa localização, mas o mecanismo de decisão a
+    ignora — o que o Passo 2 (activation patching) permite distinguir diretamente.</p>
+  </div>
+</section>
+
+<!-- 16 — Contribuição -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">11</div>
+    <div class="eyebrow">5. Contribuição</div>
+    <h1 class="title">Contribuições para a área</h1>
+    <div class="cols w5050">
+      <div class="body">
+        <ul class="bullets">
+          <li><strong>Interpretabilidade mecanicista:</strong> estende métodos de probing e patching — hoje
+          aplicados quase exclusivamente a QA de turno único (Cencerrado et al., 2025; Sun et al., 2025) — para um
+          processo de decisão multi-turn em um sistema agentic real, uma lacuna explicitamente apontada por
+          Luo et al. (2026).</li>
+          <li class="b-azul"><strong>Fact-checking automatizado:</strong> primeira explicação, ao nível de
+          representação interna, de por que a recuperação iterativa de evidências reduz a abstenção e induz um
+          viés específico de classificação — complementando avaliações puramente comportamentais
+          (Schlichtkrull et al., 2023).</li>
+          <li><strong>Literatura de abstenção/incerteza em LLMs:</strong> conecta o probing de "direção de
+          confiança" (validado até então apenas em QA factual de turno único) a um pipeline real de recuperação
+          de evidências com decisão explícita de parada — uma ponte ainda inexistente entre AbstentionBench/Stop-RAG
+          e a interpretabilidade mecanicista.</li>
+        </ul>
+      </div>
+      <div class="body">
+        <div class="card plain">
+          <p class="k" style="margin-bottom:8px">contribuição metodológica adicional</p>
+          <p style="margin:0">O protocolo de probing + patching aplicado a um ponto de decisão explícito
+          (continuar/parar) constitui um template replicável para auditar qualquer pipeline agentic com critério
+          de parada — não se restringe a fact-checking, podendo ser estendido a sistemas de RAG em geral.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 17 — Resultados esperados -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">12</div>
+    <div class="eyebrow">6. Resultados Esperados</div>
+    <h1 class="title">Métricas e cenários esperados</h1>
+    <div class="res-card">
+      <p class="rq-h">RQ1 — Localização (Linear Probing)</p>
+      <p class="rline"><b>Métrica:</b> AUC-ROC do classificador por célula da grade camada × turno, na predição de "parar vs. continuar"</p>
+      <p class="rline"><b>Se há células com AUC ≫ 0,5:</b> existe uma localização clara — camada(s) e turno(s) onde a decisão já é identificável</p>
+      <p class="rline"><b>Se AUC ≈ 0,5 em toda a grade:</b> a decisão não é linearmente separável em nenhum ponto — motiva métodos não-lineares (ex.: SAEs) em trabalho futuro</p>
+    </div>
+    <div class="res-card">
+      <p class="rq-h">RQ2 — Causalidade (Activation Patching)</p>
+      <p class="rline"><b>Métrica:</b> taxa de reversão da decisão ao trocar a ativação no ponto localizado pelo RQ1</p>
+      <p class="rline"><b>Se a reversão é sistemática:</b> relação causal confirmada — resultado forte, distingue o achado de um probing meramente correlacional</p>
+      <p class="rline"><b>Se não há reversão:</b> o sinal é correlacional, não causal — achado ainda relevante e publicável, mesmo com boa decodificabilidade no RQ1</p>
+    </div>
+    <div class="res-card">
+      <p class="rq-h">RQ3 — Generalização (Replicação Cross-Model)</p>
+      <p class="rline"><b>Métrica:</b> consistência da localização (RQ1) e do efeito causal (RQ2) entre os 6 modelos</p>
+      <p class="rline"><b>Se consistente:</b> evidência de uma estratégia computacional comum entre arquiteturas</p>
+      <p class="rline"><b>Se o Gemma3 diverge:</b> abre uma linha comparativa sobre efeitos de arquitetura/treinamento na representação de incerteza</p>
+    </div>
+  </div>
+</section>
+
+<!-- 18 — Escopo e limitações -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">13</div>
+    <div class="eyebrow">7. Escopo e Limitações</div>
+    <h1 class="title">Restrições do desenho experimental</h1>
+    <ul class="bullets" style="max-width:52em">
+      <li>O custo computacional do activation patching (6 modelos × 500 alegações × até 5 turnos) provavelmente
+      exigirá amostragem estratificada em vez do conjunto completo.</li>
+      <li>DeepSeek-R1 é reasoning-distilled: seu raciocínio verbalizado pode introduzir ruído na leitura de
+      ativações puras, exigindo controle metodológico adicional.</li>
+      <li>O dev set do AVeriTeC (500 alegações) é suficiente para o probing linear, mas pode ser limitante para
+      estimativas robustas de efeito causal por classe de veredito.</li>
+      <li>O escopo desta proposta está restrito ao AVeriTeC; a generalização para outros datasets de fact-checking
+      (ex.: FEVER) é discutida como extensão, não como entrega obrigatória da dissertação.</li>
+    </ul>
+    <div class="source">Próximo passo: iniciar pelo Passo 1 (Linear Probing) — é o de menor custo computacional e já corrobora ou refuta a localização antes de investir em activation patching.</div>
+  </div>
+</section>
+
+</div></div>
+
+<script src="lib/reveal/dist/reveal.js"></script>
+<script src="lib/katex/dist/katex.min.js"></script>
+<script src="viz.js"></script>
+<script>
+Reveal.initialize({
+  hash:true, transition:"none",
+  width:1280, height:720, margin:0.045, minScale:0.2, maxScale:2.0,
+  controls:true, progress:true, slideNumber:false, center:false
+});
+
+function setViz(id, svg){ const n=document.getElementById(id); if(n) n.innerHTML=svg; }
+
+setViz('vizPipe', VIZ.attribGraph({w:280,h:290,id:'pipe',nodes:[
+  {label:'Alegação (claim)', y:0},
+  {label:'Query de verificação', y:0.34},
+  {label:'Evidência recuperada', y:0.66},
+  {label:'Veredito', y:1, out:true}
+]}));
+
+(function(){
+  const w=370,h=270;
+  const g=`
+    <svg viewBox="0 0 ${w} ${h}" class="viz" id="neib">
+      <text x="${w/2}" y="24" text-anchor="middle" font-size="13" fill="#3F3F46" font-family="Inter,sans-serif" font-weight="700">alegações verdadeiramente NEI</text>
+      <rect x="55" y="54" width="260" height="42" rx="8" fill="#F3E8FC" stroke="#9333EA" stroke-width="1.5"/>
+      <text x="185" y="80" text-anchor="middle" font-size="14" fill="#6B21A8" font-family="Inter,sans-serif">54% permanecem NEI</text>
+      <rect x="55" y="108" width="260" height="42" rx="8" fill="#FDE2E2" stroke="#DC2626" stroke-width="1.5"/>
+      <text x="185" y="134" text-anchor="middle" font-size="14" fill="#DC2626" font-family="Inter,sans-serif" font-weight="700">46% classificadas como REFUTED</text>
+      <text x="185" y="190" text-anchor="middle" font-size="12" fill="#71717A" font-family="Inter,sans-serif" font-style="italic">sem migração equivalente para SUPPORTED/CONFLICTING</text>
+      <text x="185" y="210" text-anchor="middle" font-size="12" fill="#71717A" font-family="Inter,sans-serif" font-style="italic">— viés sistemático, direção preferencial do erro</text>
+    </svg>`;
+  setViz('vizNeiBias', g);
+})();
+
+setViz('vizMap', VIZ.mapTerritory({w:330,h:250,id:'mapa'}));
+
+(function(){
+  const w=380,h=300;
+  const turns=5, layers=6;
+  const cellW=48, cellH=30, x0=70, y0=40;
+  // acurácia simulada só para ilustrar: baixa nas camadas iniciais/turnos iniciais,
+  // alta numa região específica de camadas médias-tardias a partir do turno 3
+  const acc = [
+    [0.51,0.52,0.50,0.53,0.52],
+    [0.54,0.55,0.56,0.58,0.57],
+    [0.58,0.61,0.66,0.74,0.78],
+    [0.60,0.65,0.79,0.87,0.90],
+    [0.57,0.62,0.71,0.80,0.83],
+    [0.53,0.54,0.58,0.63,0.65]
+  ];
+  let cells="";
+  for(let r=0;r<layers;r++){
+    for(let c=0;c<turns;c++){
+      const v = acc[r][c];
+      const alpha = Math.max(0, (v-0.5)/0.45);
+      cells += `<rect x="${x0+c*cellW}" y="${y0+r*cellH}" width="${cellW-3}" height="${cellH-3}" rx="4"
+        fill="rgba(147,51,234,${alpha.toFixed(2)})" stroke="#E4E4E9"/>`;
+    }
+  }
+  const g=`
+    <svg viewBox="0 0 ${w} ${h}" class="viz" id="probe">
+      <text x="${w/2}" y="20" text-anchor="middle" font-size="12.5" fill="#71717A" font-family="Inter,sans-serif">acurácia do probe (AUC), por camada × turno</text>
+      ${cells}
+      <rect x="${x0+3*cellW}" y="${y0+3*cellH}" width="${cellW-3}" height="${cellH-3}" rx="4" fill="none" stroke="#6B21A8" stroke-width="2.5"/>
+      <text x="10" y="${y0+3*cellH+18}" font-size="11" fill="#3F3F46" font-family="Inter,sans-serif">camada</text>
+      <text x="${x0+2.5*cellW}" y="${y0+layers*cellH+22}" text-anchor="middle" font-size="11" fill="#3F3F46" font-family="Inter,sans-serif">turno da iteração (t)</text>
+      <text x="${x0+3*cellW+cellW/2}" y="${y0+3*cellH-8}" text-anchor="middle" font-size="10.5" fill="#6B21A8" font-family="Inter,sans-serif" font-weight="700">onde/quando o sinal aparece</text>
+    </svg>`;
+  setViz('vizProbe', g);
+})();
+
+setViz('vizPatchA', VIZ.patchingDiagram({w:130,h:220,id:'pA',state:'clean',label:'trajetória real',output:'Para (correto)'}));
+setViz('vizPatchB', VIZ.patchingDiagram({w:130,h:220,id:'pB',state:'corrupted',label:'ativação alterada',output:'Continua (?)'}));
+setViz('vizPatchC', VIZ.patchingDiagram({w:130,h:220,id:'pC',state:'patched',label:'patch na camada ℓ*',output:'Para (restaurado)'}));
+</script>
+</body>
+</html>

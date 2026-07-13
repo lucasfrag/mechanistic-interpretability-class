@@ -17,6 +17,7 @@
      ============================================================ -->
 <section data-background-color="#FFFFFF">
   <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center;height:100%">
+    <div class="slide-num">1</div>
     <div style="position:absolute;right:0;top:50%;transform:translateY(-50%);width:44%;height:100%;display:flex;align-items:center;justify-content:center;pointer-events:none">
       <svg viewBox="0 0 400 400" style="width:74%;opacity:.9">
         <defs><radialGradient id="cap" cx="50%" cy="45%"><stop offset="0%" stop-color="#F5EEFC"/><stop offset="100%" stop-color="#FFFFFF"/></radialGradient></defs>
@@ -36,11 +37,11 @@
       </svg>
     </div>
     <div style="max-width:60%;position:relative;z-index:2">
-      <div class="eyebrow">Aula de pós-graduação · PPGCC / PUCRS</div>
+      <div class="eyebrow">PPGCC · PUCRS</div>
       <h1 style="font-size:60px;line-height:1.02;margin-bottom:18px">Interpretabilidade<br>Mecanística</h1>
       <p style="font-family:'Playfair Display',serif;font-style:italic;font-size:24px;color:#6B21A8;margin:0 0 20px">
         Abrindo a caixa-preta — das <span style="font-weight:700">features</span> à <span style="font-weight:700">intervenção causal</span></p>
-      <p class="small muted" style="max-width:26em">Um panorama de mech interp em ~60 min. Público: mestrado e doutorado em ML/DL.</p>
+      <p class="small muted" style="max-width:26em">Um panorama de mech interp em ~60 min.</p>
     </div>
   </div>
 </section>
@@ -50,6 +51,7 @@
      ============================================================ -->
 <section data-background-color="#1A1A1A">
   <div class="slide-pad dark" style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center">
+    <div class="slide-num" style="color:#6B6B72">02</div>
     <p style="font-size:34px;color:#fff;font-family:'Playfair Display',serif;margin-bottom:6px">
       “A capital da França é <span style="color:#9333EA">___</span>”</p>
     <p style="font-size:30px;color:#9333EA;font-weight:700;font-family:'Playfair Display',serif;margin-bottom:26px">→ Paris</p>
@@ -61,15 +63,28 @@
 </section>
 
 <!-- ============================================================
-     04 — SEÇÃO: Bloco 1 (transição com progress-map)
+     ONDA — Os primeiros <span style="color:var(--purple)">olhares</span>
      ============================================================ -->
 <section data-background-color="#FFFFFF">
-  <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center">
-    <div id="pmap-1"></div>
-    <div class="eyebrow" style="margin-top:18px">Bloco 1</div>
-    <h1 style="font-size:54px;max-width:16em">Features: o átomo<br>da interpretabilidade</h1>
-    <p class="body" style="max-width:30em;font-size:22px">O que uma rede <strong>guarda</strong> nas suas ativações — e por que
-    o significado não mora nos neurônios, e sim nas <strong>direções</strong>.</p>
+  <div class="slide-pad">
+    <div class="slide-num">3</div>
+    <div class="eyebrow" style="font-size:15px">O ponto de partida</div>
+    <h1 class="title sm" style="max-width:15em;margin:6px 0 14px">Por dentro, o modelo é só <span class="hl">números</span></h1>
+    <div class="cols w5050" style="align-items:center">
+      <div class="body">
+        <p style="font-size:19px;color:#3A3A48;margin-bottom:14px">
+          Um LLM funciona, mas por dentro é uma <strong>caixa-preta</strong>: bilhões de pesos que produzem, a cada camada, um vetor de ativações — <em>listas de números sem rótulo</em>.</p>
+        <p style="font-size:19px;color:#3A3A48;margin-bottom:14px">
+          A aposta da interpretabilidade é que esses números <strong>não são aleatórios</strong>: eles codificam conceitos — e a primeira pergunta é <strong>onde</strong> cada conceito se esconde ali dentro.</p>
+        <p style="font-size:17px;color:#71717A;font-style:italic;margin-bottom:0">
+          Achar isso separa "o modelo acertou" de "eu <span style="color:var(--purple);font-style:normal;font-weight:600">sei por quê</span>" — a base de tudo que vem depois.</p>
+        <p style="font-size:13px;color:#A1A1AA;margin-top:14px">
+          arquitetura → <a class="cite-link" href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Attention is All You Need (Vaswani et al., 2017)</a></p>
+      </div>
+      <div class="body" style="display:flex;align-items:center;justify-content:center">
+        <div id="vizTfArch" style="width:100%;max-width:560px"></div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -78,17 +93,15 @@
      ============================================================ -->
 <section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <div class="slide-num">04</div>
-    <div class="badge-row"><span class="badge intu">intuição</span></div>
-    <div class="eyebrow">Bloco 1 · features</div>
+    <div class="slide-num">4</div>
+    <div class="eyebrow">Representação · features</div>
     <h1 class="title">O significado está na <span class="hl">direção</span></h1>
     <div class="cols w6040">
       <div class="body">
-        <p>O espaço de ativação tem <span class="hl-azul">d dimensões</span> — os eixos, os neurônios.
-        Uma <strong>feature</strong> não é um eixo: é uma <span class="hl">direção</span> qualquer,
-        combinando várias dimensões.</p>
+        <p class="lead" style="margin-bottom:2px">A primeira descoberta:</p>
+        <p>aqueles números têm estrutura. O espaço de ativação tem <span class="hl-azul">d dimensões</span> (os neurônios), mas um <strong>conceito</strong> raramente mora num neurônio só — ele é uma <span class="hl">direção</span> que combina vários.</p>
         <div class="card plain mt8">
-          <p style="margin:0 0 6px"><strong>dimensão</strong> = capacidade do espaço · <strong>direção</strong> = como a feature se aloja nele.</p>
+          <p style="margin:0 0 6px"><strong>dimensão</strong> = capacidade do espaço · <strong>direção</strong> (uma <em>feature</em>) = como um conceito se aloja nele.</p>
           <p class="small muted" style="margin:0">Por isso um neurônio isolado quase nunca é um conceito limpo.</p>
         </div>
         <p class="mt16">E se conceitos são direções, <strong>combinar conceitos</strong> vira aritmética de vetores.</p>
@@ -99,8 +112,8 @@
     </div>
     <div class="discovery">
       <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">ativações são vetores de números</span></div>
-      <div class="seg found"><span class="lab">a descoberta</span><span class="txt">conceitos vivem em <b>direções lineares</b> do espaço</span><span class="paper">Mikolov et al. 2013 · Elhage et al. 2022</span></div>
-      <div class="seg next"><span class="lab">novo desafio</span><span class="txt">e se há mais conceitos que dimensões?</span></div>
+      <div class="seg found"><span class="lab">a descoberta</span><span class="txt">conceitos vivem em <b>direções lineares</b> do espaço</span><span class="paper"><a class="cite-link" href="https://arxiv.org/abs/1301.3781" target="_blank" rel="noopener">Efficient Estimation of Word Representations in Vector Space (Mikolov 2013)</a></span></div>
+      <div class="seg next"><span class="lab">se são direções…</span><span class="txt">então elas se <b>combinam</b> como vetores</span></div>
     </div>
   </div>
 </section>
@@ -110,15 +123,12 @@
      ============================================================ -->
 <section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <div class="slide-num">05</div>
-    <div class="badge-row"><span class="badge demo">interativo</span></div>
-    <div class="eyebrow">Bloco 1 · direções se combinam</div>
+    <div class="slide-num">5</div>
+    <div class="eyebrow">Representação · direções se combinam</div>
     <h1 class="title">Aritmética de conceitos</h1>
     <div class="cols w4060">
       <div class="body">
-        <p>Cada palavra é uma <strong>posição</strong>; cada <strong>deslocamento</strong> entre elas é uma
-        direção — uma feature. Partindo de <em>rei</em>, subtraio a direção <em>homem</em>, somo <em>mulher</em>,
-        e chego em <em>rainha</em>.</p>
+        <p>Cada conceito é uma <strong>direção</strong> — um vetor a partir da origem. E se conceitos são vetores, <strong>combiná-los</strong> vira soma e subtração. Partindo de <em>rei</em>, subtraio a direção <em>homem</em>, somo <em>mulher</em>, e chego perto de <em>rainha</em>.</p>
         <div class="formula big" style="font-size:28px;margin:14px 0" id="fx-analogy"></div>
         <div class="interact-hint">clique para andar pela cadeia, passo a passo</div>
       </div>
@@ -126,7 +136,7 @@
         <div class="center"><div id="vizVec" style="cursor:pointer"></div></div>
       </div>
     </div>
-    <div class="source">Analogias vetoriais (Mikolov et al., 2013) — a intuição vale para as features internas de um LLM.</div>
+    <div class="source">A intuição vem das <a class="cite-link" href="https://arxiv.org/abs/1301.3781" target="_blank" rel="noopener">analogias de word2vec (Mikolov et al., 2013, “Efficient Estimation of Word Representations in Vector Space”)</a> — e vale para as features internas de um LLM.</div>
   </div>
 </section>
 
@@ -135,15 +145,14 @@
      ============================================================ -->
 <section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <div class="slide-num">06</div>
-    <div class="eyebrow">Bloco 1 · o problema que aparece</div>
+    <div class="slide-num">6</div>
+    <div class="eyebrow">Representação · o problema que aparece</div>
     <h1 class="title">Conceitos demais,<br><span style="color:#DC2626">dimensões de menos</span></h1>
     <div class="cols w6040">
       <div class="body">
-        <p>Direções <strong>ortogonais</strong> não colidem — mas só cabem <em>d</em> delas num
-        espaço de <em>d</em> dimensões.</p>
-        <p class="lead" style="color:#DC2626">Um modelo conhece muito mais conceitos do que tem dimensões.</p>
-        <p>Milhares de features, centenas de dimensões. <strong>Como todas cabem?</strong></p>
+        <p>Só cabem <em>d</em> direções <strong>perfeitamente ortogonais</strong> num espaço de <em>d</em> dimensões — essas não interferem entre si.</p>
+        <p class="lead" style="color:#DC2626">Mas um modelo conhece <em>muito</em> mais conceitos do que tem dimensões.</p>
+        <p>A saída: espremer features em direções <strong>quase</strong>-ortogonais. Cabem muito mais que <em>d</em> — ao custo de uma pequena <strong>interferência</strong> entre elas.</p>
       </div>
       <div class="body" style="align-self:center">
         <div class="center"><div id="vizCrowd"></div></div>
@@ -152,21 +161,20 @@
     <div class="discovery">
       <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">features são direções no espaço de ativação</span></div>
       <div class="seg found"><span class="lab">o problema</span><span class="txt">há <b>muito mais</b> conceitos do que dimensões</span></div>
-      <div class="seg next"><span class="lab">próximo</span><span class="txt">→ superposição: a saída geométrica da rede</span></div>
+      <div class="seg next"><span class="lab">guardando essa dúvida</span><span class="txt">→ mas antes: como <b>ler</b> o que já está lá dentro?</span></div>
     </div>
   </div>
 </section>
 
 <!-- ============================================================
-     07 — SEÇÃO: Bloco 2 (transição com progress-map)
+     ONDA — Superposição e a resposta <span style="color:var(--purple)">SAE</span>
      ============================================================ -->
 <section data-background-color="#FFFFFF">
   <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center">
-    <div id="pmap-2"></div>
-    <div class="eyebrow" style="margin-top:18px">Bloco 2</div>
-    <h1 style="font-size:54px;max-width:16em">Superposição: <span class="hl">features</span><br>além das dimensões</h1>
-    <p class="body" style="max-width:32em;font-size:22px">Se não cabem ortogonais, a rede as <strong>empacota</strong> em ângulos
-    quase-perpendiculares — e aceita um pouco de interferência em troca.</p>
+    <div class="slide-num">7</div>
+    <div class="eyebrow" style="font-size:15px">A limitação que aparece</div>
+    <h1 style="font-size:52px;max-width:16em;margin:8px 0 18px">Conceitos <span style="color:var(--purple)">demais</span>, dimensões de menos</h1>
+    <p class="body" style="max-width:32em;font-size:23px;color:#3A3A48">Se cada feature é uma direção, o que acontece quando há <strong>mais conceitos que neurônios</strong>? A rede precisa <strong>empacotá-los</strong>.</p>
   </div>
 </section>
 
@@ -175,9 +183,8 @@
      ============================================================ -->
 <section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <div class="slide-num">08</div>
-    <div class="badge-row"><span class="badge demo">interativo</span><span class="badge tech">achado</span></div>
-    <div class="eyebrow">Bloco 2 · a geometria da superposição</div>
+    <div class="slide-num">8</div>
+    <div class="eyebrow">Superposição · a geometria</div>
     <h1 class="title">Features viram <span class="hl">formas geométricas</span></h1>
     <div class="cols w4060">
       <div class="body">
@@ -200,7 +207,7 @@
     </div>
     <div class="discovery">
       <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">não cabem features ortogonais além de d</span></div>
-      <div class="seg found"><span class="lab">a descoberta</span><span class="txt">features se organizam em <b>polígonos regulares</b></span><span class="paper">Elhage et al. 2022 · Toy Models of Superposition</span></div>
+      <div class="seg found"><span class="lab">a descoberta</span><span class="txt">features se organizam em <b>polígonos regulares</b></span><span class="paper"><a class="cite-link" href="https://transformer-circuits.pub/2022/toy_model/index.html" target="_blank" rel="noopener">Toy Models of Superposition (Elhage 2022)</a></span></div>
       <div class="seg next"><span class="lab">novo desafio</span><span class="txt">quase-ortogonal ainda deixa vazamento</span></div>
     </div>
   </div>
@@ -211,9 +218,8 @@
      ============================================================ -->
 <section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <div class="slide-num">09</div>
-    <div class="badge-row"><span class="badge demo">interativo</span></div>
-    <div class="eyebrow">Bloco 2 · o custo</div>
+    <div class="slide-num">9</div>
+    <div class="eyebrow">Superposição · o custo</div>
     <h1 class="title">O preço é a <span style="color:#DC2626">interferência</span></h1>
     <div class="cols w4060">
       <div class="body">
@@ -233,7 +239,7 @@
     </div>
     <div class="discovery">
       <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">features empacotam quase-ortogonais</span></div>
-      <div class="seg found"><span class="lab">o custo</span><span class="txt">o produto interno mede a <b>interferência</b></span><span class="paper">Elhage et al. 2022</span></div>
+      <div class="seg found"><span class="lab">o custo</span><span class="txt">o produto interno mede a <b>interferência</b></span><span class="paper"><a class="cite-link" href="https://transformer-circuits.pub/2022/toy_model/index.html" target="_blank" rel="noopener">Toy Models of Superposition (Elhage 2022)</a></span></div>
       <div class="seg next"><span class="lab">consequência</span><span class="txt">→ neurônios ficam polissemânticos</span></div>
     </div>
   </div>
@@ -245,7 +251,7 @@
 <section data-background-color="#FFFFFF">
   <div class="slide-pad">
     <div class="slide-num">10</div>
-    <div class="eyebrow">Bloco 2 · a consequência</div>
+    <div class="eyebrow">Superposição · a consequência</div>
     <h1 class="title">Um neurônio ≠ <span class="hl">uma feature</span></h1>
     <div class="cols w6040">
       <div class="body">
@@ -263,22 +269,21 @@
     </div>
     <div class="discovery">
       <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">superposição gera interferência</span></div>
-      <div class="seg found"><span class="lab">a consequência</span><span class="txt">um neurônio mistura features — <b>polissemanticidade</b></span><span class="paper">Elhage et al. 2022</span></div>
+      <div class="seg found"><span class="lab">a consequência</span><span class="txt">um neurônio mistura features — <b>polissemanticidade</b></span><span class="paper"><a class="cite-link" href="https://transformer-circuits.pub/2022/toy_model/index.html" target="_blank" rel="noopener">Toy Models of Superposition (Elhage 2022)</a></span></div>
       <div class="seg next"><span class="lab">novo desafio</span><span class="txt">→ como desembaralhar? SAEs</span></div>
     </div>
   </div>
 </section>
 
 <!-- ============================================================
-     11 — SEÇÃO: Bloco 3 (transição com progress-map)
+     SEÇÃO — A resposta: sparse autoencoders
      ============================================================ -->
 <section data-background-color="#FFFFFF">
   <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center">
-    <div id="pmap-3"></div>
-    <div class="eyebrow" style="margin-top:18px">Bloco 3</div>
-    <h1 style="font-size:54px;max-width:16em">SAEs: desembaralhar<br>a superposição</h1>
-    <p class="body" style="max-width:32em;font-size:22px">Um <strong>autoencoder esparso</strong> reprojeta a ativação num espaço
-    muito maior, onde cada feature reconquista a sua <strong>própria direção limpa</strong>.</p>
+    <div class="slide-num">11</div>
+    <div class="eyebrow" style="font-size:15px">A resposta: sparse autoencoders</div>
+    <h1 style="font-size:52px;max-width:16em;margin:8px 0 18px">Desembaralhar as <span style="color:var(--purple)">features</span></h1>
+    <p class="body" style="max-width:32em;font-size:23px;color:#3A3A48">Se a superposição empacota muitas features em poucos neurônios, como <strong>separá-las</strong> de volta em conceitos legíveis?</p>
   </div>
 </section>
 
@@ -288,8 +293,8 @@
 <section data-background-color="#FFFFFF">
   <div class="slide-pad">
     <div class="slide-num">12</div>
-    <div class="badge-row"><span class="badge demo">interativo</span></div>
-    <div class="eyebrow">Bloco 3 · a ideia</div>
+    <div class="eyebrow">SAE · a ideia</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">sparse autoencoder (SAE)</span></div>
     <h1 class="title">Abrir o emaranhado num <span class="hl">espaço maior</span></h1>
     <div class="cols w4060">
       <div class="body">
@@ -308,7 +313,7 @@
     </div>
     <div class="discovery">
       <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">features vivem sobrepostas e emaranhadas</span></div>
-      <div class="seg found"><span class="lab">a ideia</span><span class="txt">um <b>autoencoder esparso</b> as separa de volta</span><span class="paper">Cunningham et al. 2023 · Bricken et al. 2023</span></div>
+      <div class="seg found"><span class="lab">a ideia</span><span class="txt">um <b>autoencoder esparso</b> as separa de volta</span><span class="paper"><a class="cite-link" href="https://arxiv.org/abs/2309.08600" target="_blank" rel="noopener">Sparse Autoencoders Find Highly Interpretable Features (Cunningham 2023)</a> · <a class="cite-link" href="https://transformer-circuits.pub/2023/monosemantic-features/index.html" target="_blank" rel="noopener">Towards Monosemanticity (Bricken 2023)</a></span></div>
       <div class="seg next"><span class="lab">a chave</span><span class="txt">o que força a separação? a esparsidade</span></div>
     </div>
   </div>
@@ -320,8 +325,7 @@
 <section data-background-color="#FFFFFF">
   <div class="slide-pad">
     <div class="slide-num">13</div>
-    <div class="badge-row"><span class="badge demo">interativo</span></div>
-    <div class="eyebrow">Bloco 3 · o ingrediente-chave</div>
+    <div class="eyebrow">SAE · o ingrediente-chave</div>
     <h1 class="title">Poucas acesas por vez = <span class="hl">monossemânticas</span></h1>
     <div class="cols w4060">
       <div class="body">
@@ -342,7 +346,7 @@
     </div>
     <div class="discovery">
       <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">o SAE reprojeta num espaço largo</span></div>
-      <div class="seg found"><span class="lab">a descoberta</span><span class="txt">a <b>esparsidade</b> torna as features monossemânticas</span><span class="paper">Bricken et al. 2023 · Towards Monosemanticity</span></div>
+      <div class="seg found"><span class="lab">a descoberta</span><span class="txt">a <b>esparsidade</b> torna as features monossemânticas</span><span class="paper"><a class="cite-link" href="https://transformer-circuits.pub/2023/monosemantic-features/index.html" target="_blank" rel="noopener">Towards Monosemanticity (Bricken 2023)</a></span></div>
       <div class="seg next"><span class="lab">o resultado</span><span class="txt">features de fato interpretáveis</span></div>
     </div>
   </div>
@@ -354,44 +358,182 @@
 <section data-background-color="#FFFFFF">
   <div class="slide-pad">
     <div class="slide-num">14</div>
-    <div class="eyebrow">Bloco 3 · o que ganhamos (e o que falta)</div>
-    <h1 class="title">Features que a gente <span class="hl">lê</span></h1>
+    <div class="eyebrow">SAE · como lemos uma feature</div>
+    <h1 class="title">Uma feature não vem <span class="hl">rotulada</span></h1>
     <div class="cols w5050">
       <div class="body">
-        <p>Depois de treinar o SAE, olhamos <strong>o que faz cada feature disparar</strong>: quais
-        trechos de texto a acendem. Cada uma acaba correspondendo a <strong>um conceito reconhecível</strong>.</p>
-        <p>Ex.: uma feature só acende quando o texto fala da <span class="hl">ponte Golden Gate</span>;
-        outra, só em <span class="hl-azul">código Python</span>. Viram <strong>detectores de conceito</strong>
-        que a gente lê e nomeia — um por um.</p>
-        <ul class="bullets">
-          <li class="b-verde"><strong>Em escala:</strong> milhões deles num LLM de produção.</li>
-          <li class="b-vermelho"><strong>Mas com ressalvas:</strong> muitas features nunca disparam (aprendidas à toa);
-          o x̂ reconstruído nunca é idêntico ao original; e dizer se uma feature é <em>mesmo</em> "um conceito só"
-          ainda depende de um humano olhando exemplos.</li>
-        </ul>
+        <p class="lead" style="margin-bottom:2px">O ponto honesto:</p>
+        <p>o SAE separa as features, mas cada uma é só um <strong>vetor com um número</strong> — ele <em>não</em> diz "isto é a Golden Gate". A gente descobre o significado <strong>por fora</strong>.</p>
+        <p class="lead" style="margin-bottom:2px">Como? E de onde vêm os exemplos?</p>
+        <p>rodamos um <strong>corpus grande</strong> (o mesmo tipo de texto em que o modelo treinou) pelo modelo, guardamos quanto a feature dispara em <em>cada trecho</em>, e pegamos os <strong>que mais a ativam</strong>. Se todos falam da mesma coisa, esse é o conceito dela.</p>
+        <div class="card plain mt8">
+          <p style="margin:0">É <strong>leitura indireta</strong>: não lemos o vetor, lemos os <em>exemplos</em> que ele destaca — e batizamos a feature com o padrão que aparece.</p>
+        </div>
       </div>
       <div class="body" style="align-self:center">
         <div class="center"><div id="vizFeatEx"></div></div>
       </div>
     </div>
     <div class="discovery">
-      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">esparsidade dá features interpretáveis</span></div>
-      <div class="seg found"><span class="lab">a demonstração</span><span class="txt">features nítidas em escala real (ex.: <b>Golden Gate</b>)</span><span class="paper">Templeton et al. 2024 · Scaling Monosemanticity</span></div>
-      <div class="seg next"><span class="lab">novo desafio</span><span class="txt">→ features soltas não explicam o cálculo. Circuitos</span></div>
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">o SAE dá features esparsas e separadas</span></div>
+      <div class="seg found"><span class="lab">mas falta um passo</span><span class="txt">a feature é um vetor mudo — o rótulo vem dos <b>top-exemplos</b></span></div>
+      <div class="seg next"><span class="lab">e milhões delas?</span><span class="txt">→ dá para <b>automatizar</b> essa rotulagem</span></div>
     </div>
   </div>
 </section>
 
 <!-- ============================================================
-     15 — SEÇÃO: Bloco 4 (transição com progress-map)
+     14b — rotular em escala + auto-interpretability
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">15</div>
+    <div class="eyebrow">SAE · rotular em escala</div>
+    <h1 class="title">Um modelo para <span class="hl">explicar</span> o outro</h1>
+    <div class="cols w5050">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">O problema de escala:</p>
+        <p>um LLM de produção tem <strong>milhões</strong> de features — ninguém lê os top-exemplos de cada uma à mão.</p>
+        <p class="lead" style="margin-bottom:2px">A saída:</p>
+        <p>mostrar os top-exemplos para <strong>outro LLM</strong> e pedir que ele <strong>proponha o rótulo</strong>.</p>
+        <div class="card plain mt8">
+          <p style="margin:0"><strong>Auto-interpretability</strong>: um modelo escreve a explicação das features do outro — e dá para <em>medir</em> se a explicação prevê as ativações.</p>
+          <p style="margin:6px 0 0;font-size:14px;color:#71717A"><a class="cite-link" href="https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html" target="_blank" rel="noopener">Language Models Can Explain Neurons in Language Models (Bills 2023)</a></p>
+        </div>
+        <p style="font-size:14px;color:#71717A;margin-top:10px"><strong>Ressalvas:</strong> muitas features nunca disparam; a reconstrução não é perfeita; o rótulo é <em>hipótese</em>, não prova.</p>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizFeatScale"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">rotulamos uma feature pelos top-exemplos</span></div>
+      <div class="seg found"><span class="lab">a virada de escala</span><span class="txt">outro LLM rotula <b>milhões</b> de features sozinho</span><span class="paper"><a class="cite-link" href="https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html" target="_blank" rel="noopener">Language Models Can Explain Neurons (Bills 2023)</a></span></div>
+      <div class="seg next"><span class="lab">features legíveis — e agora?</span><span class="txt">→ que <b>ferramentas</b> temos para ler o modelo?</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SEÇÃO — Ferramentas de leitura
      ============================================================ -->
 <section data-background-color="#FFFFFF">
   <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center">
-    <div id="pmap-4"></div>
-    <div class="eyebrow" style="margin-top:18px">Bloco 4</div>
-    <h1 style="font-size:54px;max-width:16em">Circuitos: features<br>que computam juntas</h1>
-    <p class="body" style="max-width:32em;font-size:22px">Uma feature sozinha é um substantivo. O <strong>verbo</strong> aparece quando várias
-    se conectam entre camadas para executar um <strong>algoritmo</strong>.</p>
+    <div class="slide-num">16</div>
+    <div class="eyebrow" style="font-size:15px">Ferramentas de leitura</div>
+    <h1 style="font-size:52px;max-width:16em;margin:8px 0 18px">Espiar o que a rede <span style="color:var(--purple)">já sabe</span></h1>
+    <p class="body" style="max-width:32em;font-size:23px;color:#3A3A48">Com features mais legíveis, que <strong>técnicas diretas</strong> temos para ler o que cada camada representa — sem abrir o circuito ainda?</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     14c — logit lens
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">17</div>
+    <div class="eyebrow">Leitura · técnica</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">logit lens</span></div>
+    <h1 class="title">Espiar a previsão <span class="hl">se formando</span></h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">O problema:</p>
+        <p>o modelo forma a resposta <strong>camada a camada</strong>, mas só vemos a saída <em>final</em> — não <strong>onde</strong> ela se decide.</p>
+        <p class="lead" style="margin-bottom:2px">E se…</p>
+        <p>projetássemos uma camada intermediária <strong>direto no vocabulário</strong>, como se fosse a saída?</p>
+        <div class="card plain mt8">
+          <p style="margin:0"><strong>Logit lens</strong>: passa a ativação pela mesma projeção de saída (LN → W<sub>U</sub>) e lê a "previsão em formação".</p>
+          <p style="margin:6px 0 0;font-size:14px;color:#71717A"><a class="cite-link" href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens" target="_blank" rel="noopener">Interpreting GPT: The Logit Lens (nostalgebraist 2020)</a> · <a class="cite-link" href="https://arxiv.org/abs/2303.08112" target="_blank" rel="noopener">Eliciting Latent Predictions with the Tuned Lens (Belrose 2023)</a></p>
+        </div>
+        <div class="interact-hint">clique para espiar camadas diferentes</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizLogitLens" style="cursor:pointer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">SAEs leem features numa camada</span></div>
+      <div class="seg found"><span class="lab">a técnica</span><span class="txt"><b>logit lens</b>: projeta cada camada no vocabulário</span><span class="paper"><a class="cite-link" href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens" target="_blank" rel="noopener">Interpreting GPT: The Logit Lens (nostalgebraist 2020)</a> · <a class="cite-link" href="https://arxiv.org/abs/2303.08112" target="_blank" rel="noopener">Tuned Lens (Belrose 2023)</a></span></div>
+      <div class="seg next"><span class="lab">e testar um conceito?</span><span class="txt">treinar um probe</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     14d — probing
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">18</div>
+    <div class="eyebrow">Leitura · técnica</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">probing</span></div>
+    <h1 class="title">Testar se um conceito <span class="hl">está lá</span></h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">O logit lens só lê…</p>
+        <p>o que vira <strong>token de saída</strong>. E conceitos abstratos, como "está no passado" ou "sujeito plural"?</p>
+        <p class="lead" style="margin-bottom:2px">A ideia:</p>
+        <p>se a informação está <em>codificada</em> na camada, um <strong>classificador simples</strong> consegue lê-la.</p>
+        <div class="card plain mt8">
+          <p style="margin:0"><strong>Probing</strong>: um <strong>classificador linear</strong> sobre as ativações. Se separa as classes, a informação está lá — linearmente.</p>
+          <p style="margin:6px 0 0;font-size:14px;color:#71717A"><a class="cite-link" href="https://arxiv.org/abs/1610.01644" target="_blank" rel="noopener">Understanding Intermediate Layers Using Linear Classifier Probes (Alain &amp; Bengio 2016)</a> · <a class="cite-link" href="https://arxiv.org/abs/2102.12452" target="_blank" rel="noopener">Probing Classifiers survey (Belinkov 2022)</a></p>
+        </div>
+        <div class="interact-hint">clique para percorrer os 4 passos do método · <b>cuidado:</b> codificado ≠ o modelo usar</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizProbing" style="cursor:pointer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">logit lens lê a previsão em formação</span></div>
+      <div class="seg found"><span class="lab">a técnica</span><span class="txt"><b>probing</b>: um classificador linear testa se a info está lá</span><span class="paper"><a class="cite-link" href="https://arxiv.org/abs/1610.01644" target="_blank" rel="noopener">Understanding Intermediate Layers Using Linear Classifier Probes (Alain &amp; Bengio 2016)</a></span></div>
+      <div class="seg next"><span class="lab">e quem causou a saída?</span><span class="txt">atribuir aos componentes</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     14e — direct logit attribution (DLA)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">19</div>
+    <div class="eyebrow">Leitura · técnica</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">direct logit attribution</span></div>
+    <h1 class="title">Quem <span class="hl">votou</span> na resposta</h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">Já sabemos ler…</p>
+        <p>o que está numa camada. Mas "Paris" é a <strong>soma</strong> de muitos componentes — <strong>quem</strong> pesou mais?</p>
+        <p class="lead" style="margin-bottom:2px">O método, passo a passo:</p>
+        <p>pega a saída de cada cabeça/MLP e <strong>projeta na direção do token "Paris"</strong> no unembedding — esse produto é o "voto" dela.</p>
+        <div class="card plain mt8">
+          <p style="margin:0"><strong>Direct logit attribution</strong>: decompõe o logit de "Paris" por componente — a favor (verde) e contra (vermelho). Aponta os <strong>suspeitos</strong> para patching.</p>
+          <p style="margin:4px 0 0;font-size:11px;color:#71717A"><a class="cite-link" href="https://transformer-circuits.pub/2021/framework/index.html" target="_blank" rel="noopener">A Mathematical Framework (Elhage 2021)</a> · <a class="cite-link" href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens" target="_blank" rel="noopener">Logit Lens (nostalgebraist 2020)</a></p>
+        </div>
+        <div class="interact-hint">clique num componente para ver a projeção</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizDla"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">probing testa se um conceito está codificado</span></div>
+      <div class="seg found"><span class="lab">a técnica</span><span class="txt"><b>DLA</b>: decompõe o logit final por componente</span><span class="paper"><a class="cite-link" href="https://transformer-circuits.pub/2021/framework/index.html" target="_blank" rel="noopener">A Mathematical Framework (Elhage 2021)</a> · <a class="cite-link" href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens" target="_blank" rel="noopener">The Logit Lens (nostalgebraist 2020)</a></span></div>
+      <div class="seg next"><span class="lab">agora sim</span><span class="txt">→ como as peças se conectam: circuitos</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ONDA — Abrindo os <span style="color:var(--purple)">circuitos</span>
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center">
+    <div class="slide-num">20</div>
+    <div class="eyebrow" style="font-size:15px">Como o modelo computa</div>
+    <h1 style="font-size:52px;max-width:16em;margin:8px 0 18px">Features viram <span style="color:var(--purple)">circuitos</span></h1>
+    <p class="body" style="max-width:32em;font-size:23px;color:#3A3A48">Ler features soltas não explica o <strong>cálculo</strong>. Como componentes se conectam para <strong>computar</strong> uma tarefa — e como provar isso?</p>
   </div>
 </section>
 
@@ -400,27 +542,27 @@
      ============================================================ -->
 <section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <div class="slide-num">16</div>
-    <div class="eyebrow">Bloco 4 · a ideia</div>
+    <div class="slide-num">21</div>
+    <div class="eyebrow">Circuitos · o que é</div>
     <h1 class="title">Um <span class="hl">caminho de cálculo</span></h1>
     <div class="cols w6040">
       <div class="body">
-        <p>Componentes do modelo — cabeças de atenção, neurônios de MLP — <strong>lêem</strong> features
-        de camadas anteriores e <strong>escrevem</strong> novas adiante.</p>
+        <p class="lead" style="margin-bottom:2px">Já sabemos onde…</p>
+        <p>as features vivem. Mas features soltas não explicam o <strong>cálculo</strong> — como o modelo <em>combina</em> peças para resolver uma tarefa?</p>
+        <p class="lead" style="margin-bottom:2px">A ideia:</p>
+        <p>componentes — cabeças de atenção, neurônios de MLP — <strong>lêem</strong> features de camadas anteriores e <strong>escrevem</strong> novas adiante, ligados numa cadeia.</p>
         <div class="card plain mt8">
-          <p style="margin:0">Um <strong>circuito</strong> é o subconjunto desses componentes que, juntos,
-          implementam <em>uma tarefa específica</em> — ligados numa cadeia de causa e efeito.</p>
+          <p style="margin:0">Um <strong>circuito</strong> é o subconjunto de componentes que, juntos, implementam <em>uma tarefa específica</em> — numa cadeia de causa e efeito.</p>
+          <p style="margin:6px 0 0;font-size:14px;color:#71717A"><a class="cite-link" href="https://distill.pub/2020/circuits/zoom-in/" target="_blank" rel="noopener">Zoom In: An Introduction to Circuits (Olah 2020)</a></p>
         </div>
-        <p class="mt16">Achar o circuito = achar <strong>quais peças</strong> importam para aquela tarefa,
-        e <strong>como</strong> a informação flui entre elas.</p>
       </div>
-      <div class="body" style="align-self:center">
-        <div class="center"><div id="vizCircuit"></div></div>
+      <div class="body" style="display:flex;align-items:center;justify-content:center">
+        <div id="vizCircuit"></div>
       </div>
     </div>
     <div class="discovery">
       <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">features são os "substantivos" do modelo</span></div>
-      <div class="seg found"><span class="lab">a ideia</span><span class="txt">conectadas, formam <b>circuitos</b> que rodam algoritmos</span><span class="paper">Olah et al. 2020 · Zoom In</span></div>
+      <div class="seg found"><span class="lab">a ideia</span><span class="txt">conectadas, formam <b>circuitos</b> que rodam algoritmos</span><span class="paper"><a class="cite-link" href="https://distill.pub/2020/circuits/zoom-in/" target="_blank" rel="noopener">Zoom In: An Introduction to Circuits (Olah 2020)</a></span></div>
       <div class="seg next"><span class="lab">exemplo</span><span class="txt">o circuito de indução, passo a passo</span></div>
     </div>
   </div>
@@ -431,19 +573,19 @@
      ============================================================ -->
 <section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <div class="slide-num">17</div>
-    <div class="badge-row"><span class="badge demo">interativo</span><span class="badge tech">exemplo canônico</span></div>
-    <div class="eyebrow">Bloco 4 · o circuito de indução</div>
+    <div class="slide-num">22</div>
+    <div class="eyebrow">Circuitos · indução</div>
     <h1 class="title">“Já vi isso antes — <span class="hl">copio o que veio depois</span>”</h1>
     <div class="cols" style="grid-template-columns:0.7fr 1.3fr;gap:36px">
       <div class="body">
-        <p>Ao ver <em>“Harry”</em> pela 2ª vez, o modelo prevê <em>“Potter”</em> — porque foi o que
-        seguiu o 1º <em>“Harry”</em>.</p>
-        <p>Duas cabeças em sequência bastam:</p>
+        <p class="lead" style="margin-bottom:2px">Um circuito concreto:</p>
+        <p>ao ver <em>“Harry”</em> pela 2ª vez, o modelo prevê <em>“Potter”</em> — porque foi o que seguiu o 1º <em>“Harry”</em>.</p>
+        <p style="margin-bottom:4px">Duas cabeças em sequência bastam:</p>
         <ul class="bullets">
           <li class="b-azul"><strong>previous-token:</strong> marca quem veio antes de cada token.</li>
           <li><strong>induction:</strong> volta à ocorrência anterior e copia o próximo.</li>
         </ul>
+        <p style="font-size:14px;color:#71717A;margin-top:8px">induction heads: Elhage et al. (2021) · Olsson et al. (2022)</p>
         <div class="interact-hint">clique para montar o circuito passo a passo</div>
       </div>
       <div class="body" style="align-self:center">
@@ -452,7 +594,7 @@
     </div>
     <div class="discovery">
       <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">circuitos ligam componentes numa cadeia</span></div>
-      <div class="seg found"><span class="lab">o achado</span><span class="txt">a <b>induction head</b> implementa cópia de padrões</span><span class="paper">Elhage et al. 2021 · Olsson et al. 2022</span></div>
+      <div class="seg found"><span class="lab">o achado</span><span class="txt">a <b>induction head</b> implementa cópia de padrões</span><span class="paper"><a class="cite-link" href="https://transformer-circuits.pub/2021/framework/index.html" target="_blank" rel="noopener">A Mathematical Framework (Elhage 2021)</a> · <a class="cite-link" href="https://transformer-circuits.pub/2022/in-context-learning-and-induction-heads/index.html" target="_blank" rel="noopener">Induction Heads (Olsson 2022)</a></span></div>
       <div class="seg next"><span class="lab">a dúvida</span><span class="txt">como provar que é ESSE circuito?</span></div>
     </div>
   </div>
@@ -463,18 +605,17 @@
      ============================================================ -->
 <section data-background-color="#FFFFFF">
   <div class="slide-pad">
-    <div class="slide-num">18</div>
-    <div class="eyebrow">Bloco 4 · da observação à prova</div>
+    <div class="slide-num">23</div>
+    <div class="eyebrow">Circuitos · da observação à prova</div>
     <h1 class="title">Observar não é <span style="color:#DC2626">provar</span></h1>
     <div class="cols w6040">
       <div class="body">
-        <p>Ver duas cabeças "acenderem juntas" é <strong>correlação</strong>. Elas realmente
-        <em>causam</em> a previsão — ou só acompanham?</p>
+        <p class="lead" style="margin-bottom:2px">Traçamos o circuito, mas…</p>
+        <p>ver duas cabeças "acenderem juntas" é só <strong>correlação</strong>. Elas realmente <em>causam</em> a previsão — ou só acompanham?</p>
         <div class="card plain mt8">
-          <p style="margin:0">A prova de verdade: <strong>mexer</strong> no circuito e ver a saída mudar.
-          Se desligo a induction head e a previsão quebra, ela era causal.</p>
+          <p style="margin:0">A prova de verdade: <strong>mexer</strong> no circuito e ver a saída mudar. Se desligo a induction head e a previsão quebra, ela era causal.</p>
         </div>
-        <p class="mt16">É aí que a interpretabilidade deixa de <em>descrever</em> e passa a <strong>testar</strong>.</p>
+        <p class="mt16">É aqui que a interpretabilidade deixa de <em>descrever</em> e passa a <strong>testar</strong> — a virada causal.</p>
       </div>
       <div class="body" style="align-self:center">
         <div class="center"><div id="vizObsProof"></div></div>
@@ -483,8 +624,461 @@
     <div class="discovery">
       <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">traçamos o circuito de indução</span></div>
       <div class="seg found"><span class="lab">o limite</span><span class="txt">correlação ≠ causa — observar não basta</span></div>
-      <div class="seg next"><span class="lab">o clímax</span><span class="txt">→ intervir no modelo: patching, steering, ablação</span></div>
+      <div class="seg next"><span class="lab">a virada causal</span><span class="txt">→ intervir para <b>provar</b>: activation patching</span></div>
     </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     21 — activation patching: a ideia (VIZ-ÂNCORA)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">24</div>
+    <div class="eyebrow">Intervenção · activation patching · o que medimos</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">activation patching</span></div>
+    <h1 class="title">Transplantar uma <span class="hl">ativação</span></h1>
+    <div class="cols w5050">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">Para provar causa:</p>
+        <p>rode duas vezes — um prompt <span class="hl">limpo</span> ("A capital da França é ___", prevê <b>Paris</b>) e um <span style="color:#DC2626">corrompido</span> ("A capital da Itália é ___"), que diz "Roma".</p>
+        <p><strong>Copie</strong> uma ativação do limpo para o corrompido e meça quanto isso <strong>recupera</strong> "Paris":</p>
+        <div class="formula" style="font-size:17px;margin:8px 0" id="fx-patch"></div>
+        <div class="card plain" style="padding:12px 16px">
+          <p style="margin:0;font-size:15px"><strong>IE</strong> = <em>Indirect Effect</em>. 0 = não mudou nada · 1 = recuperou "Paris". <span style="color:#71717A"><a class="cite-link" href="https://arxiv.org/abs/2202.05262" target="_blank" rel="noopener">ROME (Meng 2022)</a> · <a class="cite-link" href="https://arxiv.org/abs/2004.12265" target="_blank" rel="noopener">Causal Mediation Analysis (Vig 2020)</a></span></p>
+        </div>
+        <div class="interact-hint">clique para transplantar a ativação</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizPatch" style="cursor:pointer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">queremos testar causalidade</span></div>
+      <div class="seg found"><span class="lab">o que medimos</span><span class="txt"><b>recuperação</b> do logit correto após o transplante</span><span class="paper"><a class="cite-link" href="https://arxiv.org/abs/2202.05262" target="_blank" rel="noopener">Locating and Editing Factual Associations in GPT / ROME (Meng 2022)</a> · <a class="cite-link" href="https://arxiv.org/abs/2004.12265" target="_blank" rel="noopener">Causal Mediation Analysis (Vig 2020)</a></span></div>
+      <div class="seg next"><span class="lab">como ler</span><span class="txt">→ repetir por camada e ver onde recupera</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     22 — activation patching: o que se aprende (localização)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">25</div>
+    <div class="eyebrow">Intervenção · activation patching · como interpretar</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">activation patching</span></div>
+    <h1 class="title">Onde a resposta <span class="hl">volta</span> = onde a info mora</h1>
+    <div class="cols w6040">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">Já sabemos medir…</p>
+        <p>a recuperação de <em>um</em> transplante. E se calcularmos esse efeito <strong>camada por camada</strong>? Cada uma ganha uma nota de 0 a 1.</p>
+        <div class="card plain mt8">
+          <p style="margin:0">A camada com o <strong>pico</strong> de recuperação é onde <strong>o fato "França→Paris"</strong> está sendo carregado — um mapa de <em>onde</em> o modelo guarda o quê.</p>
+          <p style="margin:6px 0 0;font-size:14px;color:#71717A"><a class="cite-link" href="https://arxiv.org/abs/2202.05262" target="_blank" rel="noopener">Locating and Editing Factual Associations in GPT / ROME (Meng 2022)</a></p>
+        </div>
+        <p class="mt16">É assim que se <strong>localiza</strong> um fato dentro da rede.</p>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizPatchMap"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">medimos a recuperação com o transplante</span></div>
+      <div class="seg found"><span class="lab">como ler</span><span class="txt">o <b>pico</b> por camada localiza a informação</span><span class="paper"><a class="cite-link" href="https://arxiv.org/abs/2202.05262" target="_blank" rel="noopener">Locating and Editing Factual Associations in GPT / ROME (Meng 2022)</a></span></div>
+      <div class="seg next"><span class="lab">mas e num modelo gigante?</span><span class="txt">um patch por componente não escala</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     22b — attribution patching (escalar via gradientes)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">26</div>
+    <div class="eyebrow">Intervenção · attribution patching</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">attribution patching</span></div>
+    <h1 class="title">Estimar <span class="hl">todos</span> de uma vez</h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">O patching funciona, mas…</p>
+        <p>testar um componente por vez custa <strong>um forward pass para cada</strong> — inviável com milhares deles.</p>
+        <p class="lead" style="margin-bottom:2px">E se…</p>
+        <p>usássemos <strong>gradientes</strong> para estimar <em>todos</em> de uma só vez?</p>
+        <div class="card plain mt8">
+          <p style="margin:0"><strong>Attribution patching</strong>: um forward + um backward aproximam todos os efeitos de uma vez — rápido, ao custo de ser <strong>aproximação</strong>.</p>
+          <p style="margin:5px 0 0;font-size:12px;color:#71717A"><a class="cite-link" href="https://www.neelnanda.io/mechanistic-interpretability/attribution-patching" target="_blank" rel="noopener">Attribution Patching (Nanda 2023)</a> · <a class="cite-link" href="https://arxiv.org/abs/2310.10348" target="_blank" rel="noopener">Attribution Patching &gt; ACDC (Syed 2023)</a></p>
+        </div>
+        <div class="interact-hint">clique para alternar exato ↔ aproximado</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizAttrPatch" style="cursor:pointer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">patching exato = 1 forward por componente</span></div>
+      <div class="seg found"><span class="lab">a técnica</span><span class="txt"><b>attribution patching</b>: gradientes estimam todos de uma vez</span><span class="paper"><a class="cite-link" href="https://www.neelnanda.io/mechanistic-interpretability/attribution-patching" target="_blank" rel="noopener">Attribution Patching (Nanda 2023)</a> · <a class="cite-link" href="https://arxiv.org/abs/2310.10348" target="_blank" rel="noopener">Attribution Patching Outperforms ACDC (Syed 2023)</a></span></div>
+      <div class="seg next"><span class="lab">o custo</span><span class="txt">→ é aproximação: some onde o efeito é muito não-linear</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     25 — ablação & path patching (desligar para provar)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">27</div>
+    <div class="eyebrow">Intervenção · attribution patching</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">attribution patching</span></div>
+    <h1 class="title sm">De onde vêm os <span class="hl">gradientes</span>?</h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">A pergunta natural:</p>
+        <p>se não vamos rodar mil forward passes, <strong>o que</strong> mede o efeito de cada componente? <strong>O gradiente.</strong></p>
+        <p class="lead" style="margin-bottom:2px">Três passos, dois passes:</p>
+        <p><strong>1)</strong> um <span class="hl">forward</span> guarda as ativações. <strong>2)</strong> um <span style="color:#DC2626">backward</span> propaga a métrica de volta — é <em>daí</em> que saem os gradientes ∂m/∂a, um por componente de uma vez.</p>
+        <div class="card plain mt8">
+          <p style="margin:0"><strong>3)</strong> aproximação linear (Taylor 1ª ordem): efeito ≈ <strong>grad × (corrompido − limpo)</strong>.</p>
+          <p style="margin:5px 0 0;font-size:12px;color:#71717A"><a class="cite-link" href="https://www.neelnanda.io/mechanistic-interpretability/attribution-patching" target="_blank" rel="noopener">Attribution Patching (Nanda 2023)</a></p>
+        </div>
+        <div class="interact-hint">clique para avançar os passos</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizAttrSteps" style="cursor:pointer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">queríamos estimar todos os efeitos de uma vez</span></div>
+      <div class="seg found"><span class="lab">como funciona</span><span class="txt">1 forward + 1 <b>backward</b> dão ∂m/∂a de todo componente; efeito ≈ grad·Δativação</span><span class="paper"><a class="cite-link" href="https://www.neelnanda.io/mechanistic-interpretability/attribution-patching" target="_blank" rel="noopener">Attribution Patching (Nanda 2023)</a></p></span></div>
+      <div class="seg next"><span class="lab">e o oposto de copiar?</span><span class="txt">→ <b>desligar</b> para provar necessidade: ablação</span></div>
+    </div>
+  </div>
+</section>
+
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">28</div>
+    <div class="eyebrow">Intervenção · ablação &amp; path patching</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">ablação &amp; path patching</span></div>
+    <h1 class="title">Desligar para provar <span class="hl">necessidade</span></h1>
+    <div class="cols w5050">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">Patching adiciona sinal…</p>
+        <p>mas e o <strong>oposto</strong>? Para provar que uma peça é <em>necessária</em>, o teste natural é <strong>removê-la</strong>.</p>
+        <div class="card plain mt8">
+          <p style="margin:0"><strong>Ablação</strong>: zere uma <em>head</em> e veja se a tarefa quebra — se quebrou, era necessária. <strong>Path patching</strong>: pergunta por <em>qual caminho</em> a informação flui de uma head a outra.</p>
+          <p style="margin:6px 0 0;font-size:14px;color:#71717A"><a class="cite-link" href="https://arxiv.org/abs/2211.00593" target="_blank" rel="noopener">Interpretability in the Wild / IOI (Wang 2022)</a> · <a class="cite-link" href="https://arxiv.org/abs/2304.05969" target="_blank" rel="noopener">Path Patching (Goldowsky-Dill 2023)</a></p>
+        </div>
+        <div class="interact-hint">clique numa head para ligar/desligar e ver o efeito</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizAblate" style="cursor:pointer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">patching copia sinal para medir efeito</span></div>
+      <div class="seg found"><span class="lab">a técnica</span><span class="txt"><b>ablação</b> prova necessidade; <b>path patching</b> traça o caminho</span><span class="paper"><a class="cite-link" href="https://arxiv.org/abs/2211.00593" target="_blank" rel="noopener">Interpretability in the Wild / IOI (Wang 2022)</a> · <a class="cite-link" href="https://arxiv.org/abs/2304.05969" target="_blank" rel="noopener">Path Patching (Goldowsky-Dill 2023)</a></span></div>
+      <div class="seg next"><span class="lab">mas achei o circuito certo?</span><span class="txt">falta um teste rigoroso da hipótese</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     25b — causal scrubbing (o padrão-ouro de validação)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">29</div>
+    <div class="eyebrow">Intervenção · causal scrubbing</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">causal scrubbing</span></div>
+    <h1 class="title">Provar que a <span class="hl">hipótese</span> está certa</h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">Ablação e patching <em>encontram</em> peças…</p>
+        <p>mas como saber se a sua <strong>explicação do circuito</strong> está <em>completa</em> — se não esqueceu nada?</p>
+        <p class="lead" style="margin-bottom:2px">A ideia:</p>
+        <p>se a hipótese diz que certos caminhos <em>não</em> importam, troque as ativações deles por outras. Se o desempenho <strong>se mantém</strong>, ela passou.</p>
+        <div class="card plain mt8">
+          <p style="margin:0"><strong>Causal scrubbing</strong>: resample o que a hipótese diz ser irrelevante. Se <strong>cair</strong>, você trocou algo que importava — a hipótese estava incompleta.</p>
+          <p style="margin:6px 0 0;font-size:14px;color:#71717A"><a class="cite-link" href="https://www.alignmentforum.org/posts/JvZhhzycHu2Yd57RN/causal-scrubbing-a-method-for-rigorously-testing" target="_blank" rel="noopener">Causal Scrubbing (Chan 2022, Redwood Research)</a></p>
+        </div>
+        <div class="interact-hint">clique: hipótese certa ↔ incompleta</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizScrub" style="cursor:pointer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">achamos circuitos com patching e ablação</span></div>
+      <div class="seg found"><span class="lab">a técnica</span><span class="txt"><b>causal scrubbing</b>: resample o irrelevante e veja se aguenta</span><span class="paper"><a class="cite-link" href="https://www.alignmentforum.org/posts/JvZhhzycHu2Yd57RN/causal-scrubbing-a-method-for-rigorously-testing" target="_blank" rel="noopener">Causal Scrubbing (Chan 2022, Redwood)</a></span></div>
+      <div class="seg next"><span class="lab">e fazer tudo isso à mão?</span><span class="txt">→ <b>automatizar</b> a descoberta: ACDC</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     18b — ACDC (descoberta automática de circuitos)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">30</div>
+    <div class="eyebrow">Circuitos · descoberta automática</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">ACDC</span></div>
+    <h1 class="title">Deixar o circuito <span class="hl">se revelar</span></h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">Traçar o circuito à mão…</p>
+        <p>funciona num exemplo pequeno. Mas achar o circuito de "França→Paris" num modelo real, com milhares de componentes, é <strong>inviável</strong> manualmente.</p>
+        <p class="lead" style="margin-bottom:2px">E se…</p>
+        <p>a máquina fizesse a busca? Parte do <strong>grafo completo</strong> e vai <strong>podando</strong> conexões cujo corte quase não muda a saída.</p>
+        <div class="card plain mt8">
+          <p style="margin:0"><strong>ACDC</strong>: o circuito <strong>emerge da poda</strong> — só o subgrafo essencial sobra, sem a gente adivinhar quais peças olhar.</p>
+          <p style="margin:6px 0 0;font-size:14px;color:#71717A">Conmy et al. (2023)</p>
+        </div>
+        <div class="interact-hint">clique para podar, passo a passo</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizAcdc" style="cursor:pointer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">circuitos eram traçados à mão</span></div>
+      <div class="seg found"><span class="lab">a técnica</span><span class="txt"><b>ACDC</b>: poda o grafo completo até o circuito essencial</span><span class="paper"><a class="cite-link" href="https://arxiv.org/abs/2304.14997" target="_blank" rel="noopener">Towards Automated Circuit Discovery (Conmy 2023)</a></span></div>
+      <div class="seg next"><span class="lab">mas como decide o que podar?</span><span class="txt">→ o <b>critério</b> de corte, aresta por aresta</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     18c — ACDC: o critério de poda (fórmula)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">31</div>
+    <div class="eyebrow">Circuitos · descoberta automática</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">ACDC · critério</span></div>
+    <h1 class="title">Cortar só o que <span class="hl">não faz falta</span></h1>
+    <div class="cols w5050">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">A pergunta para cada aresta:</p>
+        <p>"se eu cortar esta conexão, a saída do modelo <strong>muda muito</strong>?" A resposta decide se ela fica ou sai.</p>
+        <p class="lead" style="margin-bottom:2px">Como medir a mudança:</p>
+        <p>a <strong>divergência KL</strong> é um número que mede <em>o quanto duas distribuições de probabilidade diferem</em> — aqui, a saída <strong>com</strong> vs <strong>sem</strong> a aresta. 0 = idênticas; quanto maior, mais a aresta importava.</p>
+        <div class="formula" style="font-size:18px;margin:8px 0" id="fx-acdc"></div>
+        <div class="card plain" style="padding:12px 16px">
+          <p style="margin:0;font-size:14px"><strong>τ</strong> (tau) é um <strong>limiar</strong> que a gente escolhe: se a KL fica <strong>abaixo</strong> dele, a aresta é irrelevante → <strong>corta</strong>; senão, <strong>mantém</strong>.</p>
+          <p style="margin:5px 0 0;font-size:12px;color:#71717A">τ menor = circuito maior e mais fiel. <a class="cite-link" href="https://arxiv.org/abs/2304.14997" target="_blank" rel="noopener">Towards Automated Circuit Discovery (Conmy 2023)</a></p>
+        </div>
+        <div class="interact-hint">clique para testar a próxima aresta</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizAcdcCrit" style="cursor:pointer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">ACDC poda o grafo até o circuito essencial</span></div>
+      <div class="seg found"><span class="lab">o critério exato</span><span class="txt">corta a aresta se a saída muda menos que <b>τ</b> (medido por KL)</span><span class="paper"><a class="cite-link" href="https://arxiv.org/abs/2304.14997" target="_blank" rel="noopener">Towards Automated Circuit Discovery (Conmy 2023)</a></span></div>
+      <div class="seg next"><span class="lab">sabemos ler e provar — e agir?</span><span class="txt">→ usar tudo isso para <b>controlar</b> o modelo</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     ONDA — Escalar e <span style="color:var(--purple)">controlar</span>
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad" style="display:flex;flex-direction:column;justify-content:center">
+    <div class="slide-num">32</div>
+    <div class="eyebrow" style="font-size:15px">Ler não basta — agir</div>
+    <h1 style="font-size:52px;max-width:16em;margin:8px 0 18px">De entender a <span style="color:var(--purple)">controlar</span></h1>
+    <p class="body" style="max-width:32em;font-size:23px;color:#3A3A48">Se sabemos ler features e circuitos, o passo final: <strong>intervir</strong> — empurrar, desligar e direcionar o comportamento do modelo.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     23 — steering: a ideia (somar uma direção)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">33</div>
+    <div class="eyebrow">Intervenção · steering</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">activation steering</span></div>
+    <h1 class="title">Empurrar a ativação numa <span class="hl">direção</span></h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">Sabemos ler direções — e escrever?</p>
+        <p>Patching copia a ativação <em>inteira</em>. Steering é mais fino: soma a <strong>direção</strong> de uma feature à ativação, com intensidade α.</p>
+        <div class="formula" style="font-size:22px;margin:10px 0" id="fx-steer"></div>
+        <div class="card plain" style="padding:12px 16px">
+          <p style="margin:0"><span id="st-readout" class="hl" style="font-weight:700">—</span></p>
+          <p style="margin:4px 0 0;font-size:14px;color:#71717A">Turner et al. (2023) · Rimsky et al. (2023)</p>
+        </div>
+        <div class="slider-wrap mt16">
+          <input type="range" id="st-slider" min="0" max="30" value="10" class="viz-slider">
+          <div class="interact-hint">arraste α para empurrar mais forte na direção</div>
+        </div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizSteer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">patching copia ativações inteiras</span></div>
+      <div class="seg found"><span class="lab">a técnica</span><span class="txt"><b>activation steering</b>: somar α·(direção da feature)</span><span class="paper"><a class="cite-link" href="https://arxiv.org/abs/2308.10248" target="_blank" rel="noopener">Activation Addition (Turner 2023)</a> · <a class="cite-link" href="https://arxiv.org/abs/2312.06681" target="_blank" rel="noopener">Contrastive Activation Addition (Rimsky 2023)</a></span></div>
+      <div class="seg next"><span class="lab">na prática</span><span class="txt">controlar um traço da geração</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     24 — steering na prática (Golden Gate)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">34</div>
+    <div class="eyebrow">Intervenção · steering na prática</div>
+    <h1 class="title">Um botão para cada <span class="hl">conceito</span></h1>
+    <div class="cols w5050">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">O que isso vira na prática:</p>
+        <p>se cada feature do SAE é uma direção interpretável, cada uma vira um <strong>botão</strong> que a gente gira.</p>
+        <p>O caso famoso: amplificar a feature <span class="hl">"ponte Golden Gate"</span> fez o modelo insistir na ponte em <em>qualquer</em> conversa — de receitas a código.</p>
+        <ul class="bullets">
+          <li class="b-verde"><strong>Fraco:</strong> menções sutis ao conceito.</li>
+          <li class="b-vermelho"><strong>Forte demais:</strong> a saída fica incoerente, só fala aquilo.</li>
+        </ul>
+        <p style="font-size:14px;color:#71717A;margin-top:8px">Scaling Monosemanticity, Templeton et al. (2024)</p>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizSteerEx"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">steering soma uma direção de feature</span></div>
+      <div class="seg found"><span class="lab">a demonstração</span><span class="txt">features de SAE viram <b>botões</b> (ex.: Golden Gate)</span><span class="paper"><a class="cite-link" href="https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html" target="_blank" rel="noopener">Scaling Monosemanticity (Templeton 2024)</a></span></div>
+      <div class="seg next"><span class="lab">fechando o arco</span><span class="txt">→ e se o botão for uma <b>feature do SAE</b>?</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     26pre — de onde vem a direção (anatomia do SAE: encoder/decoder)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">35</div>
+    <div class="eyebrow">Intervenção · steering via SAE</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">SAE steering · mecânica</span></div>
+    <h1 class="title sm">De onde vem a <span class="hl">direção</span>?</h1>
+    <div class="cols w5050">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">O SAE tem duas metades:</p>
+        <p>o <strong>encoder</strong> lê a ativação h e diz <em>quais features estão ativas</em> (um vetor esparso — quase tudo zero). O <strong>decoder</strong> reconstrói h a partir delas.</p>
+        <div class="formula" style="font-size:16px;margin:8px 0" id="fx-sae-anat"></div>
+        <p>repara: o decoder é uma <strong>soma de vetores</strong>. Cada feature i tem o seu <strong>vetor-coluna</strong> d<sub>i</sub> — e a ativação dela diz o quanto usar dele.</p>
+        <div class="card plain" style="padding:12px 16px">
+          <p style="margin:0;font-size:15px">Esse vetor-coluna d<sub>i</sub> <strong>é</strong> a "direção da feature". Não precisamos procurá-la: o próprio SAE já a fornece, pronta para o steering.</p>
+        </div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizSaeAnat"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">o SAE dá features interpretáveis</span></div>
+      <div class="seg found"><span class="lab">a mecânica</span><span class="txt">a coluna do <b>decoder</b> de cada feature é a sua direção d</span><span class="paper"><a class="cite-link" href="https://arxiv.org/abs/2309.08600" target="_blank" rel="noopener">Sparse Autoencoders Find Highly Interpretable Features (Cunningham 2023)</a> · <a class="cite-link" href="https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html" target="_blank" rel="noopener">Scaling Monosemanticity (Templeton 2024)</a></span></div>
+      <div class="seg next"><span class="lab">temos a direção — e agora?</span><span class="txt">→ somar d<sub>i</sub> à ativação: <b>SAE steering</b></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     26 — steering via SAE (fecha o arco: interpretar + controlar)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">36</div>
+    <div class="eyebrow">Intervenção · steering via SAE</div>
+    <div class="tecnica-tag"><span class="lab">técnica</span><span class="nm">SAE steering</span></div>
+    <h1 class="title sm">A feature que se <span class="hl">lê</span> é o botão que se <span class="hl">gira</span></h1>
+    <div class="cols w4060">
+      <div class="body">
+        <p class="lead" style="margin-bottom:2px">Como funciona por dentro:</p>
+        <p>a feature "Golden Gate" do SAE <em>é</em> um <strong>vetor-direção</strong> d — o mesmo objeto que o steering usa.</p>
+        <p class="lead" style="margin-bottom:2px">O passo concreto:</p>
+        <p>na geração, <strong>somamos</strong> d à ativação h com um coeficiente α — igual ao activation steering, mas a direção veio <strong>do SAE</strong>:</p>
+        <div class="formula" style="font-size:18px;margin:8px 0" id="fx-saesteer"></div>
+        <div class="card plain" style="padding:12px 16px">
+          <p style="margin:0;font-size:15px">O arco se fecha: a <span class="hl">mesma</span> feature que <em>lemos</em> vira o botão que <em>giramos</em>. <span style="color:#71717A"><a class="cite-link" href="https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html" target="_blank" rel="noopener">Scaling Monosemanticity (Templeton 2024)</a></span></p>
+        </div>
+        <div class="interact-hint">clique numa feature para somá-la à ativação</div>
+      </div>
+      <div class="body" style="align-self:center">
+        <div class="center"><div id="vizSaeSteer" style="cursor:pointer"></div></div>
+      </div>
+    </div>
+    <div class="discovery">
+      <div class="seg knew"><span class="lab">até aqui sabíamos</span><span class="txt">a direção d de cada feature vem da coluna do decoder do SAE</span></div>
+      <div class="seg found"><span class="lab">a síntese</span><span class="txt">a <b>mesma feature</b> serve para ler E para controlar</span><span class="paper"><a class="cite-link" href="https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html" target="_blank" rel="noopener">Scaling Monosemanticity (Templeton 2024)</a></span></div>
+      <div class="seg next"><span class="lab">o arco completo</span><span class="txt">ler e controlar viraram <b>a mesma</b> alavanca</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     31 — TABELA-RESUMO: visão geral das técnicas (colorida por onda)
+     ============================================================ -->
+<section data-background-color="#FFFFFF">
+  <div class="slide-pad">
+    <div class="slide-num">37</div>
+    <div class="eyebrow">Visão geral · o arsenal em uma página</div>
+    <h1 class="title sm" style="margin-bottom:14px">Cada técnica, uma <span class="hl">pergunta</span></h1>
+    <table class="resumo">
+      <thead>
+        <tr><th>Técnica</th><th>Pergunta que responde</th><th class="ona">Onda</th></tr>
+      </thead>
+      <tbody>
+        <tr class="w1"><td>Logit lens</td><td>O que o modelo já "pensa" nesta camada?</td><td class="ona">1 · leitura</td></tr>
+        <tr class="w1"><td>Probing</td><td>Essa informação está codificada aqui?</td><td class="ona">1 · leitura</td></tr>
+        <tr class="w1"><td>Direct logit attribution</td><td>Quem contribuiu para a resposta final?</td><td class="ona">1 · leitura</td></tr>
+        <tr class="w2"><td>Activation patching</td><td>Essa ativação <em>causa</em> o comportamento?</td><td class="ona">2 · causal</td></tr>
+        <tr class="w2"><td>Attribution patching</td><td>Como estimar esse efeito em escala?</td><td class="ona">2 · causal</td></tr>
+        <tr class="w2"><td>Ablação / path patching</td><td>Esse componente é necessário? Por qual caminho?</td><td class="ona">2 · causal</td></tr>
+        <tr class="w2"><td>Causal scrubbing</td><td>Minha hipótese de circuito está certa?</td><td class="ona">2 · causal</td></tr>
+        <tr class="w2"><td>ACDC</td><td>Quais componentes formam o circuito?</td><td class="ona">2 · causal</td></tr>
+        <tr class="w3"><td>Sparse autoencoders</td><td>Quais features estão escondidas nos neurônios?</td><td class="ona">3 · decompor</td></tr>
+        <tr class="w4"><td>Activation / SAE steering</td><td>Posso controlar o comportamento via uma feature?</td><td class="ona">4 · controle</td></tr>
+      </tbody>
+    </table>
+    <p class="resumo-nota">Outras técnicas do campo, não cobertas aqui: <strong>tuned lens</strong> (logit lens calibrada),
+    <strong>attention analysis</strong> (quem olha para quem), <strong>transcoders / crosscoders</strong>, <strong>representation engineering</strong>.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     32 — FECHAMENTO: ecoa o "Por quê?" e fecha a linha do tempo
+     ============================================================ -->
+<section data-background-color="#1A1A1A">
+  <div class="slide-pad dark" style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center">
+    <div class="slide-num" style="color:#6B6B72">37</div>
+    <div class="eyebrow" style="color:var(--purple-md);margin-bottom:14px">de volta ao início</div>
+    <p style="font-size:30px;color:#fff;font-family:'Playfair Display',serif;margin-bottom:4px">
+      “A capital da França é <span style="color:#9333EA">Paris</span>”</p>
+    <h1 style="font-size:60px;color:#fff;margin:10px 0 20px 0">Agora sabemos <span style="color:#9333EA">como</span></h1>
+    <p class="body" style="max-width:30em;font-size:21px;color:#C9C9CF;font-style:italic">
+      Uma <b style="color:#fff;font-weight:600">direção</b> vira <b style="color:#fff;font-weight:600">circuito</b>,
+      o circuito se prova por <b style="color:#fff;font-weight:600">intervenção</b>,
+      a superposição se desfaz em <b style="color:#fff;font-weight:600">features</b> —
+      e a mesma feature que a gente lê é a alavanca que a gente controla.</p>
+    <p class="fragment" style="max-width:28em;font-size:19px;color:#8B8B96;margin-top:26px">
+      A caixa-preta virou um mapa parcial.</p>
+    <a class="fragment cta-btn" href="#" target="_blank" rel="noopener"
+       style="display:inline-flex;align-items:center;gap:10px;margin-top:28px;padding:14px 26px;border-radius:12px;background:#9333EA;color:#fff;text-decoration:none;font-size:18px;font-weight:600;box-shadow:0 4px 14px rgba(147,51,234,.35);transition:background .15s">
+      Como Mechanistic Interpretability pode nos ajudar em Fact-Checking?
+      <span style="font-size:20px">→</span></a>
   </div>
 </section>
 
@@ -520,10 +1114,11 @@ function progressMap(targetId, nowIdx){
 progressMap('pmap-1', 0);
 
 /* direction vs dimension (slide 05): axes = dimensions, feature = arbitrary direction */
+setViz('vizTfArch', VIZ.transformerArch({w:400,h:560,id:'tfA'}));
 setViz('vizDirs', VIZ.dirVsDim({w:440,h:360,id:'dd'}));
 
 /* crowding (slide 06): count mismatch — many features overflow few dims */
-setViz('vizCrowd', VIZ.featureOverflow({w:420,h:380,id:'crowd',nSlots:4}));
+setViz('vizCrowd', VIZ.featureOverflow({w:420,h:380,id:'crowd',crammed:true}));
 
 /* ANCHOR: vector algebra, click to accumulate steps */
 (function(){
@@ -607,8 +1202,53 @@ fx('fx-sae', 'f(x)=\\text{ReLU}(W_{enc}x+b)\\;\\;;\\;\\;\\hat{x}=W_{dec}f(x)');
   sl.addEventListener('input', upd); upd();
 })();
 
-/* slide 14 — real, readable SAE features */
-setViz('vizFeatEx', VIZ.featureCards({w:400,h:392,id:'fk'}));
+/* slide 14 — how we read a feature (top-activating examples → label) */
+(function(){
+  let labeled=false;
+  const render=()=>setViz('vizFeatEx', VIZ.featureRead({w:400,h:392,id:'fr',labeled}));
+  render();
+  const node=document.querySelector('#vizFeatEx');
+  if(node) node.style.cursor='pointer', node.addEventListener('click',()=>{labeled=!labeled;render();});
+})();
+
+/* slide 14b — labeled features at scale */
+setViz('vizFeatScale', VIZ.featureCards({w:400,h:392,id:'fk'}));
+
+/* ---- Interlúdio · técnicas de leitura ---- */
+/* logit lens — click cycles the peeked layer, prediction sharpens deeper */
+(function(){
+  let peek=1; const N=5;
+  function render(){
+    setViz('vizLogitLens', VIZ.logitLens({w:380,h:340,id:'llA',peekLayer:peek,nLayers:N}));
+    const node=document.querySelector('#vizLogitLens');
+    if(node) node.onclick=()=>{ peek = peek>=N-1 ? 0 : peek+1; render(); };
+  }
+  render();
+})();
+
+/* probing — toggle: info present (separable) ↔ absent (mixed) */
+(function(){
+  let step=0;
+  function render(){
+    setViz('vizProbing', VIZ.probingViz({w:440,h:340,id:'prA',step}));
+    const node=document.querySelector('#vizProbing');
+    if(node) node.onclick=()=>{ step=(step+1)%4; render(); };
+  }
+  render();
+})();
+
+/* DLA — static divergent bars */
+(function(){
+  let sel=0;
+  function render(){
+    setViz('vizDla', VIZ.dlaViz({w:440,h:400,id:'dlaA',sel}));
+    document.querySelectorAll('#vizDla .dla-row').forEach(el=>{
+      el.onclick=()=>{ sel=+el.getAttribute('data-i'); render(); };
+    });
+  }
+  render();
+})();
+
 
 /* ---- Bloco 4 ---- */
 progressMap('pmap-4', 3);
@@ -642,6 +1282,142 @@ setViz('vizCircuit', VIZ.attribGraph({w:300,h:300,id:'cir',nodes:[
   }
   render();
 })();
+
+/* ---- Bloco 5 (clímax) ---- */
+/* slide 19 — ACDC: click to prune step by step */
+(function(){
+  let step=0;
+  function render(){
+    setViz('vizAcdc', VIZ.acdcPrune({w:460,h:400,id:'acdcA',step}));
+    const node=document.querySelector('#vizAcdc');
+    if(node) node.onclick=()=>{ step = step>=4 ? 0 : step+1; render(); };
+  }
+  render();
+})();
+
+/* slide 18c — ACDC pruning criterion */
+fx('fx-acdc', "\\text{corta se } \\; D_{\\mathrm{KL}}\\big(\\,p_{\\text{com}} \\,\\|\\, p_{\\text{sem}}\\,\\big) < \\tau");
+(function(){
+  let edge=0;
+  function render(){
+    setViz('vizAcdcCrit', VIZ.acdcCriterion({w:400,h:392,id:'accA',edge}));
+    const node=document.querySelector('#vizAcdcCrit');
+    if(node) node.onclick=()=>{ edge = (edge+1)%3; render(); };
+  }
+  render();
+})();
+
+progressMap('pmap-5', 4);
+
+/* slide 20 — framing (três formas de intervir) */
+setViz('vizGold', VIZ.attribGraph({w:300,h:300,id:'gold',nodes:[
+  {label:'transplantar', y:0},
+  {label:'empurrar', y:0.5},
+  {label:'desligar', y:1, out:true}
+]}));
+
+/* slide 21 — VIZ-ÂNCORA: activation patching, click to transplant */
+fx('fx-patch', "\\text{IE} = \\dfrac{\\textcolor{#059669}{p_{\\text{patch}}} - \\textcolor{#DC2626}{p_{\\text{corromp}}}}{\\textcolor{#6B21A8}{p_{\\text{limpo}}} - \\textcolor{#DC2626}{p_{\\text{corromp}}}}");
+(function(){
+  let patched=false;
+  function render(){
+    setViz('vizPatch', VIZ.patchingLive({w:380,h:360,id:'ptA',patched,nLayers:4,patchLayer:2}));
+    const node=document.querySelector('#vizPatch');
+    if(node) node.onclick=()=>{ patched=!patched; render(); };
+  }
+  render();
+})();
+
+/* slide 22 — patch map (recuperação por camada) */
+setViz('vizPatchMap', VIZ.patchMap({w:380,h:340,id:'pm'}));
+
+/* slide 23 — attribution patching (toggle exato ↔ aproximado) */
+(function(){
+  let mode='exact';
+  function render(){
+    setViz('vizAttrPatch', VIZ.attributionPatching({w:460,h:360,id:'atpA',mode}));
+    const node=document.querySelector('#vizAttrPatch');
+    if(node) node.onclick=()=>{ mode = mode==='exact' ? 'attr' : 'exact'; render(); };
+  }
+  render();
+})();
+
+/* slide — attribution patching passo a passo (clique avança os 3 passos) */
+(function(){
+  let step=0;
+  function render(){
+    setViz('vizAttrSteps', VIZ.attrPatchSteps({w:470,h:400,id:'apsA',step}));
+    const node=document.querySelector('#vizAttrSteps');
+    if(node) node.onclick=()=>{ step=(step+1)%3; render(); };
+  }
+  render();
+})();
+
+/* ---- Bloco 5 · Leva 2 ---- */
+/* slide 23 — steering (somar direção), slider de α */
+fx('fx-steer', "h' = h + \\alpha \\cdot \\mathbf{d}_{\\text{feature}}");
+(function(){
+  const sl=document.getElementById('st-slider');
+  function upd(){
+    const a=(+sl.value)/10;
+    const r=VIZ.steeringViz({w:440,h:360,id:'stA',alpha:a});
+    setViz('vizSteer', r.svg);
+    const ro=document.getElementById('st-readout');
+    if(ro){
+      const col = a<0.5?'#059669':a<1.5?'#D97706':'#DC2626';
+      ro.innerHTML = `α = ${a.toFixed(1)} · efeito: <span style="color:${col}">${r.effect}</span>`;
+    }
+    sl.style.setProperty('--fill', ((+sl.value)/30*100)+'%');
+  }
+  sl.addEventListener('input', upd); upd();
+})();
+
+/* slide 24 — steering example (Golden Gate, três intensidades) */
+setViz('vizSteerEx', VIZ.steeringExample({w:400,h:360,id:'se'}));
+
+/* slide 25 — ablação (clicar desliga componente) */
+(function(){
+  let off=-1;
+  function render(){
+    setViz('vizAblate', VIZ.ablationViz({w:420,h:360,id:'abA',off}));
+    document.querySelectorAll('#vizAblate .abl-box').forEach(el=>{
+      el.onclick=()=>{ const i=+el.getAttribute('data-i'); off = (off===i? -1 : i); render(); };
+    });
+  }
+  render();
+})();
+
+/* slide 27 — causal scrubbing (toggle hipótese certa ↔ incompleta) */
+(function(){
+  let mode='good';
+  function render(){
+    setViz('vizScrub', VIZ.causalScrubbing({w:460,h:360,id:'csA',mode}));
+    const node=document.querySelector('#vizScrub');
+    if(node) node.onclick=()=>{ mode = mode==='good' ? 'bad' : 'good'; render(); };
+  }
+  render();
+})();
+
+/* ---- Bloco 5 · Leva 3 ---- */
+/* slide 26pre — SAE anatomy: where the direction comes from */
+fx('fx-sae-anat', "h \\;\\approx\\; \\sum_i \\; \\underbrace{a_i}_{\\text{ativação}} \\cdot \\underbrace{\\mathbf{d}_i}_{\\text{coluna do decoder}}");
+setViz('vizSaeAnat', VIZ.saeAnatomy({w:440,h:392,id:'sanA',highlight:1}));
+
+/* slide 26 — steering via SAE (features interpretáveis como botões) */
+fx('fx-saesteer', "h' = h + \\alpha \\cdot \\underbrace{\\mathbf{d}_{\\text{feature}}}_{\\text{direção do SAE}}");
+(function(){
+  let active=0;
+  function render(){
+    setViz('vizSaeSteer', VIZ.saeSteeringPanel({w:460,h:380,id:'spA',active}));
+    document.querySelectorAll('#vizSaeSteer .sae-btn').forEach(el=>{
+      el.onclick=()=>{ active=+el.getAttribute('data-i'); render(); };
+    });
+  }
+  render();
+})();
+
+
+
 </script>
 </body>
 </html>
