@@ -2098,12 +2098,11 @@ function attrPatchSteps(opts) {
     g += T(bx + 170, py + 104, "→ guardo a ativação aₗ de cada peça", "#71717A", 11, null, "italic");
   } else if (step === 1) {
     g += T(bx + 14, py + 24, "Um backward pass → daqui saem os gradientes", "#DC2626", 12.5, 800);
-    g += T(bx + 14, py + 48, "o gradiente ∂m/∂aₗ diz: se eu mexer 1 pouquinho em aₗ,", "#3A3A48", 12);
-    g += T(bx + 14, py + 66, "quanto o placar m sobe ou desce? Um número por componente.", "#3A3A48", 12);
-    g += el("rect", { x: bx + 14, y: py + 80, width: bw - 28, height: 40, rx: 8, fill: "#FDF2F2" });
-    g += T(bx + 28, py + 105, "∂m/∂aₗ = ", "#DC2626", 12.5, 700);
-    g += T(bx + 96, py + 105, "+3.0", "#DC2626", 13.5, 800);
-    g += T(bx + 138, py + 105, "(aₗ empurra m para cima) — 1 backward dá p/ TODOS", "#8A2B2B", 10.5, null, "italic");
+    g += T(bx + 14, py + 46, "o gradiente ∂m/∂aₗ mede: se eu cutucar a ativação aₗ,", "#3A3A48", 12);
+    g += T(bx + 14, py + 63, "quanto o placar m sobe ou desce? Um número por peça.", "#3A3A48", 12);
+    g += el("rect", { x: bx + 14, y: py + 74, width: bw - 28, height: 46, rx: 8, fill: "#FDF2F2" });
+    g += T(bx + 26, py + 92, "⚠ pesos CONGELADOS — não é treino.", "#B91C1C", 12, 800);
+    g += T(bx + 26, py + 109, "é o mesmo backward, mas o gradiente é LIDO, não aplicado.", "#8A2B2B", 11);
   } else {
     g += T(bx + 14, py + 24, "Multiplico: gradiente × (quanto aₗ mudaria)", "#059669", 12.5, 800);
     g += T(bx + 14, py + 48, "efeito ≈ ∂m/∂aₗ · (aₗ do corrompido − aₗ do limpo)", "#3A3A48", 12);
